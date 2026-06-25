@@ -141,7 +141,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 <div class="center" id="login">
   <div class="card">
     <div class="brand"><div class="bolt">⚡</div><h1>Cris App</h1></div>
-    <p class="tag">Design by Cris · <b>Tự xoá sau 48 giờ</b></p>
+    <p class="tag">Nhắn nhanh cho tổ kho · <b>tin tự xoá sau 48 giờ</b></p>
     <div class="err" id="err"></div>
     <button class="g-btn" onclick="loginGoogle()">
       <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.56c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.56-2.76c-.98.66-2.23 1.06-3.72 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
@@ -196,7 +196,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 </div></div>
 
 <div class="overlay" id="adminModal"><div class="modal">
-  <h3>Quản trị người dùng</h3><p class="sub">Duyệt tài khoản mới, khoá/mở khoá để chặn truy cập.</p>
+  <h3>Quản trị người dùng</h3><p class="sub">Duyệt tài khoản mới, khoá/mở khoá để chặn truy cập (tiết kiệm chi phí).</p>
   <div id="admPendingWrap"></div>
   <div class="mlabel">TẤT CẢ NGƯỜI DÙNG</div>
   <div id="admList"></div>
@@ -427,13 +427,19 @@ function renderMsgs(){const box=$("msgs");if(!box)return;
   box.scrollTop=box.scrollHeight;
 }
 window.openLightbox=id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;window.lbId=id;$("lbImg").src=m.fileURL;$("lightbox").classList.add("show");};
-window.saveMedia=id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;
-  const a=document.createElement("a");a.href=m.fileURL;a.download=m.fileName||"download";a.target="_blank";a.rel="noopener";
-  document.body.appendChild(a);a.click();a.remove();toast("Đang mở/tải file… (trên điện thoại: nhấn giữ để lưu)");};
+window.saveMedia=async id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;toast("Đang tải…");
+  try{const res=await fetch(m.fileURL);const blob=await res.blob();const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");a.href=url;a.download=m.fileName||"cris-app-file";document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);toast("Đã tải về máy");
+  }catch(e){window.open(m.fileURL,"_blank");toast("Đã mở file — trên điện thoại nhấn giữ ảnh để lưu");}};
 window.shareZalo=async id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;const url=m.fileURL;const title=m.fileName||"Chia sẻ từ Cris App";
-  try{if(navigator.share){await navigator.share({title,text:title,url});}
-    else{await navigator.clipboard.writeText(url);toast("Đã copy link — dán vào Zalo để gửi");}}
-  catch(e){try{await navigator.clipboard.writeText(url);toast("Đã copy link — dán vào Zalo để gửi");}catch(_){toast("Link: "+url);}}};
+  try{
+    if(navigator.canShare){try{const res=await fetch(url);const blob=await res.blob();
+      const file=new File([blob],m.fileName||"file",{type:blob.type||"application/octet-stream"});
+      if(navigator.canShare({files:[file]})){await navigator.share({files:[file],title});return;}}catch(_){}}
+    if(navigator.share){await navigator.share({title,text:title,url});return;}
+    await navigator.clipboard.writeText(url);toast("Đã copy link — dán vào Zalo để gửi");
+  }catch(e){try{await navigator.clipboard.writeText(url);toast("Đã copy link — dán vào Zalo để gửi");}catch(_){toast("Link: "+url);}}};
 
 async function touchRoom(rid,preview){await setDoc(doc(db,"rooms",rid),{updatedAt:serverTimestamp(),lastMessage:preview},{merge:true});}
 window.sendText=async()=>{const inp=$("ci");const text=inp.value.trim();if(!text||!activeRoom)return;inp.value="";const rid=activeRoom.id;
@@ -471,7 +477,10 @@ async function deleteAllMessages(rid){const snap=await getDocs(collection(db,"ro
   if(n%400!==0)await batch.commit();}
 window.clearChat=async()=>{$("chatMenu").classList.remove("show");if(!activeRoom)return;
   if(!confirm("Xoá TOÀN BỘ tin nhắn trong cuộc trò chuyện này? Không thể khôi phục."))return;
-  toast("Đang xoá…");try{await deleteAllMessages(activeRoom.id);await setDoc(doc(db,"rooms",activeRoom.id),{lastMessage:"",updatedAt:serverTimestamp()},{merge:true});toast("Đã xoá toàn bộ tin nhắn");}catch(e){toast("Lỗi xoá: "+(e.code||e.message));}};
+  toast("Đang xoá…");
+  try{await deleteAllMessages(activeRoom.id);}catch(e){toast("Lỗi xoá: "+(e.code||e.message));return;}
+  try{await setDoc(doc(db,"rooms",activeRoom.id),{lastMessage:"",updatedAt:serverTimestamp()},{merge:true});}catch(_){}
+  toast("Đã xoá toàn bộ tin nhắn");};
 window.deleteGroup=async()=>{$("chatMenu").classList.remove("show");if(!activeRoom||activeRoom.type!=="group")return;
   if(!confirm('Xoá hẳn nhóm "'+(activeRoom.name||"")+'"? Tất cả tin nhắn sẽ mất, không khôi phục được.'))return;
   toast("Đang xoá nhóm…");try{await deleteAllMessages(activeRoom.id);await deleteDoc(doc(db,"rooms",activeRoom.id));goBack();toast("Đã xoá nhóm");}catch(e){toast("Lỗi xoá: "+(e.code||e.message));}};
