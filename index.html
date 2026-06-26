@@ -123,6 +123,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .pill.lock{color:var(--red);background:#fdecec}.pill.unlock{color:var(--green);background:#e6f8f1}.pill.approve{color:#fff;background:var(--green)}
 .disabled-tag{font-size:9px;background:#fdecec;color:var(--red);padding:1px 6px;border-radius:6px;font-weight:700}
 .pending-tag{font-size:9px;background:#fff6e6;color:var(--amber);padding:1px 6px;border-radius:6px;font-weight:700}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 6px}
+.stat-card{background:#f4f6fb;border:1px solid var(--line);border-radius:13px;padding:13px 14px}
+.stat-card .n{font-size:23px;font-weight:800;color:var(--text);line-height:1}
+.stat-card .l{font-size:11.5px;color:var(--dim);margin-top:5px}
+.rank-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)}
+.rank-row .rk{width:22px;height:22px;border-radius:7px;background:#eaf0ff;color:var(--blue);font-weight:800;font-size:12px;display:grid;place-items:center;flex:none}
+.rank-row .mid{flex:1;min-width:0}.rank-row .nm{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rank-row .ct{font-size:11px;color:var(--faint)}
+.mini{font-size:12px;font-weight:600;padding:6px 11px;border-radius:8px;flex:none}.mini.view{color:var(--blue);background:#eaf0ff}.mini.del{color:var(--red);background:#fdecec}
 
 #lightbox{position:fixed;inset:0;background:rgba(10,14,25,.92);display:none;place-items:center;z-index:90;padding:20px;cursor:zoom-out}
 #lightbox.show{display:grid}#lightbox img{max-width:100%;max-height:86vh;border-radius:8px}
@@ -196,10 +204,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 </div></div>
 
 <div class="overlay" id="adminModal"><div class="modal">
-  <h3>Quản trị người dùng</h3><p class="sub">Duyệt tài khoản mới, khoá/mở khoá để chặn truy cập.</p>
-  <div id="admPendingWrap"></div>
-  <div class="mlabel">TẤT CẢ NGƯỜI DÙNG</div>
-  <div id="admList"></div>
+  <h3>Bảng quản trị</h3>
+  <div class="tabs" style="margin:14px 0"><div class="tab on" id="atab-stats" onclick="setAdminTab('stats')">Thống kê</div><div class="tab" id="atab-users" onclick="setAdminTab('users')">Người dùng</div></div>
+  <div id="adminStats"></div>
+  <div id="adminUsers" style="display:none">
+    <div id="admPendingWrap"></div>
+    <div class="mlabel">TẤT CẢ NGƯỜI DÙNG</div>
+    <div id="admList"></div>
+  </div>
   <div class="modal-actions"><button class="btn-ghost" onclick="closeModal('adminModal')">Đóng</button></div>
 </div></div>
 
@@ -218,7 +230,7 @@ import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup,
   signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, collection, query, where,
-  orderBy, onSnapshot, addDoc, serverTimestamp, Timestamp, arrayUnion, arrayRemove, writeBatch }
+  orderBy, onSnapshot, addDoc, serverTimestamp, Timestamp, arrayUnion, arrayRemove, writeBatch, increment }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
@@ -389,7 +401,7 @@ function renderComposer(){const slot=$("composerSlot");if(!slot)return;const s=b
       <button title="Gửi hình" onclick="document.getElementById('imgInput').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-5-5L5 21"/></svg></button>
       <button title="Gửi file" onclick="document.getElementById('fileInput').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
     </div>
-    <div class="inwrap"><input id="ci" placeholder="Nhắn tin… " autocomplete="off"></div>
+    <div class="inwrap"><input id="ci" placeholder="Nhắn tin… (dán ảnh chụp màn hình bằng Ctrl+V)" autocomplete="off"></div>
     <button class="send" onclick="sendText()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg></button></div>`;
   const ci=$("ci");ci.addEventListener("keydown",e=>{if(e.key==="Enter")sendText();});
   ci.addEventListener("paste",e=>{const items=e.clipboardData?.items||[];for(const it of items){if(it.type.startsWith("image/")){const f=it.getAsFile();if(f){e.preventDefault();uploadAndSend(f,"image");}}}});
@@ -427,12 +439,12 @@ function renderMsgs(){const box=$("msgs");if(!box)return;
   box.scrollTop=box.scrollHeight;
 }
 window.openLightbox=id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;window.lbId=id;$("lbImg").src=m.fileURL;$("lightbox").classList.add("show");};
-window.saveMedia=async id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;toast("Đang tải…");
+window.saveMedia=async id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;bumpStats("filesDownloaded");toast("Đang tải…");
   try{const res=await fetch(m.fileURL);const blob=await res.blob();const url=URL.createObjectURL(blob);
     const a=document.createElement("a");a.href=url;a.download=m.fileName||"cris-app-file";document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),5000);toast("Đã tải về máy");
   }catch(e){window.open(m.fileURL,"_blank");toast("Đã mở file — trên điện thoại nhấn giữ ảnh để lưu");}};
-window.shareZalo=async id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;const url=m.fileURL;const title=m.fileName||"Chia sẻ từ Cris App";
+window.shareZalo=async id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;bumpStats("filesShared");const url=m.fileURL;const title=m.fileName||"Chia sẻ từ Cris App";
   try{
     if(navigator.canShare){try{const res=await fetch(url);const blob=await res.blob();
       const file=new File([blob],m.fileName||"file",{type:blob.type||"application/octet-stream"});
@@ -441,10 +453,11 @@ window.shareZalo=async id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;
     await navigator.clipboard.writeText(url);toast("Đã copy link — dán vào Zalo để gửi");
   }catch(e){try{await navigator.clipboard.writeText(url);toast("Đã copy link — dán vào Zalo để gửi");}catch(_){toast("Link: "+url);}}};
 
-async function touchRoom(rid,preview){await setDoc(doc(db,"rooms",rid),{updatedAt:serverTimestamp(),lastMessage:preview},{merge:true});}
+async function bumpStats(field){try{await setDoc(doc(db,"stats","global"),{[field]:increment(1),updatedAt:serverTimestamp()},{merge:true});}catch(_){}}
+async function touchRoom(rid,preview){await setDoc(doc(db,"rooms",rid),{updatedAt:serverTimestamp(),lastMessage:preview,msgCount:increment(1)},{merge:true});}
 window.sendText=async()=>{const inp=$("ci");const text=inp.value.trim();if(!text||!activeRoom)return;inp.value="";const rid=activeRoom.id;
   try{await addDoc(collection(db,"rooms",rid,"messages"),{from:me.uid,type:"text",text,createdAt:serverTimestamp(),expireAt:Timestamp.fromMillis(Date.now()+H48)});
-    await touchRoom(rid,text.slice(0,40));}catch(e){toast("Không gửi được: "+e.code);inp.value=text;}};
+    await touchRoom(rid,text.slice(0,40));bumpStats("messagesSent");}catch(e){toast("Không gửi được: "+e.code);inp.value=text;}};
 
 /* ---------- nén ảnh (tiết kiệm chi phí) ---------- */
 function compressImage(file){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);
@@ -461,7 +474,7 @@ async function uploadAndSend(file,kind){if(!activeRoom)return;const rid=activeRo
     const safe=name.replace(/[^a-zA-Z0-9._-]/g,"_");const path=`chat/${rid}/${Date.now()}_${safe}`;
     await uploadBytes(ref(storage,path),blob,{contentType:mime});const url=await getDownloadURL(ref(storage,path));
     await addDoc(collection(db,"rooms",rid,"messages"),{from:me.uid,type:kind,text:"",fileURL:url,filePath:path,fileName:name,fileSize:blob.size,mime,createdAt:serverTimestamp(),expireAt:Timestamp.fromMillis(Date.now()+H48)});
-    await touchRoom(rid,kind==="image"?"📷 Hình ảnh":"📎 "+name);
+    await touchRoom(rid,kind==="image"?"📷 Hình ảnh":"📎 "+name);bumpStats("filesUploaded");
   }catch(e){toast("Gửi thất bại: "+(e.code||e.message));}}
 $("imgInput").addEventListener("change",e=>{const f=e.target.files[0];if(f)uploadAndSend(f,"image");e.target.value="";});
 $("fileInput").addEventListener("change",e=>{const f=e.target.files[0];if(f)uploadAndSend(f,f.type.startsWith("image/")?"image":"file");e.target.value="";});
@@ -501,7 +514,30 @@ window.createGroup=async()=>{const name=$("gName").value.trim();if(!name)return 
   closeModal("groupModal");setTab("chats");openRoom(r.id);};
 
 /* ---------- admin ---------- */
-window.openAdmin=()=>{if(!me.isAdmin)return;renderAdmin();$("adminModal").classList.add("show");};
+window.openAdmin=()=>{if(!me.isAdmin)return;renderAdmin();setAdminTab("stats");$("adminModal").classList.add("show");};
+window.setAdminTab=t=>{$("atab-stats").classList.toggle("on",t==="stats");$("atab-users").classList.toggle("on",t==="users");
+  $("adminStats").style.display=t==="stats"?"block":"none";$("adminUsers").style.display=t==="users"?"block":"none";
+  if(t==="stats")renderAdminStats();};
+function roomLabel(r){if(r.type==="group")return (r.name||"Nhóm");
+  return (r.members||[]).map(u=>usersMap[u]?.name||usersMap[u]?.email||"?").join(" ↔ ");}
+async function renderAdminStats(){const box=$("adminStats");box.innerHTML='<div class="empty-list">Đang tải…</div>';
+  let s={};try{const g=await getDoc(doc(db,"stats","global"));s=g.exists()?g.data():{};}catch(_){}
+  let rooms=[];try{const rs=await getDocs(collection(db,"rooms"));rooms=rs.docs.map(d=>({id:d.id,...d.data()}));}catch(_){}
+  rooms.sort((a,b)=>(b.msgCount||0)-(a.msgCount||0));const top=rooms.filter(r=>(r.msgCount||0)>0).slice(0,10);
+  const card=(n,l)=>`<div class="stat-card"><div class="n">${n||0}</div><div class="l">${l}</div></div>`;
+  box.innerHTML=`<div class="stat-grid">
+    ${card(s.messagesSent,"Tin nhắn đã gửi")}${card(s.filesUploaded,"File/hình đã gửi")}
+    ${card(s.filesDownloaded,"Lượt tải về")}${card(s.filesShared,"Lượt chia sẻ Zalo")}</div>
+    <div class="mlabel">XẾP HẠNG TƯƠNG TÁC (${top.length})</div>`+
+    (top.length?top.map((r,i)=>`<div class="rank-row"><div class="rk">${i+1}</div>
+      <div class="mid"><div class="nm">${esc(roomLabel(r))}${r.type==="group"?' · nhóm':''}</div><div class="ct">${r.msgCount||0} tin</div></div>
+      <button class="mini view" onclick="adminView('${r.id}')">Xem</button>
+      <button class="mini del" onclick="adminClear('${r.id}')">Xoá</button></div>`).join("")
+      :'<div class="empty-list">Chưa có dữ liệu tương tác.</div>');
+}
+window.adminView=async rid=>{closeModal("adminModal");await openRoom(rid);};
+window.adminClear=async rid=>{if(!confirm("Xoá toàn bộ tin nhắn của cuộc trò chuyện này?"))return;
+  try{await deleteAllMessages(rid);await setDoc(doc(db,"rooms",rid),{lastMessage:"",msgCount:0,updatedAt:serverTimestamp()},{merge:true});toast("Đã xoá");renderAdminStats();}catch(e){toast("Lỗi: "+(e.code||e.message));}};
 function renderAdmin(){
   const pend=myUsers.filter(p=>(p.status||"pending")!=="approved"&&!p.disabled);
   $("admPendingWrap").innerHTML=pend.length?`<div class="mlabel" style="color:var(--amber)">CHỜ DUYỆT (${pend.length})</div>`+
