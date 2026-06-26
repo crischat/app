@@ -140,7 +140,19 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1b2440;color:#fff;font-size:13px;padding:11px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.4);z-index:95;opacity:0;transition:.25s;pointer-events:none}.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
 
 @media (max-width:820px){.shell{grid-template-columns:1fr}.chat{display:none}body.chat-open .list{display:none}body.chat-open .chat{display:flex}.back{display:flex}.m{max-width:88%}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.unread{min-width:20px;height:20px;padding:0 6px;border-radius:11px;background:var(--red);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;flex:none;animation:badgePulse 2.2s infinite}
+.row-item.has-unread .nm{font-weight:800}.row-item.has-unread .pv{color:var(--text);font-weight:600}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes badgePulse{0%{box-shadow:0 0 0 0 rgba(229,72,77,.45)}70%,100%{box-shadow:0 0 0 6px rgba(229,72,77,0)}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.m:last-child{animation:msgIn .26s cubic-bezier(.2,.8,.2,1)}
+.overlay.show .modal{animation:modalIn .24s cubic-bezier(.2,.8,.2,1)}
+#lightbox.show{animation:fadeIn .2s ease}
+.chat-empty .bolt{animation:floaty 3.6s ease-in-out infinite}
+.send:active{transform:scale(.9)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -221,8 +233,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   <button class="chip zalo" onclick="shareZalo(lbId)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>Chia sẻ Zalo</button></div>
 </div>
 <div class="toast" id="toast"></div>
-<input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" style="display:none">
-<input type="file" id="imgInput" accept="image/*" style="display:none">
+<input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" multiple style="display:none">
+<input type="file" id="imgInput" accept="image/*" multiple style="display:none">
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -244,11 +256,14 @@ const firebaseConfig = {
   appId: "1:524052766303:web:57765373ca6e8d500605ea"
 };
 const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app), storage=getStorage(app);
-const H48=48*3600*1000, MAX_FILE=25*1024*1024;
+const H48=48*3600*1000, MAX_FILE=25*1024*1024, IMG_MAX_DIM=1600, IMG_QUALITY=0.85, COMPRESS_IMG=true;
 
 let me=null, usersMap={}, myUsers=[], myRooms=[], activeRoom=null;
 let unsubMsgs=null, unsubUsers=null, unsubRooms=null, currentMsgs=[], tab="chats";
 window.lbId=null;
+let lastSeen={};
+function loadSeen(uid){try{lastSeen=JSON.parse(localStorage.getItem("cris_seen_"+uid))||{};}catch(_){lastSeen={};}}
+function saveSeen(){try{localStorage.setItem("cris_seen_"+me.uid,JSON.stringify(lastSeen));}catch(_){}}
 
 const $=id=>document.getElementById(id);
 const pal=["#2f6bff","#6d5cf0","#1bbf86","#e8920c","#e5709a","#10a9cf","#f0935a","#7a5cf0"];
@@ -302,6 +317,7 @@ async function saveUser(u,name){
 
 onAuthStateChanged(auth,async(u)=>{
   if(u){try{await saveUser(u);}catch(e){}
+    loadSeen(u.uid);
     me={uid:u.uid,name:u.displayName||u.email.split("@")[0],email:u.email,photoURL:u.photoURL,blocked:[],isAdmin:false,status:"pending"};
     listenUsers();listenRooms();
   }else{[unsubMsgs,unsubUsers,unsubRooms].forEach(f=>f&&f());me=null;activeRoom=null;
@@ -343,6 +359,7 @@ function listenRooms(){unsubRooms&&unsubRooms();
   const q=query(collection(db,"rooms"),where("members","array-contains",me.uid));
   unsubRooms=onSnapshot(q,snap=>{
     myRooms=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.updatedAt?.toMillis?.()||0)-(a.updatedAt?.toMillis?.()||0));
+    if(activeRoom){const ar=myRooms.find(x=>x.id===activeRoom.id);if(ar){lastSeen[activeRoom.id]=ar.msgCount||0;saveSeen();}}
     if(tab==="chats")renderList();
   },()=>{});}
 function roomDisplay(r){if(r.type==="group")return {name:r.name||"Nhóm",sub:(r.members?.length||0)+" thành viên",grp:true};
@@ -354,8 +371,10 @@ function renderList(){const box=$("listBody");
   if(tab==="chats"){
     if(!myRooms.length){box.innerHTML=`<div class="empty-list">Chưa có cuộc trò chuyện nào.<br>Qua tab "Mọi người" để bắt đầu chat, hoặc bấm "Tạo nhóm".</div>`;return;}
     box.innerHTML=myRooms.map(r=>{const d=roomDisplay(r);const last=r.lastMessage?esc(r.lastMessage):"";
-      return `<div class="row-item ${activeRoom?.id===r.id?'on':''}" onclick="openRoom('${r.id}')">${d.grp?grpAvatar(d.name):avatar(d.u)}
-        <div class="mid"><div class="nm">${esc(d.name)}${d.grp?'<span class="gtag">NHÓM</span>':''}</div><div class="pv">${last||d.sub}</div></div></div>`;}).join("");
+      const un=r.id===activeRoom?.id?0:Math.max(0,(r.msgCount||0)-(lastSeen[r.id]||0));
+      const badge=un>0?`<div class="unread">${un>99?'99+':un}</div>`:"";
+      return `<div class="row-item ${activeRoom?.id===r.id?'on':''} ${un>0?'has-unread':''}" onclick="openRoom('${r.id}')">${d.grp?grpAvatar(d.name):avatar(d.u)}
+        <div class="mid"><div class="nm">${esc(d.name)}${d.grp?'<span class="gtag">NHÓM</span>':''}</div><div class="pv">${last||d.sub}</div></div>${badge}</div>`;}).join("");
   }else{
     const list=myUsers.filter(p=>!p.disabled&&(p.status||"pending")==="approved").sort((a,b)=>(a.name||"").localeCompare(b.name||""));
     if(!list.length){box.innerHTML=`<div class="empty-list">Chưa có đồng nghiệp nào được duyệt.<br>Rủ thêm người đăng nhập (admin duyệt) để bắt đầu chat.</div>`;return;}
@@ -369,7 +388,7 @@ window.openDM=async uid=>{const rid=roomId(me.uid,uid);
 window.openRoom=async rid=>{
   let r=myRooms.find(x=>x.id===rid);
   if(!r){const s=await getDoc(doc(db,"rooms",rid));if(s.exists())r={id:rid,...s.data()};}
-  if(!r)return;activeRoom=r;document.body.classList.add("chat-open");if(tab==="chats")renderList();
+  if(!r)return;activeRoom=r;lastSeen[rid]=r.msgCount||0;saveSeen();document.body.classList.add("chat-open");if(tab==="chats")renderList();
   const d=roomDisplay(r);const isRoomAdmin=r.owner===me.uid||me.isAdmin;
   let menu="";
   if(r.type==="dm"){menu=`<button onclick="toggleBlock()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg><span id="blockTxt">Chặn người này</span></button>
@@ -461,23 +480,27 @@ window.sendText=async()=>{const inp=$("ci");const text=inp.value.trim();if(!text
 
 /* ---------- nén ảnh (tiết kiệm chi phí) ---------- */
 function compressImage(file){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);
-  img.onload=()=>{URL.revokeObjectURL(url);const MAX=1280;let{width:w,height:h}=img;
+  img.onload=()=>{URL.revokeObjectURL(url);const MAX=IMG_MAX_DIM;let{width:w,height:h}=img;
     if(w>MAX||h>MAX){const s=MAX/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}
     const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);
-    c.toBlob(b=>b?res(b):rej(new Error("compress")),"image/jpeg",0.82);};
+    c.toBlob(b=>b?res(b):rej(new Error("compress")),"image/jpeg",IMG_QUALITY);};
   img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error("load"));};img.src=url;});}
 async function uploadAndSend(file,kind){if(!activeRoom)return;const rid=activeRoom.id;
-  if(kind==="file"&&file.size>MAX_FILE){toast("File quá lớn (tối đa 25MB)");return;}
-  toast(kind==="image"?"Đang nén & gửi ảnh…":"Đang gửi file…");
+  const willCompress=kind==="image"&&COMPRESS_IMG;
+  if(!willCompress&&file.size>MAX_FILE){toast("File quá lớn (tối đa 25MB)");return;}
+  toast(kind==="image"?(willCompress?"Đang nén & gửi ảnh…":"Đang gửi ảnh…"):"Đang gửi file…");
   try{let blob=file,name=file.name||"file",mime=file.type||"application/octet-stream";
-    if(kind==="image"){blob=await compressImage(file);name=(file.name?file.name.replace(/\.[^.]+$/,""):"anh-chup")+".jpg";mime="image/jpeg";}
+    if(willCompress){blob=await compressImage(file);name=(file.name?file.name.replace(/\.[^.]+$/,""):"anh-chup")+".jpg";mime="image/jpeg";}
     const safe=name.replace(/[^a-zA-Z0-9._-]/g,"_");const path=`chat/${rid}/${Date.now()}_${safe}`;
     await uploadBytes(ref(storage,path),blob,{contentType:mime});const url=await getDownloadURL(ref(storage,path));
     await addDoc(collection(db,"rooms",rid,"messages"),{from:me.uid,type:kind,text:"",fileURL:url,filePath:path,fileName:name,fileSize:blob.size,mime,createdAt:serverTimestamp(),expireAt:Timestamp.fromMillis(Date.now()+H48)});
     await touchRoom(rid,kind==="image"?"📷 Hình ảnh":"📎 "+name);bumpStats("filesUploaded");
   }catch(e){toast("Gửi thất bại: "+(e.code||e.message));}}
-$("imgInput").addEventListener("change",e=>{const f=e.target.files[0];if(f)uploadAndSend(f,"image");e.target.value="";});
-$("fileInput").addEventListener("change",e=>{const f=e.target.files[0];if(f)uploadAndSend(f,f.type.startsWith("image/")?"image":"file");e.target.value="";});
+async function uploadMany(files,forceKind){const n=files.length;if(n>1)toast("Đang gửi "+n+" mục…");
+  for(const f of files){const kind=forceKind||(f.type.startsWith("image/")?"image":"file");await uploadAndSend(f,kind);}
+  if(n>1)toast("Đã gửi "+n+" mục");}
+$("imgInput").addEventListener("change",e=>{const fs=[...e.target.files];if(fs.length)uploadMany(fs,"image");e.target.value="";});
+$("fileInput").addEventListener("change",e=>{const fs=[...e.target.files];if(fs.length)uploadMany(fs);e.target.value="";});
 
 /* ---------- block ---------- */
 window.toggleBlock=async()=>{const s=blockState();if(!s.otherUid)return;$("chatMenu").classList.remove("show");
