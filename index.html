@@ -151,29 +151,33 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .filters button.on{background:var(--blue);color:#fff}
 
 .feed{flex:1;min-height:0;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch}
-.item{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:12px;border-left:4px solid var(--amber)}
+.item{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:10px;
+  border-left:4px solid var(--amber);display:flex;gap:11px;padding:11px}
 .item.received{border-left-color:var(--green)}
 .item.returned{border-left-color:var(--red)}
-.item-top{display:flex;align-items:center;gap:10px;padding:11px 13px 9px}
-.item-top .mid{flex:1;min-width:0}
-.item-top .nm{font-weight:700;font-size:14px}
-.item-top .tm{font-size:11.5px;color:var(--faint);margin-top:1px}
-.stpill{font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:8px;white-space:nowrap}
+.item-thumb{width:88px;height:88px;flex:none;border-radius:11px;object-fit:cover;
+  background:#f1f4fa;cursor:pointer;display:block}
+.item-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.item-line{display:flex;align-items:center;gap:8px}
+.item-line .mid{flex:1;min-width:0}
+.item-line .nm{font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-line .tm{font-size:11px;color:var(--faint);margin-top:1px}
+.stpill{font-size:9.5px;font-weight:800;padding:3px 7px;border-radius:7px;white-space:nowrap;flex:none}
 .stpill.pending{background:#fff6e6;color:var(--amber)}
 .stpill.received{background:#e6f8f1;color:var(--green)}
 .stpill.returned{background:#fdecec;color:var(--red)}
-.item-img{width:100%;display:block;background:#f1f4fa;cursor:pointer;max-height:340px;object-fit:contain}
-.item-cap{padding:9px 13px 0;font-size:13.5px;line-height:1.5;white-space:pre-wrap}
-.item-note{margin:9px 13px 0;padding:9px 11px;border-radius:10px;font-size:12.5px;line-height:1.5}
+.item-cap{font-size:12.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.item-note{padding:6px 9px;border-radius:8px;font-size:11.5px;line-height:1.45}
 .item-note.ok{background:#e6f8f1;color:#0e7a56}
 .item-note.no{background:#fdecec;color:#a32a2e}
 .item-note b{font-weight:700}
-.remind-note{display:flex;align-items:center;gap:6px;margin:9px 13px 0;font-size:12px;color:var(--amber);font-weight:600}
-.remind-note svg{width:13px;height:13px}
-.item-acts{display:flex;gap:8px;padding:11px 13px 13px}
-.act{flex:1;padding:11px;border-radius:11px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:7px}
-.act svg{width:16px;height:16px}
-.act.take{background:var(--green);color:#fff;box-shadow:0 8px 18px -10px rgba(27,191,134,.9)}
+.remind-note{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--amber);font-weight:600}
+.remind-note svg{width:12px;height:12px}
+.item-acts{display:flex;gap:6px;margin-top:2px}
+.act{flex:1;padding:8px 6px;border-radius:9px;font-weight:700;font-size:12.5px;
+  display:flex;align-items:center;justify-content:center;gap:5px}
+.act svg{width:14px;height:14px}
+.act.take{background:var(--green);color:#fff;box-shadow:0 6px 14px -8px rgba(27,191,134,.9)}
 .act.give{background:#fdecec;color:var(--red);border:1px solid #f6c9ca}
 .act.remind{background:#fff6e6;color:#9a6a00;border:1px solid #f3dca6}
 .act:active{transform:scale(.97)}
@@ -364,7 +368,7 @@ import { getFunctions, httpsCallable }
 /* ══════════ CẤU HÌNH ══════════ */
 const VAPID_KEY = "BAxBYMwpYnIpGvNvX8OVMvwINjWvO_O0wXunw2sgQ8DnBTo0jpZis46y-k-2M2W1Y-H-X5BCpBwVcqfPOVrFYlI";
 const REGION    = "asia-southeast1";
-const ROOT_ADMINS = ["admin@cris.app"];   // phải khớp danh sách trong firestore.rules
+const ROOT_ADMINS = ["admin@cris.app"];   // phải khớp firestore.rules + storage.rules
 const firebaseConfig = {
   apiKey: "AIzaSyDE21oV0RSw3KMF-lz1rWA4FZ3llEITpqI",
   authDomain: "cris-app-chat.firebaseapp.com",
@@ -377,10 +381,10 @@ const firebaseConfig = {
 /* Quy tắc nhắc việc — đổi ở đây, không phải sửa chỗ khác */
 const REMIND_EVERY_MIN = 15;     // nhắc lại sau bao nhiêu phút
 const REMIND_MAX       = 0;      // 0 = nhắc mãi đến khi có người bấm
-const WORK_IMG_SCALE   = 0.30;   // ảnh khu vực làm việc còn 30%
-const WORK_IMG_MAXDIM  = 1000;   // nhưng không vượt quá cạnh này
-const WORK_IMG_QUALITY = 0.62;
-const THUMB_DIM        = 220;
+const WORK_IMG_SCALE   = 0.35;   // ảnh khu vực làm việc còn 35%
+const WORK_IMG_MAXDIM  = 1280;   // nhưng không vượt quá cạnh này
+const WORK_IMG_QUALITY = 0.75;
+const THUMB_DIM        = 320;
 const H48 = 48*3600*1000, MAX_FILE = 25*1024*1024;
 const RETURN_REASONS = ["Sai part","Thiếu số lượng","Hình mờ khó đọc","Sai nhóm","Trùng hình"];
 
@@ -469,7 +473,7 @@ onAuthStateChanged(auth,async u=>{
 });
 
 function gate(){
-  if(ROOT_ADMINS.includes((me.email||"").toLowerCase())) me.isAdmin = true;
+  if(ROOT_ADMINS.includes((me.email||"").toLowerCase())) me.isAdmin=true;
   const ok=me.isAdmin||me.status==="approved";
   if(!ok){$("login").style.display="none";$("app").style.display="none";
     $("pendEmail").textContent=me.email;$("pending").style.display="grid";return false;}
@@ -1004,14 +1008,15 @@ function itemCard(i,canRecv){
     if(btns.length)acts=`<div class="item-acts">${btns.join("")}</div>`;
   }
   return `<div class="item ${i.status}">
-    <div class="item-top">
-      ${avatar(usersMap[i.from]||{name:i.fromName},"sm")}
-      <div class="mid"><div class="nm">${esc(i.fromName||"?")}</div><div class="tm">${hhmm(t)} · ${ago(t)}</div></div>
-      <span class="stpill ${i.status}">${stTxt}</span>
-    </div>
-    <img class="item-img" src="${i.thumbURL||i.imageURL}" loading="lazy" onclick="openLb('${i.id}','work')">
-    ${i.caption?`<div class="item-cap">${esc(i.caption)}</div>`:""}
-    ${note}${remindNote}${acts}</div>`;
+    <img class="item-thumb" src="${i.thumbURL||i.imageURL}" loading="lazy" onclick="openLb('${i.id}','work')">
+    <div class="item-body">
+      <div class="item-line">
+        <div class="mid"><div class="nm">${esc(i.fromName||"?")}</div><div class="tm">${hhmm(t)} · ${ago(t)}</div></div>
+        <span class="stpill ${i.status}">${stTxt}</span>
+      </div>
+      ${i.caption?`<div class="item-cap">${esc(i.caption)}</div>`:""}
+      ${note}${remindNote}${acts}
+    </div></div>`;
 }
 
 /* ══════════ XEM ẢNH ══════════ */
