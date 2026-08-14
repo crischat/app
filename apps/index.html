@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kiểm tra thông báo · Cris App</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kiểm tra">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f8; --panel:#fff; --line:#e3e8f2; --text:#1b2440; --dim:#69748f; --faint:#9aa4bd;
+  --blue:#2f6bff; --cyan:#10a9cf; --green:#1bbf86; --amber:#e8920c; --red:#e5484d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Be Vietnam Pro",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:20px 16px 40px}
+.wrap{max-width:520px;margin:0 auto}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input{font-family:inherit}
+
+.head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.bolt{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:22px;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;font-weight:800;box-shadow:0 8px 20px -6px rgba(47,107,255,.45);flex:none}
+h1{font-size:21px;font-weight:800;margin:0;letter-spacing:-.4px}
+.sub{color:var(--dim);font-size:13.5px;margin:0 0 22px 56px;line-height:1.5}
+
+/* thang trạng thái — mỗi bậc là một điều kiện bắt buộc, nối bằng đường dọc */
+.ladder{position:relative;padding-left:34px}
+.ladder::before{content:"";position:absolute;left:13px;top:14px;bottom:14px;width:2px;background:var(--line)}
+.step{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:10px}
+.step::before{content:"";position:absolute;left:-28px;top:16px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--line);z-index:2}
+.step.ok::before{background:var(--green);border-color:var(--green);box-shadow:0 0 0 4px rgba(27,191,134,.15)}
+.step.bad::before{background:var(--red);border-color:var(--red);box-shadow:0 0 0 4px rgba(229,72,77,.15)}
+.step.wait::before{background:var(--amber);border-color:var(--amber);box-shadow:0 0 0 4px rgba(232,146,12,.15)}
+.step .t{font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:8px}
+.step .d{font-size:12.5px;color:var(--dim);margin-top:4px;line-height:1.55}
+.step .d b{color:var(--text);font-weight:600}
+.step.bad{border-color:#f6c9ca;background:#fffafa}
+.step.ok .t{color:var(--text)}
+.mark{margin-left:auto;font-size:11px;font-weight:700;padding:2px 8px;border-radius:7px;white-space:nowrap}
+.mark.ok{background:#e6f8f1;color:var(--green)}
+.mark.bad{background:#fdecec;color:var(--red)}
+.mark.wait{background:#fff6e6;color:var(--amber)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:22px}
+.card h2{font-size:15px;font-weight:700;margin:0 0 4px}
+.card p{font-size:13px;color:var(--dim);margin:0 0 14px;line-height:1.55}
+label{display:block;font-size:12px;color:var(--dim);font-weight:600;margin:0 0 6px 2px}
+.in{width:100%;padding:12px 13px;border-radius:11px;background:#f4f6fb;border:1px solid var(--line);color:var(--text);font-size:14px;outline:none;margin-bottom:10px}
+.in:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(47,107,255,.14)}
+.btn{width:100%;padding:14px;border-radius:12px;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--blue),var(--cyan));box-shadow:0 10px 24px -12px rgba(47,107,255,.6);transition:transform .12s}
+.btn:active{transform:scale(.98)}
+.btn[disabled]{opacity:.45;box-shadow:none;pointer-events:none}
+.btn.ghost{background:#f4f6fb;color:var(--dim);border:1px solid var(--line);box-shadow:none;font-weight:600}
+.btn+.btn{margin-top:9px}
+.row{display:flex;gap:9px}.row .btn{flex:1}
+
+.log{background:#101728;color:#cfe0ff;border-radius:13px;padding:13px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11.5px;line-height:1.7;margin-top:22px;max-height:260px;overflow:auto;word-break:break-all}
+.log .ok{color:#6ee7b7}.log .bad{color:#fca5a5}.log .warn{color:#fcd34d}.log .t{color:#64748b}
+.copybar{display:flex;gap:8px;margin-top:9px}
+.copybar button{flex:1;padding:10px;border-radius:10px;background:#f4f6fb;border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:600}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1b2440;color:#fff;font-size:13px;padding:11px 18px;border-radius:12px;opacity:0;transition:.25s;pointer-events:none;z-index:9}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><div class="bolt">⚡</div><h1>Kiểm tra thông báo</h1></div>
+  <p class="sub">Trang này kiểm tra xem điện thoại của bạn có nhận được thông báo đẩy hay không, trước khi đưa vào dùng thật. Làm theo thứ tự từ trên xuống.</p>
+
+  <div class="ladder" id="ladder"></div>
+
+  <div class="card" id="authCard">
+    <h2>Đăng nhập</h2>
+    <p>Dùng đúng tài khoản bạn vẫn dùng trong Cris App.</p>
+    <label>Email</label><input class="in" id="email" type="email" autocomplete="username" placeholder="cris@app.vn">
+    <label>Mật khẩu</label><input class="in" id="pass" type="password" autocomplete="current-password" placeholder="••••••">
+    <button class="btn" id="loginBtn">Đăng nhập</button>
+  </div>
+
+  <div class="card" id="actCard" style="display:none">
+    <h2>Bật và gửi thử</h2>
+    <p>Đặt tên máy để phân biệt khi có nhiều người cùng test.</p>
+    <label>Tên máy</label><input class="in" id="devName" placeholder="VD: iPhone 12 — Tuấn">
+    <button class="btn" id="enableBtn">Bật thông báo trên máy này</button>
+    <div class="row" style="margin-top:9px">
+      <button class="btn ghost" id="testNow" disabled>Gửi thử ngay</button>
+      <button class="btn ghost" id="testLater" disabled>Gửi sau 15 giây</button>
+    </div>
+    <p style="margin:12px 0 0;font-size:12.5px">Bấm <b>Gửi sau 15 giây</b>, rồi <b>khoá màn hình</b> hoặc thoát hẳn app. Thông báo phải hiện lên khi máy đang khoá — đó mới là phép thử thật.</p>
+    <button class="btn ghost" id="logoutBtn" style="margin-top:12px">Đăng xuất</button>
+  </div>
+
+  <div class="log" id="log"></div>
+  <div class="copybar">
+    <button id="copyLog">Chép nhật ký</button>
+    <button id="clearLog">Xoá nhật ký</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, setDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getMessaging, getToken, onMessage, isSupported }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+import { getFunctions, httpsCallable }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+/* ─────────────────────────────────────────────────────────
+   DÁN VAPID KEY VÀO ĐÂY (xem DEPLOY.md, bước 1)
+   Firebase Console → Project settings → Cloud Messaging
+   → Web Push certificates → Generate key pair → copy
+   ───────────────────────────────────────────────────────── */
+const VAPID_KEY = "BAxBYMwpYnIpGvNvX8OVMvwINjWvO_O0wXunw2sgQ8DnBTo0jpZis46y-k-2M2W1Y-H-X5BCpBwVcqfPOVrFYlI";
+
+const REGION = "asia-southeast1";
+const firebaseConfig = {
+  apiKey: "AIzaSyDE21oV0RSw3KMF-lz1rWA4FZ3llEITpqI",
+  authDomain: "cris-app-chat.firebaseapp.com",
+  projectId: "cris-app-chat",
+  storageBucket: "cris-app-chat.firebasestorage.app",
+  messagingSenderId: "524052766303",
+  appId: "1:524052766303:web:57765373ca6e8d500605ea"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const fns  = getFunctions(app, REGION);
+
+const $ = id => document.getElementById(id);
+const state = { me:null, reg:null, token:null, supported:false };
+
+/* ── nhật ký ── */
+function log(msg, cls=""){
+  const t = new Date().toTimeString().slice(0,8);
+  $("log").insertAdjacentHTML("beforeend",
+    `<div><span class="t">${t}</span> <span class="${cls}">${msg.replace(/</g,"&lt;")}</span></div>`);
+  $("log").scrollTop = $("log").scrollHeight;
+}
+function toast(m){const el=$("toast");el.textContent=m;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2600);}
+$("copyLog").onclick = async () => {
+  try{ await navigator.clipboard.writeText($("log").innerText); toast("Đã chép nhật ký"); }
+  catch(_){ toast("Không chép được — chụp màn hình giúp mình"); }
+};
+$("clearLog").onclick = () => $("log").innerHTML = "";
+
+/* ── nhận diện máy ── */
+function deviceInfo(){
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/.test(ua);
+  let iosVer = null;
+  const m = ua.match(/OS (\d+)[._](\d+)/);
+  if (isIOS && m) iosVer = parseFloat(m[1] + "." + m[2]);
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  return { ua, isIOS, isAndroid, iosVer, standalone };
+}
+
+/* ── thang trạng thái ── */
+const STEPS = [
+  { id:"https",   title:"Kết nối bảo mật (HTTPS)" },
+  { id:"os",      title:"Phiên bản hệ điều hành" },
+  { id:"install", title:"Mở từ icon màn hình chính" },
+  { id:"api",     title:"Trình duyệt hỗ trợ thông báo" },
+  { id:"sw",      title:"Service worker đã chạy" },
+  { id:"auth",    title:"Đã đăng nhập" },
+  { id:"perm",    title:"Đã cho phép thông báo" },
+  { id:"token",   title:"Đã đăng ký nhận thông báo" }
+];
+const result = {};
+function setStep(id, status, detail){ result[id] = { status, detail }; renderLadder(); }
+function renderLadder(){
+  $("ladder").innerHTML = STEPS.map(s => {
+    const r = result[s.id] || { status:"wait", detail:"Chưa kiểm tra." };
+    const label = { ok:"ĐẠT", bad:"CHƯA ĐẠT", wait:"CHỜ" }[r.status];
+    return `<div class="step ${r.status}">
+      <div class="t">${s.title}<span class="mark ${r.status}">${label}</span></div>
+      <div class="d">${r.detail}</div></div>`;
+  }).join("");
+}
+renderLadder();
+
+/* ── chẩn đoán môi trường ── */
+async function diagnose(){
+  const d = deviceInfo();
+  log("UA: " + d.ua);
+
+  setStep("https", location.protocol === "https:" ? "ok" : "bad",
+    location.protocol === "https:" ? "Trang đang chạy trên HTTPS." :
+    "Thông báo đẩy chỉ chạy trên HTTPS. Mở lại bằng địa chỉ <b>https://</b>.");
+
+  if (d.isIOS){
+    if (d.iosVer === null) setStep("os","wait","Không đọc được phiên bản iOS. Kiểm tra trong Cài đặt → Cài đặt chung → Giới thiệu.");
+    else if (d.iosVer >= 16.4) setStep("os","ok",`iOS ${d.iosVer} — đủ điều kiện (cần 16.4 trở lên).`);
+    else setStep("os","bad",`iOS ${d.iosVer} quá cũ. Apple chỉ hỗ trợ thông báo web từ <b>iOS 16.4</b>. Cần cập nhật máy.`);
+  } else if (d.isAndroid){
+    setStep("os","ok","Android — hỗ trợ đầy đủ.");
+  } else {
+    setStep("os","ok","Máy tính — hỗ trợ đầy đủ.");
+  }
+
+  if (d.standalone) setStep("install","ok","Đang chạy ở chế độ ứng dụng.");
+  else if (d.isIOS) setStep("install","bad",
+    "Đang mở trong Safari. Trên iPhone <b>bắt buộc</b> phải cài về màn hình chính: bấm nút Chia sẻ ở thanh dưới → <b>Thêm vào MH chính</b> → mở lại app từ icon vừa tạo.");
+  else setStep("install","wait","Chưa cài về màn hình chính. Trên Android vẫn nhận được thông báo, nhưng nên cài để ổn định hơn.");
+
+  const hasAPI = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  state.supported = hasAPI && await isSupported().catch(()=>false);
+  setStep("api", state.supported ? "ok" : "bad",
+    state.supported ? "Đầy đủ Service Worker, Push và Notification."
+    : "Trình duyệt này không hỗ trợ. Trên iPhone phải dùng <b>Safari</b> (Chrome trên iOS không được), và phải mở từ icon màn hình chính.");
+
+  if (!state.supported) return;
+
+  try{
+    state.reg = await navigator.serviceWorker.register("./firebase-messaging-sw.js", { scope: "./" });
+    await navigator.serviceWorker.ready;
+    setStep("sw","ok","Service worker đã đăng ký và sẵn sàng.");
+    log("Service worker OK", "ok");
+  }catch(e){
+    setStep("sw","bad","Không đăng ký được service worker: " + e.message);
+    log("SW lỗi: " + e.message, "bad");
+  }
+
+  updatePerm();
+}
+function updatePerm(){
+  const p = Notification.permission;
+  if (p === "granted") setStep("perm","ok","Đã được cấp quyền.");
+  else if (p === "denied") setStep("perm","bad",
+    "Đã bị chặn. Trên iPhone: xoá icon app khỏi màn hình chính, thêm lại, rồi bấm cho phép. Trên Android: Cài đặt trang → Thông báo → Cho phép.");
+  else setStep("perm","wait","Chưa xin quyền. Bấm nút <b>Bật thông báo trên máy này</b> bên dưới.");
+}
+
+/* ── đăng nhập ── */
+$("loginBtn").onclick = async () => {
+  try{
+    await signInWithEmailAndPassword(auth, $("email").value.trim(), $("pass").value);
+  }catch(e){
+    log("Đăng nhập lỗi: " + e.code, "bad");
+    toast("Sai email hoặc mật khẩu");
+  }
+};
+$("logoutBtn").onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, u => {
+  state.me = u;
+  if (u){
+    setStep("auth","ok", u.email);
+    $("authCard").style.display = "none";
+    $("actCard").style.display = "block";
+    if (!$("devName").value) $("devName").value = deviceInfo().isIOS ? "iPhone" : "Máy";
+    log("Đăng nhập: " + u.email, "ok");
+  } else {
+    setStep("auth","wait","Chưa đăng nhập.");
+    $("authCard").style.display = "block";
+    $("actCard").style.display = "none";
+  }
+});
+
+/* ── bật thông báo ── */
+$("enableBtn").onclick = async () => {
+  if (VAPID_KEY.startsWith("PASTE")){
+    setStep("token","bad","Chưa dán VAPID key vào file index.html. Xem DEPLOY.md bước 1.");
+    log("Thiếu VAPID key", "bad"); return;
+  }
+  if (!state.supported || !state.reg){ toast("Máy chưa đủ điều kiện — xem thang trạng thái"); return; }
+
+  try{
+    const perm = await Notification.requestPermission();
+    updatePerm();
+    if (perm !== "granted"){ log("Người dùng không cho phép: " + perm, "warn"); return; }
+
+    const messaging = getMessaging(app);
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: state.reg });
+    if (!token) throw new Error("Không lấy được token");
+    state.token = token;
+    log("Token: " + token.slice(0, 28) + "…", "ok");
+
+    await setDoc(doc(db, "users", state.me.uid, "pushTokens", token), {
+      token,
+      device: $("devName").value.trim() || "Không đặt tên",
+      ua: navigator.userAgent,
+      platform: deviceInfo().isIOS ? "ios" : deviceInfo().isAndroid ? "android" : "web",
+      standalone: deviceInfo().standalone,
+      createdAt: serverTimestamp(),
+      lastSeenAt: serverTimestamp()
+    });
+
+    setStep("token","ok","Máy này đã sẵn sàng nhận thông báo.");
+    $("testNow").disabled = false;
+    $("testLater").disabled = false;
+    toast("Đã bật — thử gửi xem sao");
+
+    onMessage(messaging, p => {
+      log("Nhận khi đang mở app: " + (p.notification?.title || "(không tiêu đề)"), "ok");
+      toast("Nhận được thông báo (app đang mở)");
+    });
+  }catch(e){
+    setStep("token","bad","Lỗi: " + (e.code || e.message));
+    log("getToken lỗi: " + (e.code || e.message), "bad");
+  }
+};
+
+/* ── gửi thử ── */
+async function sendTest(delaySec){
+  log(`Yêu cầu gửi thử (chờ ${delaySec}s)…`);
+  if (delaySec > 0) toast("Khoá màn hình ngay bây giờ");
+  try{
+    const call = httpsCallable(fns, "sendTestPush");
+    const res = await call({ delaySec, device: $("devName").value.trim() });
+    log("Máy chủ đã gửi tới " + res.data.sent + "/" + res.data.total + " thiết bị", "ok");
+    if (res.data.failed?.length) log("Thất bại: " + JSON.stringify(res.data.failed), "warn");
+  }catch(e){
+    log("Gửi thất bại: " + (e.code || e.message), "bad");
+    toast("Gửi thất bại — xem nhật ký");
+  }
+}
+$("testNow").onclick   = () => sendTest(0);
+$("testLater").onclick = () => sendTest(15);
+
+diagnose();
+</script>
+</body>
+</html>
