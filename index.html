@@ -4,83 +4,104 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cris App</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cris App">
+<meta name="theme-color" content="#2f6bff">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#eef1f8; --panel:#ffffff; --chat-bg:#f5f7fc; --surface:#eef2f9; --line:#e3e8f2;
+  --bg:#eef1f8; --panel:#fff; --chat-bg:#f5f7fc; --line:#e3e8f2;
   --text:#1b2440; --dim:#69748f; --faint:#9aa4bd;
   --cyan:#10a9cf; --blue:#2f6bff; --violet:#6d5cf0; --green:#1bbf86; --amber:#e8920c; --red:#e5484d; --zalo:#0068ff;
+  --safe-b:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box}html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--text);font-family:"Be Vietnam Pro",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
-button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}input{font-family:inherit}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}input,textarea,select{font-family:inherit}
 .bolt{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:21px;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;font-weight:800;box-shadow:0 8px 20px -6px rgba(47,107,255,.45)}
 
-/* LOGIN + PENDING */
-.center{position:fixed;inset:0;display:grid;place-items:center;padding:24px;z-index:50}
+/* ── LOGIN / PENDING ── */
+.center{position:fixed;inset:0;display:grid;place-items:center;padding:24px;z-index:50;overflow-y:auto}
 .card{width:min(390px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:34px 30px;box-shadow:0 24px 60px -24px rgba(27,36,64,.28)}
 .brand{display:flex;align-items:center;gap:11px;justify-content:center}
-.brand h1{font-size:26px;font-weight:800;margin:0;letter-spacing:-.5px;color:var(--text)}
+.brand h1{font-size:26px;font-weight:800;margin:0;letter-spacing:-.5px}
 .tag{text-align:center;color:var(--dim);font-size:13px;margin:8px 0 24px}.tag b{color:var(--amber);font-weight:600}
-.g-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border-radius:11px;background:#fff;border:1px solid var(--line);color:#1f2937;font-weight:600;font-size:14.5px;transition:.12s}
-.g-btn:hover{background:#f6f8fc;transform:translateY(-1px)}.g-btn svg{width:19px;height:19px}
+.g-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border-radius:11px;background:#fff;border:1px solid var(--line);color:#1f2937;font-weight:600;font-size:14.5px}
+.g-btn:hover{background:#f6f8fc}.g-btn svg{width:19px;height:19px}
 .divider{display:flex;align-items:center;gap:12px;color:var(--faint);font-size:12px;margin:18px 0}.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
 .field{margin-bottom:12px}.field label{display:block;font-size:12px;color:var(--dim);margin:0 0 6px 2px;font-weight:600}
-.field input{width:100%;padding:12px 13px;border-radius:11px;background:#f4f6fb;border:1px solid var(--line);color:var(--text);font-size:14px;outline:none;transition:.15s}
-.field input:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(47,107,255,.14)}
-.btn-primary{width:100%;padding:13px;margin-top:6px;border-radius:11px;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--blue),var(--cyan));box-shadow:0 10px 24px -10px rgba(47,107,255,.5);transition:.12s}.btn-primary:hover{transform:translateY(-1px)}
+.field input,.field textarea,.field select{width:100%;padding:12px 13px;border-radius:11px;background:#f4f6fb;border:1px solid var(--line);color:var(--text);font-size:14px;outline:none}
+.field input:focus,.field textarea:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(47,107,255,.14)}
+.btn-primary{width:100%;padding:13px;margin-top:6px;border-radius:11px;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--blue),var(--cyan));box-shadow:0 10px 24px -10px rgba(47,107,255,.5)}
 .switch{text-align:center;font-size:13px;color:var(--dim);margin-top:16px}.switch a{color:var(--blue);font-weight:600;cursor:pointer}
 .err{background:#fdecec;border:1px solid #f6c9ca;color:#c0383c;font-size:12.5px;padding:9px 12px;border-radius:10px;margin-bottom:14px;display:none}
 .hint{background:#fff6e6;border:1px solid #f3dca6;color:#9a6a00;font-size:12px;padding:9px 12px;border-radius:10px;margin-top:14px;display:none}
 .pend-ic{width:62px;height:62px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;background:#fff6e6;color:var(--amber)}.pend-ic svg{width:30px;height:30px}
-.muted-btn{width:100%;padding:11px;margin-top:18px;border-radius:11px;font-weight:600;font-size:14px;color:var(--dim);background:#f4f6fb;border:1px solid var(--line)}.muted-btn:hover{color:var(--text)}
+.muted-btn{width:100%;padding:11px;margin-top:18px;border-radius:11px;font-weight:600;font-size:14px;color:var(--dim);background:#f4f6fb;border:1px solid var(--line)}
 
-#app{display:none;height:100%}.shell{display:grid;grid-template-columns:340px 1fr;height:100%;overflow:hidden}
+/* ── KHUNG APP ── */
+#app{display:none;height:100%;flex-direction:column}
+.body-area{flex:1;min-height:0;display:flex}
+.nav{display:flex;border-top:1px solid var(--line);background:#fff;padding-bottom:var(--safe-b);flex:none}
+.nav button{flex:1;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--faint);font-size:11px;font-weight:600;position:relative}
+.nav button svg{width:22px;height:22px}
+.nav button.on{color:var(--blue)}
+.nav .ndot{position:absolute;top:5px;right:calc(50% - 20px);min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--red);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center}
+
+.shell{display:grid;grid-template-columns:340px 1fr;flex:1;min-height:0;width:100%}
 .list{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0;min-height:0}
 .list-head{padding:14px 16px;border-bottom:1px solid var(--line)}
 .me-row{display:flex;align-items:center;gap:11px}.me-row .mid{flex:1;min-width:0}
 .me-row .nm{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
 .me-row .em{font-size:11.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .adm-tag{font-size:9px;background:#ece9fe;color:var(--violet);padding:1px 6px;border-radius:6px;font-weight:700}
-.icon-btn{position:relative;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--dim);flex:none;transition:.15s}
+.icon-btn{position:relative;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--dim);flex:none}
 .icon-btn:hover{background:#eef2f9;color:var(--text)}.icon-btn svg{width:18px;height:18px}
 .dot-badge{position:absolute;top:3px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:var(--red);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center}
 .tabs{display:flex;gap:4px;margin-top:12px;background:#f1f4fa;padding:4px;border-radius:11px}
-.tab{flex:1;text-align:center;padding:8px;border-radius:8px;font-size:13px;font-weight:600;color:var(--dim);transition:.15s}
+.tab{flex:1;text-align:center;padding:8px;border-radius:8px;font-size:13px;font-weight:600;color:var(--dim)}
 .tab.on{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(27,36,64,.08)}
-.new-grp{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:10px;padding:9px;border-radius:10px;font-size:13px;font-weight:600;color:var(--blue);background:#eaf0ff;transition:.15s}.new-grp:hover{background:#dbe6ff}.new-grp svg{width:15px;height:15px}
-.scroll{flex:1;min-height:0;overflow-y:auto;padding:6px 8px 14px}.scroll::-webkit-scrollbar{width:8px}.scroll::-webkit-scrollbar-thumb{background:#d7deec;border-radius:8px;border:2px solid var(--panel)}
-.row-item{display:flex;gap:12px;padding:11px 12px;border-radius:13px;cursor:pointer;align-items:center;transition:.12s}
+.new-grp{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:10px;padding:9px;border-radius:10px;font-size:13px;font-weight:600;color:var(--blue);background:#eaf0ff}.new-grp svg{width:15px;height:15px}
+.scroll{flex:1;min-height:0;overflow-y:auto;padding:6px 8px 14px;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{width:8px}.scroll::-webkit-scrollbar-thumb{background:#d7deec;border-radius:8px;border:2px solid var(--panel)}
+.row-item{display:flex;gap:12px;padding:11px 12px;border-radius:13px;cursor:pointer;align-items:center}
 .row-item:hover{background:#f1f4fa}.row-item.on{background:#eaf0ff}
 .av{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;font-size:15px;color:#fff;overflow:hidden}
 .av.grp{border-radius:14px}.av img{width:100%;height:100%;object-fit:cover}.av.sm{width:34px;height:34px;font-size:13px}
-.row-item .mid{flex:1;min-width:0}.row-item .nm{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:6px;align-items:center}
+.row-item .mid{flex:1;min-width:0}
+.row-item .nm{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:6px;align-items:center}
 .gtag{font-size:9px;color:var(--violet);background:#ece9fe;padding:1px 6px;border-radius:6px;font-weight:700}
 .row-item .pv{color:var(--dim);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
 .empty-list{color:var(--faint);font-size:13px;text-align:center;padding:30px 16px;line-height:1.6}
+.unread{min-width:20px;height:20px;padding:0 6px;border-radius:11px;background:var(--red);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;flex:none;animation:badgePulse 2.2s infinite}
+.row-item.has-unread .nm{font-weight:800}.row-item.has-unread .pv{color:var(--text);font-weight:600}
 
 .chat{display:flex;flex-direction:column;background:var(--chat-bg);min-width:0;min-height:0}
 .chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--faint);text-align:center;padding:20px}
-.chat-empty .bolt{width:56px;height:56px;font-size:27px;opacity:.9}.chat-empty p{margin:0;max-width:300px}
-.chat-head{display:flex;align-items:center;gap:13px;padding:12px 16px;border-bottom:1px solid var(--line);background:#fff}
-.back{display:none;width:36px;height:36px;border-radius:10px;align-items:center;justify-content:center;color:var(--dim)}.back svg{width:20px;height:20px}
+.chat-empty .bolt{width:56px;height:56px;font-size:27px;opacity:.9;animation:floaty 3.6s ease-in-out infinite}
+.chat-empty p{margin:0;max-width:300px}
+.chat-head{display:flex;align-items:center;gap:13px;padding:12px 16px;border-bottom:1px solid var(--line);background:#fff;flex:none}
+.back{display:none;width:36px;height:36px;border-radius:10px;align-items:center;justify-content:center;color:var(--dim);flex:none}.back svg{width:20px;height:20px}
 .chat-head .info{flex:1;min-width:0}.chat-head .info .nm{font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chat-head .info .st{font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .menu-wrap{position:relative}
 .menu{position:absolute;right:0;top:44px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px;min-width:210px;box-shadow:0 14px 40px -12px rgba(27,36,64,.25);z-index:30;display:none}
-.menu.show{display:block}.menu button{display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;border-radius:9px;font-size:13.5px;color:var(--text);text-align:left}
-.menu button:hover{background:#f1f4fa}.menu button.danger{color:var(--red)}.menu button.danger:hover{background:#fdecec}.menu svg{width:16px;height:16px}
-.expire-banner{display:flex;align-items:center;gap:8px;justify-content:center;font-size:12px;color:#9a6a00;background:#fff6e6;border-bottom:1px solid #f3dca6;padding:7px 14px}
+.menu.show{display:block}.menu button{display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;border-radius:9px;font-size:13.5px;text-align:left}
+.menu button:hover{background:#f1f4fa}.menu button.danger{color:var(--red)}.menu svg{width:16px;height:16px}
+.expire-banner{display:flex;align-items:center;gap:8px;justify-content:center;font-size:12px;color:#9a6a00;background:#fff6e6;border-bottom:1px solid #f3dca6;padding:7px 14px;flex:none}
 .expire-banner svg{width:14px;height:14px}.expire-banner b{color:var(--text);font-weight:600}
-.msgs{flex:1;min-height:0;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column}
+.msgs{flex:1;min-height:0;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;-webkit-overflow-scrolling:touch}
 .msgs::-webkit-scrollbar{width:8px}.msgs::-webkit-scrollbar-thumb{background:#d7deec;border-radius:8px;border:2px solid var(--chat-bg)}
 .m{max-width:min(560px,74%);margin-bottom:9px;display:flex;flex-direction:column}
 .m.out{align-self:flex-end;align-items:flex-end}.m.in{align-self:flex-start}
 .sender{font-size:11.5px;color:var(--violet);font-weight:600;margin:0 0 3px 6px}
 .bubble{position:relative;padding:9px 13px 11px;border-radius:16px;font-size:14px;line-height:1.45;word-wrap:break-word;overflow:hidden;white-space:pre-wrap;max-width:100%}
-.m.in .bubble{background:#fff;border:1px solid var(--line);color:var(--text);border-top-left-radius:5px}
+.m.in .bubble{background:#fff;border:1px solid var(--line);border-top-left-radius:5px}
 .m.out .bubble{background:linear-gradient(135deg,var(--blue),#4a86ff);color:#fff;border-top-right-radius:5px;font-weight:500}
 .bubble.media{padding:5px 5px 7px}
 .msg-img{max-width:min(260px,100%);height:auto;max-height:320px;object-fit:cover;border-radius:11px;display:block;cursor:pointer}
@@ -89,70 +110,148 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .m.out .file-card .ic{background:rgba(255,255,255,.2);color:#fff}.file-card .ic svg{width:20px;height:20px}
 .file-card .fn{font-weight:600;font-size:13.5px;word-break:break-all}.file-card .fs{font-size:11px;opacity:.75;margin-top:1px}
 .life{position:absolute;left:0;bottom:0;height:3px;width:100%;background:rgba(0,0,0,.06)}
-.life i{display:block;height:100%;background:var(--cyan);transition:width 1s linear,background .4s}.m.out .life{background:rgba(255,255,255,.25)}
+.life i{display:block;height:100%;background:var(--cyan);transition:width 1s linear}.m.out .life{background:rgba(255,255,255,.25)}
 .meta{display:flex;align-items:center;gap:8px;margin:4px 4px 0;font-size:10.5px;color:var(--faint)}.m.out .meta{flex-direction:row-reverse}
 .ttl{display:flex;align-items:center;gap:4px;font-weight:600}.ttl svg{width:11px;height:11px}.ttl.warn{color:var(--amber)}.ttl.crit{color:var(--red)}
 .m-act{display:flex;gap:6px;margin:5px 4px 0}.m.out .m-act{justify-content:flex-end}
-.chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:9px;background:#eef2f9;color:var(--dim);border:1px solid var(--line);transition:.12s}
-.chip:hover{background:#e3e9f4;color:var(--text)}.chip svg{width:13px;height:13px}
-.chip.zalo{background:#eaf2ff;color:var(--zalo);border-color:#cfe0ff}.chip.zalo:hover{background:#dbe9ff}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:9px;background:#eef2f9;color:var(--dim);border:1px solid var(--line)}
+.chip svg{width:13px;height:13px}
+.chip.zalo{background:#eaf2ff;color:var(--zalo);border-color:#cfe0ff}
 .blocked-bar{padding:14px;text-align:center;color:var(--faint);font-size:13px;border-top:1px solid var(--line);background:#fff}
-.composer{padding:10px 14px 14px;border-top:1px solid var(--line);display:flex;align-items:flex-end;gap:8px;background:#fff}
-.attach button{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;color:var(--dim);transition:.15s}
+.composer{padding:10px 14px;border-top:1px solid var(--line);display:flex;align-items:flex-end;gap:8px;background:#fff;flex:none}
+.attach button{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;color:var(--dim)}
 .attach button:hover{background:#eef2f9;color:var(--blue)}.attach svg{width:21px;height:21px}
-.inwrap{flex:1;background:#f4f6fb;border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;padding:0 6px 0 14px;transition:.15s}
+.inwrap{flex:1;background:#f4f6fb;border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;padding:0 6px 0 14px}
 .inwrap:focus-within{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(47,107,255,.12)}
-.inwrap input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px;padding:11px 0}.inwrap input::placeholder{color:var(--faint)}
-.send{width:42px;height:42px;border-radius:12px;flex:none;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--blue),var(--cyan));transition:transform .12s}.send:hover{transform:scale(1.05)}.send svg{width:20px;height:20px}
+.inwrap input{flex:1;background:none;border:none;outline:none;font-size:16px;padding:11px 0}
+.send{width:42px;height:42px;border-radius:12px;flex:none;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--blue),var(--cyan))}.send svg{width:20px;height:20px}
+.send:active{transform:scale(.9)}
 
-.overlay{position:fixed;inset:0;background:rgba(27,36,64,.35);backdrop-filter:blur(3px);display:none;place-items:center;z-index:60;padding:20px}.overlay.show{display:grid}
-.modal{width:min(440px,100%);max-height:86vh;overflow-y:auto;background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 30px 80px -30px rgba(27,36,64,.4)}
-.modal h3{margin:0 0 4px;font-size:19px;font-weight:800}.modal .sub{color:var(--dim);font-size:13px;margin:0 0 16px}
-.mlabel{font-size:12px;color:var(--faint);font-weight:700;margin:16px 0 8px 2px;letter-spacing:.03em}
-.pick{display:flex;flex-direction:column;gap:2px;margin:0 -6px}
-.pk{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:11px;cursor:pointer}.pk:hover{background:#f1f4fa}
-.pk .mid{flex:1;min-width:0}.pk .nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pk .sub{font-size:11px;color:var(--faint)}
-.cbx{width:21px;height:21px;border-radius:7px;border:2px solid var(--line);flex:none;display:grid;place-items:center;color:#fff;transition:.15s}.cbx svg{width:13px;height:13px;opacity:0}
+/* ── KHU VỰC LÀM VIỆC ── */
+.work{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--chat-bg);width:100%}
+.work-head{padding:14px 16px;background:#fff;border-bottom:1px solid var(--line);flex:none;display:flex;align-items:center;gap:12px}
+.work-head .info{flex:1;min-width:0}
+.work-head h2{font-size:17px;font-weight:800;margin:0}
+.work-head .st{font-size:12px;color:var(--dim);margin-top:2px}
+.ws-grid{padding:14px;display:grid;gap:11px}
+.ws-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px 16px;display:flex;align-items:center;gap:13px;cursor:pointer}
+.ws-card .badge{width:46px;height:46px;border-radius:14px;flex:none;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px}
+.ws-card .mid{flex:1;min-width:0}
+.ws-card .nm{font-weight:700;font-size:15.5px}
+.ws-card .sub{font-size:12.5px;color:var(--dim);margin-top:2px}
+.rolepill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:7px;white-space:nowrap}
+.rolepill.sender{background:#eaf0ff;color:var(--blue)}
+.rolepill.receiver{background:#e6f8f1;color:var(--green)}
+.rolepill.both{background:#ece9fe;color:var(--violet)}
+.rolepill.pending{background:#fff6e6;color:var(--amber)}
+.rolepill.none{background:#f1f4fa;color:var(--faint)}
+
+.filters{display:flex;gap:7px;padding:11px 14px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;flex:none}
+.filters button{padding:7px 13px;border-radius:9px;font-size:12.5px;font-weight:600;background:#f1f4fa;color:var(--dim);white-space:nowrap;flex:none}
+.filters button.on{background:var(--blue);color:#fff}
+
+.feed{flex:1;min-height:0;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch}
+.item{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:12px;border-left:4px solid var(--amber)}
+.item.received{border-left-color:var(--green)}
+.item.returned{border-left-color:var(--red)}
+.item-top{display:flex;align-items:center;gap:10px;padding:11px 13px 9px}
+.item-top .mid{flex:1;min-width:0}
+.item-top .nm{font-weight:700;font-size:14px}
+.item-top .tm{font-size:11.5px;color:var(--faint);margin-top:1px}
+.stpill{font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:8px;white-space:nowrap}
+.stpill.pending{background:#fff6e6;color:var(--amber)}
+.stpill.received{background:#e6f8f1;color:var(--green)}
+.stpill.returned{background:#fdecec;color:var(--red)}
+.item-img{width:100%;display:block;background:#f1f4fa;cursor:pointer;max-height:340px;object-fit:contain}
+.item-cap{padding:9px 13px 0;font-size:13.5px;line-height:1.5;white-space:pre-wrap}
+.item-note{margin:9px 13px 0;padding:9px 11px;border-radius:10px;font-size:12.5px;line-height:1.5}
+.item-note.ok{background:#e6f8f1;color:#0e7a56}
+.item-note.no{background:#fdecec;color:#a32a2e}
+.item-note b{font-weight:700}
+.remind-note{display:flex;align-items:center;gap:6px;margin:9px 13px 0;font-size:12px;color:var(--amber);font-weight:600}
+.remind-note svg{width:13px;height:13px}
+.item-acts{display:flex;gap:8px;padding:11px 13px 13px}
+.act{flex:1;padding:11px;border-radius:11px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:7px}
+.act svg{width:16px;height:16px}
+.act.take{background:var(--green);color:#fff;box-shadow:0 8px 18px -10px rgba(27,191,134,.9)}
+.act.give{background:#fdecec;color:var(--red);border:1px solid #f6c9ca}
+.act.remind{background:#fff6e6;color:#9a6a00;border:1px solid #f3dca6}
+.act:active{transform:scale(.97)}
+.act.done{background:var(--green);color:#fff;animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+.wcomposer{background:#fff;border-top:1px solid var(--line);padding:10px 12px;flex:none}
+.wc-prev{display:flex;gap:8px;overflow-x:auto;padding-bottom:9px}
+.wc-prev .p{position:relative;flex:none}
+.wc-prev img{width:62px;height:62px;object-fit:cover;border-radius:11px;border:1px solid var(--line)}
+.wc-prev .x{position:absolute;top:-5px;right:-5px;width:21px;height:21px;border-radius:50%;background:var(--red);color:#fff;font-size:13px;font-weight:800;display:grid;place-items:center}
+.wc-row{display:flex;align-items:center;gap:8px}
+.wc-row .pick{width:46px;height:46px;border-radius:13px;flex:none;display:grid;place-items:center;background:#eaf0ff;color:var(--blue)}
+.wc-row .pick svg{width:23px;height:23px}
+.wait-box{margin:auto;text-align:center;padding:34px 24px;max-width:340px}
+.wait-box .ic{width:64px;height:64px;border-radius:50%;margin:0 auto 15px;display:grid;place-items:center;background:#fff6e6;color:var(--amber)}
+.wait-box .ic svg{width:31px;height:31px}
+.wait-box h3{font-size:18px;font-weight:800;margin:0 0 7px}
+.wait-box p{font-size:13.5px;color:var(--dim);line-height:1.6;margin:0 0 16px}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(27,36,64,.35);backdrop-filter:blur(3px);display:none;place-items:center;z-index:60;padding:18px}.overlay.show{display:grid}
+.modal{width:min(440px,100%);max-height:86vh;overflow-y:auto;background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 30px 80px -30px rgba(27,36,64,.4);animation:modalIn .24s cubic-bezier(.2,.8,.2,1)}
+.modal h3{margin:0 0 4px;font-size:19px;font-weight:800}.modal .sub{color:var(--dim);font-size:13px;margin:0 0 16px;line-height:1.5}
+.mlabel{font-size:12px;color:var(--faint);font-weight:700;margin:16px 0 8px 2px}
+.pick-list{display:flex;flex-direction:column;gap:2px;margin:0 -6px}
+.pk{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:11px;cursor:pointer}
+.pk:hover{background:#f1f4fa}.pk .mid{flex:1;min-width:0}
+.pk .nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pk .sub{font-size:11px;color:var(--faint);margin:0}
+.cbx{width:21px;height:21px;border-radius:7px;border:2px solid var(--line);flex:none;display:grid;place-items:center;color:#fff}.cbx svg{width:13px;height:13px;opacity:0}
 .pk.sel .cbx{background:var(--blue);border-color:var(--blue)}.pk.sel .cbx svg{opacity:1}
 .modal-actions{display:flex;gap:10px;margin-top:20px}
-.btn-ghost{flex:1;padding:12px;border-radius:11px;font-weight:600;font-size:14px;color:var(--dim);background:#f4f6fb;border:1px solid var(--line)}.btn-ghost:hover{color:var(--text)}
+.btn-ghost{flex:1;padding:12px;border-radius:11px;font-weight:600;font-size:14px;color:var(--dim);background:#f4f6fb;border:1px solid var(--line)}
 .btn-go{flex:1;padding:12px;border-radius:11px;font-weight:700;font-size:14px;color:#fff;background:linear-gradient(135deg,var(--blue),var(--cyan))}
-.adm-row{display:flex;align-items:center;gap:11px;padding:9px 6px;border-bottom:1px solid var(--line)}
-.adm-row .mid{flex:1;min-width:0}.adm-row .nm{font-size:14px;font-weight:600;display:flex;gap:6px;align-items:center}.adm-row .sub{font-size:11px;color:var(--faint)}
-.pill{font-size:13px;font-weight:600;padding:6px 12px;border-radius:9px;white-space:nowrap}
-.pill.lock{color:var(--red);background:#fdecec}.pill.unlock{color:var(--green);background:#e6f8f1}.pill.approve{color:#fff;background:var(--green)}
+.btn-go.danger{background:linear-gradient(135deg,var(--red),#f2686c)}
+.adm-row{display:flex;align-items:center;gap:11px;padding:9px 4px;border-bottom:1px solid var(--line)}
+.adm-row .mid{flex:1;min-width:0}.adm-row .nm{font-size:14px;font-weight:600;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.adm-row .sub{font-size:11px;color:var(--faint);margin:0}
+.pill{font-size:12.5px;font-weight:600;padding:6px 11px;border-radius:9px;white-space:nowrap}
+.pill.lock{color:var(--red);background:#fdecec}.pill.unlock{color:var(--green);background:#e6f8f1}
+.pill.approve{color:#fff;background:var(--green)}
 .disabled-tag{font-size:9px;background:#fdecec;color:var(--red);padding:1px 6px;border-radius:6px;font-weight:700}
 .pending-tag{font-size:9px;background:#fff6e6;color:var(--amber);padding:1px 6px;border-radius:6px;font-weight:700}
+.rolesel{padding:7px 9px;border-radius:9px;border:1px solid var(--line);background:#f4f6fb;font-size:12.5px;font-weight:600;color:var(--text)}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 6px}
 .stat-card{background:#f4f6fb;border:1px solid var(--line);border-radius:13px;padding:13px 14px}
-.stat-card .n{font-size:23px;font-weight:800;color:var(--text);line-height:1}
+.stat-card .n{font-size:23px;font-weight:800;line-height:1}
 .stat-card .l{font-size:11.5px;color:var(--dim);margin-top:5px}
-.rank-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)}
-.rank-row .rk{width:22px;height:22px;border-radius:7px;background:#eaf0ff;color:var(--blue);font-weight:800;font-size:12px;display:grid;place-items:center;flex:none}
-.rank-row .mid{flex:1;min-width:0}.rank-row .nm{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rank-row .ct{font-size:11px;color:var(--faint)}
-.mini{font-size:12px;font-weight:600;padding:6px 11px;border-radius:8px;flex:none}.mini.view{color:var(--blue);background:#eaf0ff}.mini.del{color:var(--red);background:#fdecec}
+.reason-btn{display:inline-block;padding:8px 12px;border-radius:10px;background:#f1f4fa;border:1px solid var(--line);font-size:13px;font-weight:600;margin:0 6px 6px 0}
+.reason-btn.on{background:var(--red);color:#fff;border-color:var(--red)}
+.push-bar{display:flex;align-items:center;gap:10px;padding:11px 14px;background:#fff6e6;border-bottom:1px solid #f3dca6;font-size:12.5px;color:#9a6a00;flex:none}
+.push-bar b{color:var(--text)}
+.push-bar button{margin-left:auto;padding:7px 12px;border-radius:9px;background:var(--amber);color:#fff;font-weight:700;font-size:12.5px;white-space:nowrap}
 
-#lightbox{position:fixed;inset:0;background:rgba(10,14,25,.92);display:none;place-items:center;z-index:90;padding:20px;cursor:zoom-out}
-#lightbox.show{display:grid}#lightbox img{max-width:100%;max-height:86vh;border-radius:8px}
-.lb-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:10px}
-.lb-bar .chip{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.2);padding:9px 16px;font-size:13px}
+#lightbox{position:fixed;inset:0;background:rgba(10,14,25,.94);display:none;place-items:center;z-index:90;padding:16px;cursor:zoom-out}
+#lightbox.show{display:grid;animation:fadeIn .2s ease}
+#lightbox img{max-width:100%;max-height:84vh;border-radius:8px}
+.lb-bar{position:fixed;bottom:calc(20px + var(--safe-b));left:50%;transform:translateX(-50%);display:flex;gap:10px}
+.lb-bar .chip{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.2);padding:10px 16px;font-size:13px}
 .lb-bar .chip.zalo{background:var(--zalo);border-color:var(--zalo)}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1b2440;color:#fff;font-size:13px;padding:11px 18px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.4);z-index:95;opacity:0;transition:.25s;pointer-events:none}.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+.toast{position:fixed;bottom:calc(76px + var(--safe-b));left:50%;transform:translateX(-50%);background:#1b2440;color:#fff;font-size:13px;padding:11px 18px;border-radius:12px;z-index:95;opacity:0;transition:.25s;pointer-events:none;max-width:88vw;text-align:center}
+.toast.show{opacity:1}
 
-@media (max-width:820px){.shell{grid-template-columns:1fr}.chat{display:none}body.chat-open .list{display:none}body.chat-open .chat{display:flex}.back{display:flex}.m{max-width:88%}}
-.unread{min-width:20px;height:20px;padding:0 6px;border-radius:11px;background:var(--red);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;flex:none;animation:badgePulse 2.2s infinite}
-.row-item.has-unread .nm{font-weight:800}.row-item.has-unread .pv{color:var(--text);font-weight:600}
-@keyframes msgIn{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes badgePulse{0%{box-shadow:0 0 0 0 rgba(229,72,77,.45)}70%,100%{box-shadow:0 0 0 6px rgba(229,72,77,0)}}
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.09)}100%{transform:scale(1)}}
 .m:last-child{animation:msgIn .26s cubic-bezier(.2,.8,.2,1)}
-.overlay.show .modal{animation:modalIn .24s cubic-bezier(.2,.8,.2,1)}
-#lightbox.show{animation:fadeIn .2s ease}
-.chat-empty .bolt{animation:floaty 3.6s ease-in-out infinite}
-.send:active{transform:scale(.9)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:820px){
+  .shell{grid-template-columns:1fr}
+  .chat{display:none}
+  body.chat-open .list{display:none}
+  body.chat-open .chat{display:flex}
+  body.chat-open .nav{display:none}
+  .back{display:flex}
+  .m{max-width:88%}
+}
 </style>
 </head>
 <body>
@@ -161,14 +260,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 <div class="center" id="login">
   <div class="card">
     <div class="brand"><div class="bolt">⚡</div><h1>Cris App</h1></div>
-    <p class="tag">Design by Cris · <b>Tự xoá sau 48 giờ</b></p>
+    <p class="tag">Design by Cris · <b>Chat tự xoá sau 48 giờ</b></p>
     <div class="err" id="err"></div>
     <button class="g-btn" onclick="loginGoogle()">
       <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.56c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.56-2.76c-.98.66-2.23 1.06-3.72 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
       Đăng nhập bằng Google</button>
     <div class="divider">hoặc dùng email</div>
     <div class="field" id="nameField" style="display:none"><label>Tên hiển thị</label><input id="dname" placeholder="VD: Cris Nguyễn"></div>
-    <div class="field"><label>Email</label><input id="email" type="email" placeholder="cris@app.vn"></div>
+    <div class="field"><label>Email</label><input id="email" type="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="cris@app.vn"></div>
     <div class="field"><label>Mật khẩu</label><input id="pass" type="password" placeholder="ít nhất 6 ký tự"></div>
     <button class="btn-primary" id="emailBtn" onclick="loginEmail()">Đăng nhập</button>
     <p class="switch" id="switchTxt">Chưa có tài khoản? <a onclick="toggleMode()">Đăng ký ngay</a></p>
@@ -181,60 +280,70 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   <div class="card" style="text-align:center">
     <div class="pend-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
     <h1 style="font-size:21px;margin:0 0 6px">Đang chờ duyệt</h1>
-    <p style="color:var(--dim);font-size:13.5px;margin:0;line-height:1.6">Tài khoản <b id="pendEmail"></b> đã đăng ký thành công.<br>Vui lòng đợi quản trị viên duyệt để bắt đầu sử dụng. Trang sẽ tự mở khi được duyệt.</p>
+    <p style="color:var(--dim);font-size:13.5px;margin:0;line-height:1.6">Tài khoản <b id="pendEmail"></b> đã đăng ký thành công.<br>Quản trị viên duyệt xong trang sẽ tự mở.</p>
     <button class="muted-btn" onclick="doLogout()">Đăng xuất</button>
   </div>
 </div>
 
 <!-- APP -->
 <div id="app">
-  <div class="shell">
-    <div class="list">
-      <div class="list-head">
-        <div class="me-row">
-          <div class="av sm" id="meAv"></div>
-          <div class="mid"><div class="nm" id="meName">…</div><div class="em" id="meEmail"></div></div>
-          <button class="icon-btn" id="admBtn" title="Quản trị" style="display:none" onclick="openAdmin()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="dot-badge" id="admBadge" style="display:none">0</span></button>
-          <button class="icon-btn" title="Đăng xuất" onclick="doLogout()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg></button>
-        </div>
-        <div class="tabs"><div class="tab on" id="tab-chats" onclick="setTab('chats')">Trò chuyện</div><div class="tab" id="tab-people" onclick="setTab('people')">Mọi người</div></div>
-        <button class="new-grp" onclick="openGroupModal()"><svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Tạo nhóm</button>
-      </div>
-      <div class="scroll" id="listBody"></div>
-    </div>
-    <div class="chat" id="chatPane">
-      <div class="chat-empty"><div class="bolt">⚡</div><p>Chọn một cuộc trò chuyện hoặc một người để bắt đầu. Mọi tin nhắn tự xoá sau 48 giờ.</p></div>
-    </div>
+  <div class="body-area" id="bodyArea"></div>
+  <div class="nav" id="nav">
+    <button id="nv-chat" class="on" onclick="setView('chat')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.8-.9L3 21l1.9-5A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4z"/></svg>
+      Trò chuyện<span class="ndot" id="navChatDot" style="display:none">0</span></button>
+    <button id="nv-work" onclick="setView('work')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2.5"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      Làm việc<span class="ndot" id="navWorkDot" style="display:none">0</span></button>
   </div>
 </div>
 
+<!-- MODALS -->
 <div class="overlay" id="groupModal"><div class="modal">
-  <h3>Tạo nhóm mới</h3><p class="sub">Nhóm và thành viên được giữ lại — chỉ tin nhắn tự xoá sau 48h.</p>
-  <div class="field"><label style="font-size:12px;color:var(--dim);margin-bottom:6px;display:block">Tên nhóm</label><input id="gName" placeholder="VD: Tổ FG — Ca ngày"></div>
-  <div class="mlabel">THÊM THÀNH VIÊN</div><div class="pick" id="gPick"></div>
+  <h3>Tạo nhóm chat</h3><p class="sub">Nhóm và thành viên được giữ lại — chỉ tin nhắn tự xoá sau 48h.</p>
+  <div class="field"><label>Tên nhóm</label><input id="gName" placeholder="VD: Tổ FG — Ca ngày"></div>
+  <div class="mlabel">THÊM THÀNH VIÊN</div><div class="pick-list" id="gPick"></div>
   <div class="modal-actions"><button class="btn-ghost" onclick="closeModal('groupModal')">Huỷ</button><button class="btn-go" onclick="createGroup()">Tạo nhóm</button></div>
+</div></div>
+
+<div class="overlay" id="returnModal"><div class="modal">
+  <h3>Trả lại hình này</h3><p class="sub">Người gửi sẽ thấy lý do bạn ghi ở đây.</p>
+  <div id="reasonQuick"></div>
+  <div class="field" style="margin-top:12px"><label>Lý do chi tiết</label><textarea class="field" id="returnReason" rows="3" style="width:100%;resize:vertical" placeholder="Ghi rõ vấn đề…"></textarea></div>
+  <div class="modal-actions"><button class="btn-ghost" onclick="closeModal('returnModal')">Huỷ</button><button class="btn-go danger" onclick="confirmReturn()">Xác nhận trả</button></div>
 </div></div>
 
 <div class="overlay" id="adminModal"><div class="modal">
   <h3>Bảng quản trị</h3>
-  <div class="tabs" style="margin:14px 0"><div class="tab on" id="atab-stats" onclick="setAdminTab('stats')">Thống kê</div><div class="tab" id="atab-users" onclick="setAdminTab('users')">Người dùng</div></div>
-  <div id="adminStats"></div>
-  <div id="adminUsers" style="display:none">
-    <div id="admPendingWrap"></div>
-    <div class="mlabel">TẤT CẢ NGƯỜI DÙNG</div>
-    <div id="admList"></div>
+  <div class="tabs" style="margin:14px 0">
+    <div class="tab on" id="atab-users" onclick="setAdminTab('users')">Người dùng</div>
+    <div class="tab" id="atab-ws" onclick="setAdminTab('ws')">Nhóm việc</div>
+    <div class="tab" id="atab-stats" onclick="setAdminTab('stats')">Thống kê</div>
   </div>
+  <div id="adminUsers"></div>
+  <div id="adminWs" style="display:none"></div>
+  <div id="adminStats" style="display:none"></div>
   <div class="modal-actions"><button class="btn-ghost" onclick="closeModal('adminModal')">Đóng</button></div>
+</div></div>
+
+<div class="overlay" id="wsModal"><div class="modal">
+  <h3>Tạo nhóm làm việc</h3><p class="sub">Ví dụ DC, EEC. Sau khi tạo, thành viên xin vào và bạn duyệt kèm phân quyền.</p>
+  <div class="field"><label>Mã nhóm (ngắn)</label><input id="wsCode" placeholder="DC" maxlength="6" autocapitalize="characters"></div>
+  <div class="field"><label>Tên đầy đủ</label><input id="wsName" placeholder="Distribution Center"></div>
+  <div class="modal-actions"><button class="btn-ghost" onclick="closeModal('wsModal')">Huỷ</button><button class="btn-go" onclick="createWorkspace()">Tạo nhóm</button></div>
 </div></div>
 
 <div id="lightbox" onclick="if(event.target.id==='lightbox')this.classList.remove('show')">
   <img id="lbImg" src="">
-  <div class="lb-bar"><button class="chip" onclick="saveMedia(lbId)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Lưu</button>
-  <button class="chip zalo" onclick="shareZalo(lbId)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>Chia sẻ Zalo</button></div>
+  <div class="lb-bar">
+    <button class="chip" onclick="saveLb()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Lưu</button>
+    <button class="chip zalo" onclick="shareLb()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>Chia sẻ</button>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" multiple style="display:none">
 <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
+<input type="file" id="workImgInput" accept="image/*" multiple style="display:none">
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -242,11 +351,20 @@ import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup,
   signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, collection, query, where,
-  orderBy, onSnapshot, addDoc, serverTimestamp, Timestamp, arrayUnion, arrayRemove, writeBatch, increment }
+  orderBy, limit, onSnapshot, addDoc, serverTimestamp, Timestamp, arrayUnion, arrayRemove,
+  writeBatch, increment, runTransaction }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+import { getMessaging, getToken, onMessage, isSupported }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+import { getFunctions, httpsCallable }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
+/* ══════════ CẤU HÌNH ══════════ */
+const VAPID_KEY = "BAxBYMwpYnIpGvNvX8OVMvwINjWvO_O0wXunw2sgQ8DnBTo0jpZis46y-k-2M2W1Y-H-X5BCpBwVcqfPOVrFYlI";
+const REGION    = "asia-southeast1";
+const ROOT_ADMINS = ["admin@cris.app"];   // phải khớp danh sách trong firestore.rules
 const firebaseConfig = {
   apiKey: "AIzaSyDE21oV0RSw3KMF-lz1rWA4FZ3llEITpqI",
   authDomain: "cris-app-chat.firebaseapp.com",
@@ -255,145 +373,425 @@ const firebaseConfig = {
   messagingSenderId: "524052766303",
   appId: "1:524052766303:web:57765373ca6e8d500605ea"
 };
-const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app), storage=getStorage(app);
-const H48=48*3600*1000, MAX_FILE=20*1024*1024, IMG_MAX_DIM=1900, IMG_QUALITY=0.92, COMPRESS_IMG=true;
 
+/* Quy tắc nhắc việc — đổi ở đây, không phải sửa chỗ khác */
+const REMIND_EVERY_MIN = 15;     // nhắc lại sau bao nhiêu phút
+const REMIND_MAX       = 0;      // 0 = nhắc mãi đến khi có người bấm
+const WORK_IMG_SCALE   = 0.30;   // ảnh khu vực làm việc còn 30%
+const WORK_IMG_MAXDIM  = 1000;   // nhưng không vượt quá cạnh này
+const WORK_IMG_QUALITY = 0.62;
+const THUMB_DIM        = 220;
+const H48 = 48*3600*1000, MAX_FILE = 25*1024*1024;
+const RETURN_REASONS = ["Sai part","Thiếu số lượng","Hình mờ khó đọc","Sai nhóm","Trùng hình"];
+
+const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app),
+      storage=getStorage(app), fns=getFunctions(app,REGION);
+
+/* ══════════ TRẠNG THÁI ══════════ */
 let me=null, usersMap={}, myUsers=[], myRooms=[], activeRoom=null;
-let unsubMsgs=null, unsubUsers=null, unsubRooms=null, currentMsgs=[], tab="chats";
-window.lbId=null;
-let lastSeen={};
-function loadSeen(uid){try{lastSeen=JSON.parse(localStorage.getItem("cris_seen_"+uid))||{};}catch(_){lastSeen={};}}
-function saveSeen(){try{localStorage.setItem("cris_seen_"+me.uid,JSON.stringify(lastSeen));}catch(_){}}
+let workspaces=[], myWsRoles={}, activeWs=null, wsItems=[], wsFilter="pending";
+let view="chat", tab="chats";
+let unsubMsgs=null, unsubUsers=null, unsubRooms=null, unsubWs=null, unsubItems=null, unsubMyMember=null;
+let currentMsgs=[], lastSeen={}, lbCtx=null, returnCtx=null, pickedReason="";
+let workQueue=[];
 
 const $=id=>document.getElementById(id);
 const pal=["#2f6bff","#6d5cf0","#1bbf86","#e8920c","#e5709a","#10a9cf","#f0935a","#7a5cf0"];
 const colorFor=n=>pal[[...(n||"?")].reduce((a,c)=>a+c.charCodeAt(0),0)%pal.length];
 const initials=n=>(n||"?").trim().split(/\s+/).slice(-2).map(w=>w[0]).join("").toUpperCase().slice(0,2);
 const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtSize=b=>b<1024?b+" B":b<1048576?(b/1024).toFixed(0)+" KB":(b/1048576).toFixed(1)+" MB";
+const roomId=(a,b)=>[a,b].sort().join("__");
 function avatar(u,cls=""){if(!u)return `<div class="av ${cls}" style="background:#aab">?</div>`;
   const c=colorFor(u.name||u.email);
   if(u.photoURL)return `<div class="av ${cls}"><img src="${u.photoURL}" referrerpolicy="no-referrer"></div>`;
   return `<div class="av ${cls}" style="background:linear-gradient(135deg,${c},${c}cc)">${initials(u.name||u.email)}</div>`;}
 function grpAvatar(name,cls=""){const c=colorFor(name);return `<div class="av grp ${cls}" style="background:linear-gradient(135deg,${c},${c}cc)">#</div>`;}
-const roomId=(a,b)=>[a,b].sort().join("__");
-const fmtSize=b=>b<1024?b+" B":b<1048576?(b/1024).toFixed(0)+" KB":(b/1048576).toFixed(1)+" MB";
 function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
 const clock=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`;
+function loadSeen(uid){try{lastSeen=JSON.parse(localStorage.getItem("cris_seen_"+uid))||{};}catch(_){lastSeen={};}}
+function saveSeen(){try{localStorage.setItem("cris_seen_"+me.uid,JSON.stringify(lastSeen));}catch(_){}}
 function remain(ms){const left=ms-Date.now();const pct=Math.max(0,Math.min(100,left/H48*100));
   const h=Math.max(0,Math.floor(left/3600000)),m=Math.max(0,Math.floor((left%3600000)/60000));
   let lv="ok";if(pct<15)lv="crit";else if(pct<45)lv="warn";
   return {pct,lv,label:left<=0?"đã xoá":(h>0?h+"h ":"")+String(m).padStart(2,"0")+"m"};}
+function ago(ms){const s=Math.floor((Date.now()-ms)/1000);
+  if(s<60)return "vừa xong";const m=Math.floor(s/60);if(m<60)return m+" phút trước";
+  const h=Math.floor(m/60);if(h<24)return h+" giờ trước";return Math.floor(h/24)+" ngày trước";}
+function hhmm(ms){const d=new Date(ms);return d.getHours()+":"+String(d.getMinutes()).padStart(2,"0");}
 
-/* ---------- auth ---------- */
+/* ══════════ ĐĂNG NHẬP ══════════ */
 let signupMode=false;
 window.toggleMode=()=>{signupMode=!signupMode;
-  $("nameField").style.display=signupMode?"block":"none";$("emailBtn").textContent=signupMode?"Đăng ký":"Đăng nhập";
+  $("nameField").style.display=signupMode?"block":"none";
+  $("emailBtn").textContent=signupMode?"Đăng ký":"Đăng nhập";
   $("switchTxt").innerHTML=signupMode?'Đã có tài khoản? <a onclick="toggleMode()">Đăng nhập</a>':'Chưa có tài khoản? <a onclick="toggleMode()">Đăng ký ngay</a>';
   $("err").style.display="none";};
 function showErr(e){const m={"auth/invalid-email":"Email không hợp lệ.","auth/missing-password":"Hãy nhập mật khẩu.",
   "auth/weak-password":"Mật khẩu cần ít nhất 6 ký tự.","auth/email-already-in-use":"Email đã có tài khoản, hãy đăng nhập.",
-  "auth/invalid-credential":"Sai email hoặc mật khẩu.","auth/user-not-found":"Chưa có tài khoản này."}[e.code]||e.message;
+  "auth/invalid-credential":"Sai email hoặc mật khẩu. Kiểm tra chữ hoa và dấu cách thừa.",
+  "auth/user-not-found":"Chưa có tài khoản này."}[e.code]||e.message;
   const el=$("err");el.textContent=m;el.style.display="block";}
 window.loginGoogle=async()=>{try{await signInWithPopup(auth,new GoogleAuthProvider());}
   catch(e){if(e.code==="auth/unauthorized-domain"){const h=$("hint");h.style.display="block";
-    h.innerHTML="Nút Google cần domain được whitelist. Giờ cứ test bằng <b>Email/Password</b> nhé.";}else showErr(e);}};
-window.loginEmail=async()=>{$("err").style.display="none";const email=$("email").value.trim(),pass=$("pass").value;
+    h.innerHTML="Nút Google cần domain được whitelist. Tạm dùng <b>Email/Mật khẩu</b>.";}else showErr(e);}};
+window.loginEmail=async()=>{$("err").style.display="none";
+  const email=$("email").value.trim().toLowerCase(),pass=$("pass").value;
   try{if(signupMode){const name=$("dname").value.trim()||email.split("@")[0];
-      const cred=await createUserWithEmailAndPassword(auth,email,pass);await updateProfile(cred.user,{displayName:name});await saveUser(cred.user,name);
+      const cred=await createUserWithEmailAndPassword(auth,email,pass);
+      await updateProfile(cred.user,{displayName:name});await saveUser(cred.user,name);
     }else await signInWithEmailAndPassword(auth,email,pass);}catch(e){showErr(e);}};
 window.doLogout=()=>signOut(auth);
 
-// Tạo doc lần đầu = pending; lần sau chỉ cập nhật hồ sơ, KHÔNG đụng status/isAdmin/disabled
 async function saveUser(u,name){
-  const refU=doc(db,"users",u.uid);const snap=await getDoc(refU);
+  const refU=doc(db,"users",u.uid),snap=await getDoc(refU);
   if(!snap.exists()){
     await setDoc(refU,{uid:u.uid,name:name||u.displayName||u.email.split("@")[0],email:u.email,
       photoURL:u.photoURL||null,status:"pending",isAdmin:false,disabled:false,blocked:[],
       createdAt:serverTimestamp(),lastSeen:serverTimestamp()});
   }else{
-    await updateDoc(refU,{name:name||u.displayName||snap.data().name,photoURL:u.photoURL||snap.data().photoURL||null,lastSeen:serverTimestamp()});
+    await updateDoc(refU,{name:name||u.displayName||snap.data().name,
+      photoURL:u.photoURL||snap.data().photoURL||null,lastSeen:serverTimestamp()});
   }
 }
 
-onAuthStateChanged(auth,async(u)=>{
-  if(u){try{await saveUser(u);}catch(e){}
+onAuthStateChanged(auth,async u=>{
+  if(u){try{await saveUser(u);}catch(_){}
     loadSeen(u.uid);
-    me={uid:u.uid,name:u.displayName||u.email.split("@")[0],email:u.email,photoURL:u.photoURL,blocked:[],isAdmin:false,status:"pending"};
-    listenUsers();listenRooms();
-  }else{[unsubMsgs,unsubUsers,unsubRooms].forEach(f=>f&&f());me=null;activeRoom=null;
-    $("app").style.display="none";$("pending").style.display="none";$("login").style.display="grid";}
+    me={uid:u.uid,name:u.displayName||u.email.split("@")[0],email:u.email,photoURL:u.photoURL,
+        blocked:[],isAdmin:false,status:"pending"};
+    listenUsers();listenRooms();listenWorkspaces();
+  }else{
+    [unsubMsgs,unsubUsers,unsubRooms,unsubWs,unsubItems,unsubMyMember].forEach(f=>f&&f());
+    me=null;activeRoom=null;activeWs=null;
+    $("app").style.display="none";$("pending").style.display="none";$("login").style.display="grid";
+  }
 });
 
-function gate(){ // quyết định hiện màn nào
-  const approved=me.isAdmin||me.status==="approved";
-  if(!approved){
-    $("login").style.display="none";$("app").style.display="none";
-    $("pendEmail").textContent=me.email;$("pending").style.display="grid";return false;
-  }
-  $("login").style.display="none";$("pending").style.display="none";$("app").style.display="block";
+function gate(){
+  if(ROOT_ADMINS.includes((me.email||"").toLowerCase())) me.isAdmin = true;
+  const ok=me.isAdmin||me.status==="approved";
+  if(!ok){$("login").style.display="none";$("app").style.display="none";
+    $("pendEmail").textContent=me.email;$("pending").style.display="grid";return false;}
+  $("login").style.display="none";$("pending").style.display="none";$("app").style.display="flex";
   return true;
 }
 
-/* ---------- users ---------- */
+/* ══════════ THÔNG BÁO ĐẨY ══════════ */
+let pushReady=false;
+async function initPush(silent=true){
+  try{
+    if(!(await isSupported().catch(()=>false)))return;
+    if(!("serviceWorker" in navigator))return;
+    const reg=await navigator.serviceWorker.register("./firebase-messaging-sw.js",{scope:"./"});
+    await navigator.serviceWorker.ready;
+    if(Notification.permission!=="granted"){if(silent)return;
+      const p=await Notification.requestPermission();if(p!=="granted"){toast("Bạn đã từ chối thông báo");return;}}
+    const messaging=getMessaging(app);
+    const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});
+    if(!token)return;
+    await setDoc(doc(db,"users",me.uid,"pushTokens",token),{
+      token,ua:navigator.userAgent,updatedAt:serverTimestamp()},{merge:true});
+    pushReady=true;renderPushBar();
+    onMessage(messaging,p=>{const d=p.data||{};toast(d.title? d.title+" · "+(d.body||"") : "Có thông báo mới");});
+  }catch(e){console.warn("push",e);}
+}
+window.enablePush=()=>initPush(false);
+function pushSupportedHere(){
+  const iOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+  const standalone=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+  if(iOS&&!standalone)return "install";
+  if(!("Notification" in window))return "no";
+  if(Notification.permission==="granted")return "on";
+  return "ask";
+}
+function pushBarHTML(){
+  const s=pushSupportedHere();
+  if(s==="on"||s==="no")return "";
+  if(s==="install")return `<div class="push-bar"><b>Bật thông báo:</b> bấm nút Chia sẻ ở Safari → Thêm vào MH chính, rồi mở app từ icon đó.</div>`;
+  return `<div class="push-bar">Chưa bật thông báo trên máy này.<button onclick="enablePush()">Bật ngay</button></div>`;
+}
+function renderPushBar(){ if(view==="work")renderWork(); }
+
+/* ══════════ NGƯỜI DÙNG ══════════ */
 function listenUsers(){unsubUsers&&unsubUsers();
   unsubUsers=onSnapshot(collection(db,"users"),snap=>{
     usersMap={};snap.docs.forEach(d=>usersMap[d.id]=d.data());
     const mine=usersMap[me.uid];
-    if(mine){me.blocked=mine.blocked||[];me.isAdmin=mine.isAdmin===true;me.status=mine.status||"pending";me.name=mine.name||me.name;
+    if(mine){me.blocked=mine.blocked||[];
+      me.isAdmin=mine.isAdmin===true||ROOT_ADMINS.includes((me.email||"").toLowerCase());
+      if(me.isAdmin&&mine.isAdmin!==true){updateDoc(doc(db,"users",me.uid),{isAdmin:true,status:"approved"}).catch(()=>{});}
+      me.status=mine.status||"pending";me.name=mine.name||me.name;
       if(mine.disabled){toast("Tài khoản của bạn đã bị khoá.");signOut(auth);return;}}
     if(!gate())return;
-    $("meAv").outerHTML=avatar(me,"sm").replace('class="av sm"','class="av sm" id="meAv"');
-    $("meName").innerHTML=esc(me.name)+(me.isAdmin?' <span class="adm-tag">ADMIN</span>':"");
-    $("meEmail").textContent=me.email;
+    if(!pushReady)initPush(true);
     myUsers=snap.docs.map(d=>d.data()).filter(p=>p.uid!==me.uid);
-    if(me.isAdmin){const pend=myUsers.filter(p=>(p.status||"pending")!=="approved"&&!p.disabled).length;
-      $("admBtn").style.display="grid";$("admBadge").style.display=pend?"grid":"none";$("admBadge").textContent=pend;}
-    else $("admBtn").style.display="none";
-    if(tab==="people")renderList();
-    if(activeRoom)refreshChatHeaderState();
+    render();
     if($("adminModal").classList.contains("show"))renderAdmin();
   });}
 
-/* ---------- rooms ---------- */
+/* ══════════ PHÒNG CHAT ══════════ */
 function listenRooms(){unsubRooms&&unsubRooms();
   const q=query(collection(db,"rooms"),where("members","array-contains",me.uid));
   unsubRooms=onSnapshot(q,snap=>{
-    myRooms=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.updatedAt?.toMillis?.()||0)-(a.updatedAt?.toMillis?.()||0));
-    if(activeRoom){const ar=myRooms.find(x=>x.id===activeRoom.id);if(ar){lastSeen[activeRoom.id]=ar.msgCount||0;saveSeen();}}
-    if(tab==="chats")renderList();
+    myRooms=snap.docs.map(d=>({id:d.id,...d.data()}))
+      .sort((a,b)=>(b.updatedAt?.toMillis?.()||0)-(a.updatedAt?.toMillis?.()||0));
+    if(activeRoom){const ar=myRooms.find(x=>x.id===activeRoom.id);
+      if(ar){lastSeen[activeRoom.id]=ar.msgCount||0;saveSeen();}}
+    updateNavDots();
+    if(view==="chat")render();
   },()=>{});}
-function roomDisplay(r){if(r.type==="group")return {name:r.name||"Nhóm",sub:(r.members?.length||0)+" thành viên",grp:true};
-  const other=usersMap[(r.members||[]).find(x=>x!==me.uid)];return {name:other?.name||other?.email||"Người dùng",sub:other?.email||"",u:other};}
+function roomDisplay(r){
+  if(r.type==="group")return {name:r.name||"Nhóm",sub:(r.members?.length||0)+" thành viên",grp:true};
+  const other=usersMap[(r.members||[]).find(x=>x!==me.uid)];
+  return {name:other?.name||other?.email||"Người dùng",sub:other?.email||"",u:other};}
+function unreadOf(r){return r.id===activeRoom?.id?0:Math.max(0,(r.msgCount||0)-(lastSeen[r.id]||0));}
+function updateNavDots(){
+  const c=myRooms.reduce((a,r)=>a+unreadOf(r),0);
+  $("navChatDot").style.display=c?"grid":"none";$("navChatDot").textContent=c>99?"99+":c;
+  const w=wsItems.filter(i=>i.status==="pending").length;
+  const canRecv=activeWs&&roleIn(activeWs.id)!=="sender";
+  $("navWorkDot").style.display=(w&&canRecv)?"grid":"none";$("navWorkDot").textContent=w>99?"99+":w;
+}
 
-/* ---------- list ---------- */
-window.setTab=t=>{tab=t;$("tab-chats").classList.toggle("on",t==="chats");$("tab-people").classList.toggle("on",t==="people");renderList();};
-function renderList(){const box=$("listBody");
+/* ══════════ KHU VỰC LÀM VIỆC ══════════ */
+function listenWorkspaces(){unsubWs&&unsubWs();
+  unsubWs=onSnapshot(collection(db,"workspaces"),async snap=>{
+    workspaces=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.code||"").localeCompare(b.code||""));
+    await refreshMyRoles();
+    if(view==="work")render();
+  },()=>{});}
+async function refreshMyRoles(){
+  myWsRoles={};
+  await Promise.all(workspaces.map(async w=>{
+    try{const s=await getDoc(doc(db,"workspaces",w.id,"members",me.uid));
+      if(s.exists())myWsRoles[w.id]=s.data();}catch(_){}
+  }));
+}
+function roleIn(wsId){
+  if(me.isAdmin)return "both";
+  const m=myWsRoles[wsId];
+  if(!m||m.status!=="approved")return null;
+  return m.role||"sender";
+}
+function statusIn(wsId){
+  if(me.isAdmin)return "approved";
+  return myWsRoles[wsId]?.status||null;
+}
+window.openWs=async wsId=>{
+  const w=workspaces.find(x=>x.id===wsId);if(!w)return;
+  activeWs=w;wsFilter="pending";
+  unsubMyMember&&unsubMyMember();
+  unsubMyMember=onSnapshot(doc(db,"workspaces",wsId,"members",me.uid),s=>{
+    myWsRoles[wsId]=s.exists()?s.data():undefined;
+    if(view==="work")render();
+    if(roleIn(wsId))listenItems(wsId);
+  },()=>{});
+  if(roleIn(wsId))listenItems(wsId);
+  document.body.classList.add("chat-open");render();
+};
+window.closeWs=()=>{activeWs=null;wsItems=[];unsubItems&&unsubItems();unsubMyMember&&unsubMyMember();
+  document.body.classList.remove("chat-open");render();};
+window.joinWs=async wsId=>{
+  try{
+    await setDoc(doc(db,"workspaces",wsId,"members",me.uid),{
+      uid:me.uid,name:me.name,email:me.email,status:"pending",role:"sender",requestedAt:serverTimestamp()});
+    toast("Đã gửi yêu cầu — chờ quản trị viên duyệt");
+  }catch(e){toast("Không gửi được: "+(e.code||e.message));}
+};
+function listenItems(wsId){unsubItems&&unsubItems();
+  const q=query(collection(db,"workspaces",wsId,"items"),orderBy("createdAt","desc"),limit(120));
+  unsubItems=onSnapshot(q,snap=>{
+    wsItems=snap.docs.map(d=>({id:d.id,...d.data()}));
+    updateNavDots();
+    if(view==="work")render();
+  },err=>toast("Lỗi tải dữ liệu: "+err.code));}
+window.setWsFilter=f=>{wsFilter=f;render();};
+
+/* ── nén ảnh ── */
+function loadImg(file){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);
+  img.onload=()=>{URL.revokeObjectURL(url);res(img);};img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error("load"));};img.src=url;});}
+function drawTo(img,w,h,q){const c=document.createElement("canvas");c.width=w;c.height=h;
+  const ctx=c.getContext("2d");ctx.imageSmoothingQuality="medium";ctx.drawImage(img,0,0,w,h);
+  return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("blob")),"image/jpeg",q));}
+async function shrinkWork(file){
+  const img=await loadImg(file);
+  let w=Math.round(img.width*WORK_IMG_SCALE),h=Math.round(img.height*WORK_IMG_SCALE);
+  const big=Math.max(w,h);
+  if(big>WORK_IMG_MAXDIM){const s=WORK_IMG_MAXDIM/big;w=Math.round(w*s);h=Math.round(h*s);}
+  if(w<320){const s=320/w;w=320;h=Math.round(h*s);}
+  const main=await drawTo(img,w,h,WORK_IMG_QUALITY);
+  const ts=THUMB_DIM/Math.max(img.width,img.height);
+  const thumb=await drawTo(img,Math.max(1,Math.round(img.width*ts)),Math.max(1,Math.round(img.height*ts)),0.55);
+  return {main,thumb,w,h};
+}
+
+/* ── gửi ảnh vào nhóm việc ── */
+$("workImgInput").addEventListener("change",e=>{
+  const fs=[...e.target.files];e.target.value="";
+  fs.forEach(f=>workQueue.push({file:f,url:URL.createObjectURL(f)}));
+  render();
+});
+window.dropQueue=i=>{workQueue.splice(i,1);render();};
+window.sendWorkItems=async()=>{
+  if(!activeWs||!workQueue.length)return;
+  const cap=($("wcCap")?.value||"").trim();
+  const list=[...workQueue];workQueue=[];render();
+  toast("Đang nén & gửi "+list.length+" hình…");
+  let ok=0;
+  for(const q of list){
+    try{
+      const {main,thumb}=await shrinkWork(q.file);
+      const base=`work/${activeWs.id}/${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+      await uploadBytes(ref(storage,base+".jpg"),main,{contentType:"image/jpeg"});
+      await uploadBytes(ref(storage,base+"_t.jpg"),thumb,{contentType:"image/jpeg"});
+      const imageURL=await getDownloadURL(ref(storage,base+".jpg"));
+      const thumbURL=await getDownloadURL(ref(storage,base+"_t.jpg"));
+      const now=Date.now();
+      const d=await addDoc(collection(db,"workspaces",activeWs.id,"items"),{
+        from:me.uid,fromName:me.name,type:"image",imageURL,thumbURL,path:base,
+        caption:cap,size:main.size,status:"pending",
+        remindCount:0,lastRemindAt:null,
+        nextRemindAt:Timestamp.fromMillis(now+REMIND_EVERY_MIN*60000),
+        createdAt:serverTimestamp()});
+      ok++;
+      notify("newItem",{wsId:activeWs.id,itemId:d.id});
+    }catch(e){console.warn(e);toast("Lỗi gửi 1 hình: "+(e.code||e.message));}
+  }
+  if($("wcCap"))$("wcCap").value="";
+  if(ok)toast("Đã gửi "+ok+" hình");
+}
+
+/* ── nhận / trả / nhắc ── */
+window.takeItem=async(itemId)=>{
+  const r=doc(db,"workspaces",activeWs.id,"items",itemId);
+  try{
+    await runTransaction(db,async tx=>{
+      const s=await tx.get(r);if(!s.exists())throw new Error("Hình không còn");
+      if(s.data().status!=="pending")throw new Error("Người khác đã xử lý rồi");
+      tx.update(r,{status:"received",receivedBy:me.uid,receivedName:me.name,
+        receivedAt:serverTimestamp(),nextRemindAt:null});
+    });
+    const el=document.querySelector(`[data-take="${itemId}"]`);
+    if(el){el.classList.add("done");if(navigator.vibrate)navigator.vibrate(35);}
+    logEvent(itemId,"received","");
+    notify("resolved",{wsId:activeWs.id,itemId,action:"received"});
+  }catch(e){toast(e.message||"Không nhận được");}
+};
+window.openReturn=itemId=>{returnCtx=itemId;pickedReason="";
+  $("returnReason").value="";
+  $("reasonQuick").innerHTML=RETURN_REASONS.map(r=>`<button class="reason-btn" onclick="pickReason(this,'${esc(r)}')">${esc(r)}</button>`).join("");
+  $("returnModal").classList.add("show");};
+window.pickReason=(el,r)=>{document.querySelectorAll(".reason-btn").forEach(b=>b.classList.remove("on"));
+  el.classList.add("on");pickedReason=r;
+  const t=$("returnReason");if(!t.value.trim())t.value=r;};
+window.confirmReturn=async()=>{
+  const reason=($("returnReason").value||pickedReason).trim();
+  if(!reason)return toast("Phải ghi lý do trả");
+  const r=doc(db,"workspaces",activeWs.id,"items",returnCtx);
+  try{
+    await runTransaction(db,async tx=>{
+      const s=await tx.get(r);if(!s.exists())throw new Error("Hình không còn");
+      if(s.data().status!=="pending")throw new Error("Người khác đã xử lý rồi");
+      tx.update(r,{status:"returned",returnedBy:me.uid,returnedName:me.name,
+        returnReason:reason,returnedAt:serverTimestamp(),nextRemindAt:null});
+    });
+    logEvent(returnCtx,"returned",reason);
+    notify("resolved",{wsId:activeWs.id,itemId:returnCtx,action:"returned",reason});
+    closeModal("returnModal");toast("Đã trả lại kèm lý do");
+  }catch(e){toast(e.message||"Không trả được");}
+};
+window.remindItem=async itemId=>{
+  try{
+    await updateDoc(doc(db,"workspaces",activeWs.id,"items",itemId),{
+      remindCount:increment(1),lastRemindAt:serverTimestamp(),
+      nextRemindAt:Timestamp.fromMillis(Date.now()+REMIND_EVERY_MIN*60000)});
+    notify("remind",{wsId:activeWs.id,itemId});
+    toast("Đã nhắc lại cho người nhận");
+  }catch(e){toast("Không nhắc được: "+(e.code||e.message));}
+};
+async function logEvent(itemId,action,note){
+  try{await addDoc(collection(db,"workspaces",activeWs.id,"items",itemId,"events"),
+    {by:me.uid,byName:me.name,action,note,at:serverTimestamp()});}catch(_){}
+}
+async function notify(kind,payload){
+  try{await httpsCallable(fns,"notifyWork")({kind,...payload});}
+  catch(e){/* function chưa deploy — bỏ qua, dữ liệu vẫn đúng */}
+}
+
+/* ══════════ ĐIỀU HƯỚNG ══════════ */
+window.setView=v=>{view=v;
+  $("nv-chat").classList.toggle("on",v==="chat");
+  $("nv-work").classList.toggle("on",v==="work");
+  document.body.classList.remove("chat-open");
+  if(v==="chat"){activeWs=null;unsubItems&&unsubItems();}
+  else{activeRoom=null;unsubMsgs&&unsubMsgs();}
+  render();};
+function render(){ if(!me||!gate())return; view==="chat"?renderChatShell():renderWork(); }
+
+/* ══════════ GIAO DIỆN CHAT ══════════ */
+function renderChatShell(){
+  const area=$("bodyArea");
+  if(!area.querySelector(".shell")){
+    area.innerHTML=`<div class="shell">
+      <div class="list">
+        <div class="list-head">
+          <div class="me-row">
+            <div id="meAvBox"></div>
+            <div class="mid"><div class="nm" id="meName"></div><div class="em" id="meEmail"></div></div>
+            <button class="icon-btn" id="admBtn" style="display:none" onclick="openAdmin()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="dot-badge" id="admBadge" style="display:none">0</span></button>
+            <button class="icon-btn" onclick="doLogout()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg></button>
+          </div>
+          <div class="tabs"><div class="tab" id="tab-chats" onclick="setTab('chats')">Trò chuyện</div><div class="tab" id="tab-people" onclick="setTab('people')">Mọi người</div></div>
+          <button class="new-grp" onclick="openGroupModal()"><svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Tạo nhóm chat</button>
+        </div>
+        <div class="scroll" id="listBody"></div>
+      </div>
+      <div class="chat" id="chatPane"><div class="chat-empty"><div class="bolt">⚡</div><p>Chọn một cuộc trò chuyện để bắt đầu. Mọi tin nhắn tự xoá sau 48 giờ.</p></div></div>
+    </div>`;
+  }
+  $("meAvBox").innerHTML=avatar(me,"sm");
+  $("meName").innerHTML=esc(me.name)+(me.isAdmin?' <span class="adm-tag">ADMIN</span>':"");
+  $("meEmail").textContent=me.email;
+  $("tab-chats").classList.toggle("on",tab==="chats");
+  $("tab-people").classList.toggle("on",tab==="people");
+  if(me.isAdmin){
+    const pend=myUsers.filter(p=>(p.status||"pending")!=="approved"&&!p.disabled).length;
+    $("admBtn").style.display="grid";
+    $("admBadge").style.display=pend?"grid":"none";$("admBadge").textContent=pend;
+  }else $("admBtn").style.display="none";
+  renderList();
+}
+window.setTab=t=>{tab=t;render();};
+function renderList(){const box=$("listBody");if(!box)return;
   if(tab==="chats"){
-    if(!myRooms.length){box.innerHTML=`<div class="empty-list">Chưa có cuộc trò chuyện nào.<br>Qua tab "Mọi người" để bắt đầu chat, hoặc bấm "Tạo nhóm".</div>`;return;}
-    box.innerHTML=myRooms.map(r=>{const d=roomDisplay(r);const last=r.lastMessage?esc(r.lastMessage):"";
-      const un=r.id===activeRoom?.id?0:Math.max(0,(r.msgCount||0)-(lastSeen[r.id]||0));
-      const badge=un>0?`<div class="unread">${un>99?'99+':un}</div>`:"";
-      return `<div class="row-item ${activeRoom?.id===r.id?'on':''} ${un>0?'has-unread':''}" onclick="openRoom('${r.id}')">${d.grp?grpAvatar(d.name):avatar(d.u)}
-        <div class="mid"><div class="nm">${esc(d.name)}${d.grp?'<span class="gtag">NHÓM</span>':''}</div><div class="pv">${last||d.sub}</div></div>${badge}</div>`;}).join("");
+    if(!myRooms.length){box.innerHTML=`<div class="empty-list">Chưa có cuộc trò chuyện nào.<br>Qua tab "Mọi người" để bắt đầu.</div>`;return;}
+    box.innerHTML=myRooms.map(r=>{const d=roomDisplay(r);const un=unreadOf(r);
+      return `<div class="row-item ${activeRoom?.id===r.id?'on':''} ${un?'has-unread':''}" onclick="openRoom('${r.id}')">
+        ${d.grp?grpAvatar(d.name):avatar(d.u)}
+        <div class="mid"><div class="nm">${esc(d.name)}${d.grp?'<span class="gtag">NHÓM</span>':''}</div>
+        <div class="pv">${esc(r.lastMessage||d.sub)}</div></div>
+        ${un?`<div class="unread">${un>99?'99+':un}</div>`:""}</div>`;}).join("");
   }else{
-    const list=myUsers.filter(p=>!p.disabled&&(p.status||"pending")==="approved").sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-    if(!list.length){box.innerHTML=`<div class="empty-list">Chưa có đồng nghiệp nào được duyệt.<br>Rủ thêm người đăng nhập (admin duyệt) để bắt đầu chat.</div>`;return;}
+    const list=myUsers.filter(p=>!p.disabled&&(p.status||"pending")==="approved")
+      .sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+    if(!list.length){box.innerHTML=`<div class="empty-list">Chưa có đồng nghiệp nào được duyệt.</div>`;return;}
     box.innerHTML=list.map(p=>`<div class="row-item" onclick="openDM('${p.uid}')">${avatar(p)}
       <div class="mid"><div class="nm">${esc(p.name||p.email)}</div><div class="pv">${esc(p.email)}</div></div></div>`).join("");
   }}
-
-/* ---------- open chat ---------- */
 window.openDM=async uid=>{const rid=roomId(me.uid,uid);
-  await setDoc(doc(db,"rooms",rid),{type:"dm",members:[me.uid,uid].sort(),updatedAt:serverTimestamp()},{merge:true});openRoom(rid);};
+  await setDoc(doc(db,"rooms",rid),{type:"dm",members:[me.uid,uid].sort(),updatedAt:serverTimestamp()},{merge:true});
+  openRoom(rid);};
 window.openRoom=async rid=>{
   let r=myRooms.find(x=>x.id===rid);
   if(!r){const s=await getDoc(doc(db,"rooms",rid));if(s.exists())r={id:rid,...s.data()};}
-  if(!r)return;activeRoom=r;lastSeen[rid]=r.msgCount||0;saveSeen();document.body.classList.add("chat-open");if(tab==="chats")renderList();
+  if(!r)return;activeRoom=r;lastSeen[rid]=r.msgCount||0;saveSeen();
+  document.body.classList.add("chat-open");renderList();updateNavDots();
   const d=roomDisplay(r);const isRoomAdmin=r.owner===me.uid||me.isAdmin;
   let menu="";
   if(r.type==="dm"){menu=`<button onclick="toggleBlock()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg><span id="blockTxt">Chặn người này</span></button>
     <button class="danger" onclick="clearChat()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>Xoá toàn bộ tin nhắn</button>`;
-  }else{menu=`<button onclick="toast('Nhóm: ${esc(d.name)} · ${r.members?.length||0} thành viên');document.getElementById('chatMenu').classList.remove('show')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Thông tin nhóm</button>`;
+  }else{menu=`<button onclick="toast('${esc(d.name)} · ${r.members?.length||0} thành viên');document.getElementById('chatMenu').classList.remove('show')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Thông tin nhóm</button>`;
     if(isRoomAdmin)menu+=`<button class="danger" onclick="clearChat()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>Xoá toàn bộ tin nhắn</button>
       <button class="danger" onclick="deleteGroup()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>Xoá nhóm</button>`;}
   $("chatPane").innerHTML=`
@@ -406,179 +804,361 @@ window.openRoom=async rid=>{
     <div class="expire-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Tin nhắn ở đây <b>tự xoá sau 48 giờ</b></div>
     <div class="msgs" id="msgs"></div><div id="composerSlot"></div>`;
   renderComposer();listenMsgs(rid);
-}
-window.goBack=()=>{document.body.classList.remove("chat-open");activeRoom=null;unsubMsgs&&unsubMsgs();if(tab==="chats")renderList();};
-
+};
+window.goBack=()=>{document.body.classList.remove("chat-open");activeRoom=null;unsubMsgs&&unsubMsgs();render();};
 function blockState(){if(!activeRoom||activeRoom.type!=="dm")return {blocked:false};
   const otherUid=activeRoom.members.find(x=>x!==me.uid);const other=usersMap[otherUid]||{};
-  return {blocked:(me.blocked||[]).includes(otherUid)||(other.blocked||[]).includes(me.uid),iBlocked:(me.blocked||[]).includes(otherUid),otherUid};}
-function refreshChatHeaderState(){const bt=$("blockTxt");if(bt){const s=blockState();bt.textContent=s.iBlocked?"Bỏ chặn người này":"Chặn người này";}renderComposer();}
+  return {blocked:(me.blocked||[]).includes(otherUid)||(other.blocked||[]).includes(me.uid),
+          iBlocked:(me.blocked||[]).includes(otherUid),otherUid};}
 function renderComposer(){const slot=$("composerSlot");if(!slot)return;const s=blockState();
-  if(s.blocked){slot.innerHTML=`<div class="blocked-bar">${s.iBlocked?"Bạn đã chặn người này. Bỏ chặn trong menu (•••) để nhắn lại.":"Bạn không thể nhắn tin cho người này."}</div>`;return;}
+  if(s.blocked){slot.innerHTML=`<div class="blocked-bar">${s.iBlocked?"Bạn đã chặn người này. Bỏ chặn trong menu (•••).":"Bạn không thể nhắn tin cho người này."}</div>`;return;}
   slot.innerHTML=`<div class="composer">
     <div class="attach">
-      <button title="Gửi hình" onclick="document.getElementById('imgInput').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-5-5L5 21"/></svg></button>
-      <button title="Gửi file" onclick="document.getElementById('fileInput').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+      <button onclick="document.getElementById('imgInput').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-5-5L5 21"/></svg></button>
+      <button onclick="document.getElementById('fileInput').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
     </div>
-    <div class="inwrap"><input id="ci" placeholder="Nhắn tin… (Ctrl+V ảnh màn hình sẽ tự gửi)" autocomplete="off"></div>
+    <div class="inwrap"><input id="ci" placeholder="Nhắn tin…" autocomplete="off"></div>
     <button class="send" onclick="sendText()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg></button></div>`;
   const ci=$("ci");ci.addEventListener("keydown",e=>{if(e.key==="Enter")sendText();});
-  ci.addEventListener("paste",e=>{const items=e.clipboardData?.items||[];for(const it of items){if(it.type.startsWith("image/")){const f=it.getAsFile();if(f){e.preventDefault();uploadAndSend(f,"image");}}}});
+  ci.addEventListener("paste",e=>{for(const it of (e.clipboardData?.items||[])){
+    if(it.type.startsWith("image/")){const f=it.getAsFile();if(f){e.preventDefault();uploadAndSend(f,"image");}}}});
 }
-
-/* ---------- messages ---------- */
 function listenMsgs(rid){unsubMsgs&&unsubMsgs();
   const q=query(collection(db,"rooms",rid,"messages"),orderBy("createdAt","asc"));
-  unsubMsgs=onSnapshot(q,snap=>{currentMsgs=snap.docs.map(d=>({id:d.id,...d.data()}));renderMsgs();},err=>toast("Lỗi tải tin: "+err.code));}
+  unsubMsgs=onSnapshot(q,snap=>{currentMsgs=snap.docs.map(d=>({id:d.id,...d.data()}));renderMsgs();},
+    err=>toast("Lỗi tải tin: "+err.code));}
 function msgBody(m){
-  if(m.type==="image")return `<img class="msg-img" src="${m.fileURL}" onclick="openLightbox('${m.id}')" loading="lazy">`;
+  if(m.type==="image")return `<img class="msg-img" src="${m.fileURL}" onclick="openLb('${m.id}','chat')" loading="lazy">`;
   if(m.type==="file")return `<div class="file-card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
       <div><div class="fn">${esc(m.fileName||"file")}</div><div class="fs">${fmtSize(m.fileSize||0)}</div></div></div>`;
-  return esc(m.text);
-}
-function mediaActions(m){return `<div class="m-act">
-  <button class="chip" onclick="saveMedia('${m.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Lưu</button>
-  <button class="chip zalo" onclick="shareZalo('${m.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>Zalo</button></div>`;}
+  return esc(m.text);}
 function renderMsgs(){const box=$("msgs");if(!box)return;
   if(!currentMsgs.length){box.innerHTML=`<div style="margin:auto;color:var(--faint);font-size:13px;text-align:center">Chưa có tin nhắn.<br>Gửi lời chào đầu tiên 👋</div>`;return;}
   const isGroup=activeRoom?.type==="group";let prevFrom=null;
   box.innerHTML=currentMsgs.map(m=>{
-    const out=m.from===me.uid;const media=m.type==="image"||m.type==="file";
+    const out=m.from===me.uid,media=m.type==="image"||m.type==="file";
     const exp=m.expireAt?.toMillis?.()??(Date.now()+H48);const r=remain(exp);
-    const created=m.createdAt?.toMillis?.()??Date.now();const t=new Date(created);
+    const created=m.createdAt?.toMillis?.()??Date.now();
     const bar=r.lv==="crit"?"var(--red)":r.lv==="warn"?"var(--amber)":(out?"rgba(255,255,255,.85)":"var(--cyan)");
     const showSender=isGroup&&!out&&prevFrom!==m.from;prevFrom=m.from;
-    const senderName=showSender?`<div class="sender">${esc(usersMap[m.from]?.name||"?")}</div>`:"";
-    return `<div class="m ${out?'out':'in'}" data-exp="${exp}">${senderName}
+    return `<div class="m ${out?'out':'in'}" data-exp="${exp}">
+      ${showSender?`<div class="sender">${esc(usersMap[m.from]?.name||"?")}</div>`:""}
       <div class="bubble ${media?'media':''}">${msgBody(m)}<div class="life"><i style="width:${r.pct}%;background:${bar}"></i></div></div>
-      ${media?mediaActions(m):""}
-      <div class="meta"><span>${t.getHours()}:${String(t.getMinutes()).padStart(2,"0")}</span>
+      ${media?`<div class="m-act">
+        <button class="chip" onclick="saveUrl('${m.fileURL}','${esc(m.fileName||'anh.jpg')}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Lưu</button>
+        <button class="chip zalo" onclick="shareUrl('${m.fileURL}','${esc(m.fileName||'anh.jpg')}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>Zalo</button></div>`:""}
+      <div class="meta"><span>${hhmm(created)}</span>
         <span class="ttl ${r.lv==='crit'?'crit':r.lv==='warn'?'warn':''}">${clock}${r.lv==='crit'?'sắp xoá · ':''}${r.label}</span></div></div>`;
   }).join("");
-  box.scrollTop=box.scrollHeight;
-}
-window.openLightbox=id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;window.lbId=id;$("lbImg").src=m.fileURL;$("lightbox").classList.add("show");};
-window.saveMedia=async id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;bumpStats("filesDownloaded");toast("Đang tải…");
-  try{const res=await fetch(m.fileURL);const blob=await res.blob();const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");a.href=url;a.download=m.fileName||"cris-app-file";document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),5000);toast("Đã tải về máy");
-  }catch(e){window.open(m.fileURL,"_blank");toast("Đã mở file — trên điện thoại nhấn giữ ảnh để lưu");}};
-window.shareZalo=async id=>{const m=currentMsgs.find(x=>x.id===id);if(!m)return;bumpStats("filesShared");const url=m.fileURL;const title=m.fileName||"Chia sẻ từ Cris App";
-  try{
-    if(navigator.canShare){try{const res=await fetch(url);const blob=await res.blob();
-      const file=new File([blob],m.fileName||"file",{type:blob.type||"application/octet-stream"});
-      if(navigator.canShare({files:[file]})){await navigator.share({files:[file],title});return;}}catch(_){}}
-    if(navigator.share){await navigator.share({title,text:title,url});return;}
-    await navigator.clipboard.writeText(url);toast("Đã copy link — dán vào Zalo để gửi");
-  }catch(e){try{await navigator.clipboard.writeText(url);toast("Đã copy link — dán vào Zalo để gửi");}catch(_){toast("Link: "+url);}}};
-
-async function bumpStats(field){try{await setDoc(doc(db,"stats","global"),{[field]:increment(1),updatedAt:serverTimestamp()},{merge:true});}catch(_){}}
-async function touchRoom(rid,preview){await setDoc(doc(db,"rooms",rid),{updatedAt:serverTimestamp(),lastMessage:preview,msgCount:increment(1)},{merge:true});}
-window.sendText=async()=>{const inp=$("ci");const text=inp.value.trim();if(!text||!activeRoom)return;inp.value="";const rid=activeRoom.id;
-  try{await addDoc(collection(db,"rooms",rid,"messages"),{from:me.uid,type:"text",text,createdAt:serverTimestamp(),expireAt:Timestamp.fromMillis(Date.now()+H48)});
-    await touchRoom(rid,text.slice(0,40));bumpStats("messagesSent");}catch(e){toast("Không gửi được: "+e.code);inp.value=text;}};
-
-/* ---------- nén ảnh (tiết kiệm chi phí) ---------- */
-function compressImage(file){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);
-  img.onload=()=>{URL.revokeObjectURL(url);const MAX=IMG_MAX_DIM;let{width:w,height:h}=img;
-    if(w>MAX||h>MAX){const s=MAX/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}
-    const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);
-    c.toBlob(b=>b?res(b):rej(new Error("compress")),"image/jpeg",IMG_QUALITY);};
-  img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error("load"));};img.src=url;});}
+  box.scrollTop=box.scrollHeight;}
+async function bumpStats(field){try{await setDoc(doc(db,"stats","global"),
+  {[field]:increment(1),updatedAt:serverTimestamp()},{merge:true});}catch(_){}}
+async function touchRoom(rid,preview){await setDoc(doc(db,"rooms",rid),
+  {updatedAt:serverTimestamp(),lastMessage:preview,msgCount:increment(1)},{merge:true});}
+window.sendText=async()=>{const inp=$("ci");const text=inp.value.trim();if(!text||!activeRoom)return;
+  inp.value="";const rid=activeRoom.id;
+  try{await addDoc(collection(db,"rooms",rid,"messages"),{from:me.uid,type:"text",text,
+      createdAt:serverTimestamp(),expireAt:Timestamp.fromMillis(Date.now()+H48)});
+    await touchRoom(rid,text.slice(0,40));bumpStats("messagesSent");
+    notify("chat",{roomId:rid,text:text.slice(0,60)});
+  }catch(e){toast("Không gửi được: "+e.code);inp.value=text;}};
+async function compressChat(file){const img=await loadImg(file);
+  let{width:w,height:h}=img;const MAX=1900;
+  if(w>MAX||h>MAX){const s=MAX/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}
+  return drawTo(img,w,h,0.92);}
 async function uploadAndSend(file,kind){if(!activeRoom)return;const rid=activeRoom.id;
-  const willCompress=kind==="image"&&COMPRESS_IMG;
+  const willCompress=kind==="image";
   if(!willCompress&&file.size>MAX_FILE){toast("File quá lớn (tối đa 25MB)");return;}
-  toast(kind==="image"?(willCompress?"Đang nén & gửi ảnh…":"Đang gửi ảnh…"):"Đang gửi file…");
+  toast(kind==="image"?"Đang gửi ảnh…":"Đang gửi file…");
   try{let blob=file,name=file.name||"file",mime=file.type||"application/octet-stream";
-    if(willCompress){blob=await compressImage(file);name=(file.name?file.name.replace(/\.[^.]+$/,""):"anh-chup")+".jpg";mime="image/jpeg";}
+    if(willCompress){blob=await compressChat(file);
+      name=(file.name?file.name.replace(/\.[^.]+$/,""):"anh")+".jpg";mime="image/jpeg";}
     const safe=name.replace(/[^a-zA-Z0-9._-]/g,"_");const path=`chat/${rid}/${Date.now()}_${safe}`;
-    await uploadBytes(ref(storage,path),blob,{contentType:mime});const url=await getDownloadURL(ref(storage,path));
-    await addDoc(collection(db,"rooms",rid,"messages"),{from:me.uid,type:kind,text:"",fileURL:url,filePath:path,fileName:name,fileSize:blob.size,mime,createdAt:serverTimestamp(),expireAt:Timestamp.fromMillis(Date.now()+H48)});
+    await uploadBytes(ref(storage,path),blob,{contentType:mime});
+    const url=await getDownloadURL(ref(storage,path));
+    await addDoc(collection(db,"rooms",rid,"messages"),{from:me.uid,type:kind,text:"",fileURL:url,
+      filePath:path,fileName:name,fileSize:blob.size,mime,createdAt:serverTimestamp(),
+      expireAt:Timestamp.fromMillis(Date.now()+H48)});
     await touchRoom(rid,kind==="image"?"📷 Hình ảnh":"📎 "+name);bumpStats("filesUploaded");
+    notify("chat",{roomId:rid,text:kind==="image"?"đã gửi một hình":"đã gửi một file"});
   }catch(e){toast("Gửi thất bại: "+(e.code||e.message));}}
-async function uploadMany(files,forceKind){const n=files.length;if(n>1)toast("Đang gửi "+n+" mục…");
-  for(const f of files){const kind=forceKind||(f.type.startsWith("image/")?"image":"file");await uploadAndSend(f,kind);}
-  if(n>1)toast("Đã gửi "+n+" mục");}
+async function uploadMany(files,forceKind){
+  for(const f of files){await uploadAndSend(f,forceKind||(f.type.startsWith("image/")?"image":"file"));}}
 $("imgInput").addEventListener("change",e=>{const fs=[...e.target.files];if(fs.length)uploadMany(fs,"image");e.target.value="";});
 $("fileInput").addEventListener("change",e=>{const fs=[...e.target.files];if(fs.length)uploadMany(fs);e.target.value="";});
-
-/* ---------- block ---------- */
-window.toggleBlock=async()=>{const s=blockState();if(!s.otherUid)return;$("chatMenu").classList.remove("show");
+window.toggleBlock=async()=>{const s=blockState();if(!s.otherUid)return;
+  $("chatMenu").classList.remove("show");
   await updateDoc(doc(db,"users",me.uid),{blocked:s.iBlocked?arrayRemove(s.otherUid):arrayUnion(s.otherUid)});
-  toast(s.iBlocked?"Đã bỏ chặn":"Đã chặn người này");};
-
-/* ---------- xoá nội dung / nhóm ---------- */
+  toast(s.iBlocked?"Đã bỏ chặn":"Đã chặn người này");renderComposer();};
 async function deleteAllMessages(rid){const snap=await getDocs(collection(db,"rooms",rid,"messages"));
-  let batch=writeBatch(db),n=0;for(const d of snap.docs){batch.delete(d.ref);if(++n%400===0){await batch.commit();batch=writeBatch(db);}}
+  let batch=writeBatch(db),n=0;
+  for(const d of snap.docs){batch.delete(d.ref);if(++n%400===0){await batch.commit();batch=writeBatch(db);}}
   if(n%400!==0)await batch.commit();}
 window.clearChat=async()=>{$("chatMenu").classList.remove("show");if(!activeRoom)return;
-  if(!confirm("Xoá TOÀN BỘ tin nhắn trong cuộc trò chuyện này? Không thể khôi phục."))return;
-  toast("Đang xoá…");
-  try{await deleteAllMessages(activeRoom.id);}catch(e){toast("Lỗi xoá: "+(e.code||e.message));return;}
-  try{await setDoc(doc(db,"rooms",activeRoom.id),{lastMessage:"",updatedAt:serverTimestamp()},{merge:true});}catch(_){}
-  toast("Đã xoá toàn bộ tin nhắn");};
-window.deleteGroup=async()=>{$("chatMenu").classList.remove("show");if(!activeRoom||activeRoom.type!=="group")return;
-  if(!confirm('Xoá hẳn nhóm "'+(activeRoom.name||"")+'"? Tất cả tin nhắn sẽ mất, không khôi phục được.'))return;
-  toast("Đang xoá nhóm…");try{await deleteAllMessages(activeRoom.id);await deleteDoc(doc(db,"rooms",activeRoom.id));goBack();toast("Đã xoá nhóm");}catch(e){toast("Lỗi xoá: "+(e.code||e.message));}};
+  if(!confirm("Xoá TOÀN BỘ tin nhắn trong cuộc trò chuyện này?"))return;toast("Đang xoá…");
+  try{await deleteAllMessages(activeRoom.id);
+    await setDoc(doc(db,"rooms",activeRoom.id),{lastMessage:"",msgCount:0,updatedAt:serverTimestamp()},{merge:true});
+    toast("Đã xoá toàn bộ tin nhắn");}catch(e){toast("Lỗi xoá: "+(e.code||e.message));}};
+window.deleteGroup=async()=>{$("chatMenu").classList.remove("show");
+  if(!activeRoom||activeRoom.type!=="group")return;
+  if(!confirm('Xoá hẳn nhóm "'+(activeRoom.name||"")+'"?'))return;toast("Đang xoá nhóm…");
+  try{await deleteAllMessages(activeRoom.id);await deleteDoc(doc(db,"rooms",activeRoom.id));
+    goBack();toast("Đã xoá nhóm");}catch(e){toast("Lỗi xoá: "+(e.code||e.message));}};
 
-/* ---------- group ---------- */
+/* ══════════ GIAO DIỆN LÀM VIỆC ══════════ */
+function renderWork(){
+  const area=$("bodyArea");
+  if(!activeWs){
+    const cards=workspaces.map(w=>{
+      const st=statusIn(w.id),role=roleIn(w.id);
+      const c=colorFor(w.code||w.name);
+      let pill=`<span class="rolepill none">Chưa vào</span>`;
+      if(st==="pending")pill=`<span class="rolepill pending">CHỜ DUYỆT</span>`;
+      else if(role==="sender")pill=`<span class="rolepill sender">NGƯỜI GỬI</span>`;
+      else if(role==="receiver")pill=`<span class="rolepill receiver">NGƯỜI NHẬN</span>`;
+      else if(role==="both")pill=`<span class="rolepill both">GỬI & NHẬN</span>`;
+      return `<div class="ws-card" onclick="openWs('${w.id}')">
+        <div class="badge" style="background:linear-gradient(135deg,${c},${c}cc)">${esc(w.code||"#")}</div>
+        <div class="mid"><div class="nm">${esc(w.name||w.code)}</div>
+          <div class="sub">${st==="approved"?"Bấm để mở":st==="pending"?"Yêu cầu đang chờ duyệt":"Bấm để xin vào nhóm"}</div></div>
+        ${pill}</div>`;}).join("");
+    area.innerHTML=`<div class="work">
+      ${pushBarHTML()}
+      <div class="work-head"><div class="info"><h2>Khu vực làm việc</h2>
+        <div class="st">${workspaces.length} nhóm${me.isAdmin?" · bạn là quản trị viên":""}</div></div>
+        ${me.isAdmin?`<button class="icon-btn" onclick="openAdmin()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></button>`:""}
+        <button class="icon-btn" onclick="doLogout()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg></button>
+      </div>
+      <div class="scroll"><div class="ws-grid">${cards||`<div class="empty-list">Chưa có nhóm làm việc nào.${me.isAdmin?"<br>Mở Bảng quản trị → Nhóm việc để tạo.":""}</div>`}</div></div>
+    </div>`;
+    return;
+  }
+
+  const st=statusIn(activeWs.id),role=roleIn(activeWs.id);
+  const head=`<div class="work-head">
+      <button class="back" style="display:flex" onclick="closeWs()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button>
+      <div class="info"><h2>${esc(activeWs.name||activeWs.code)}</h2>
+        <div class="st">${role==="sender"?"Bạn là người gửi":role==="receiver"?"Bạn là người nhận":role==="both"?"Bạn gửi và nhận":"Chưa có quyền"}</div></div>
+      ${me.isAdmin?`<button class="icon-btn" onclick="openAdmin()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></button>`:""}
+    </div>`;
+
+  if(!role){
+    area.innerHTML=`<div class="work">${head}<div class="wait-box">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+      <h3>${st==="pending"?"Đang chờ duyệt":"Chưa vào nhóm này"}</h3>
+      <p>${st==="pending"
+        ? "Yêu cầu của bạn đã gửi. Quản trị viên duyệt và phân quyền xong, nội dung sẽ tự hiện ra."
+        : "Bạn cần được duyệt mới xem được nội dung của nhóm này."}</p>
+      ${st==="pending"?"":`<button class="btn-primary" onclick="joinWs('${activeWs.id}')">Xin vào nhóm</button>`}
+    </div></div>`;
+    return;
+  }
+
+  const canSend=role==="sender"||role==="both";
+  const canRecv=role==="receiver"||role==="both";
+  const counts={pending:0,received:0,returned:0};
+  wsItems.forEach(i=>counts[i.status]=(counts[i.status]||0)+1);
+  const shown=wsItems.filter(i=>wsFilter==="all"?true:wsFilter==="mine"?i.from===me.uid:i.status===wsFilter);
+
+  const filters=`<div class="filters">
+    <button class="${wsFilter==='pending'?'on':''}" onclick="setWsFilter('pending')">Chưa xử lý ${counts.pending||0}</button>
+    <button class="${wsFilter==='received'?'on':''}" onclick="setWsFilter('received')">Đã nhận ${counts.received||0}</button>
+    <button class="${wsFilter==='returned'?'on':''}" onclick="setWsFilter('returned')">Đã trả ${counts.returned||0}</button>
+    <button class="${wsFilter==='mine'?'on':''}" onclick="setWsFilter('mine')">Của tôi</button>
+    <button class="${wsFilter==='all'?'on':''}" onclick="setWsFilter('all')">Tất cả</button>
+  </div>`;
+
+  const feed=shown.length?shown.map(i=>itemCard(i,canRecv)).join("")
+    :`<div class="empty-list">Không có mục nào ở đây.</div>`;
+
+  const composer=canSend?`<div class="wcomposer">
+    ${workQueue.length?`<div class="wc-prev">${workQueue.map((q,idx)=>`<div class="p"><img src="${q.url}"><button class="x" onclick="dropQueue(${idx})">×</button></div>`).join("")}</div>`:""}
+    <div class="wc-row">
+      <button class="pick" onclick="document.getElementById('workImgInput').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-5-5L5 21"/></svg></button>
+      <div class="inwrap"><input id="wcCap" placeholder="Ghi chú (không bắt buộc)…" autocomplete="off"></div>
+      <button class="send" onclick="sendWorkItems()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg></button>
+    </div></div>`:"";
+
+  area.innerHTML=`<div class="work">${pushBarHTML()}${head}${filters}
+    <div class="feed" id="feed">${feed}</div>${composer}</div>`;
+}
+
+function itemCard(i,canRecv){
+  const t=i.createdAt?.toMillis?.()??Date.now();
+  const mine=i.from===me.uid;
+  const stTxt={pending:"CHƯA XỬ LÝ",received:"ĐÃ NHẬN",returned:"ĐÃ TRẢ"}[i.status]||"";
+  let note="";
+  if(i.status==="received")note=`<div class="item-note ok"><b>${esc(i.receivedName||"")}</b> đã nhận · ${i.receivedAt?hhmm(i.receivedAt.toMillis()):""}</div>`;
+  if(i.status==="returned")note=`<div class="item-note no"><b>${esc(i.returnedName||"")}</b> đã trả · ${esc(i.returnReason||"")}</div>`;
+  const rc=i.remindCount||0;
+  const remindNote=(i.status==="pending"&&rc>0)
+    ? `<div class="remind-note">${clock} Đã nhắc ${rc} lần · chờ ${ago(t)}</div>`:"";
+  let acts="";
+  if(i.status==="pending"){
+    const btns=[];
+    if(canRecv){
+      btns.push(`<button class="act take" data-take="${i.id}" onclick="takeItem('${i.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>Nhận</button>`);
+      btns.push(`<button class="act give" onclick="openReturn('${i.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-1"/></svg>Trả</button>`);
+    }
+    if(mine)btns.push(`<button class="act remind" onclick="remindItem('${i.id}')">${clock}Nhắc</button>`);
+    if(btns.length)acts=`<div class="item-acts">${btns.join("")}</div>`;
+  }
+  return `<div class="item ${i.status}">
+    <div class="item-top">
+      ${avatar(usersMap[i.from]||{name:i.fromName},"sm")}
+      <div class="mid"><div class="nm">${esc(i.fromName||"?")}</div><div class="tm">${hhmm(t)} · ${ago(t)}</div></div>
+      <span class="stpill ${i.status}">${stTxt}</span>
+    </div>
+    <img class="item-img" src="${i.thumbURL||i.imageURL}" loading="lazy" onclick="openLb('${i.id}','work')">
+    ${i.caption?`<div class="item-cap">${esc(i.caption)}</div>`:""}
+    ${note}${remindNote}${acts}</div>`;
+}
+
+/* ══════════ XEM ẢNH ══════════ */
+window.openLb=(id,src)=>{
+  let url="",name="anh.jpg";
+  if(src==="chat"){const m=currentMsgs.find(x=>x.id===id);if(!m)return;url=m.fileURL;name=m.fileName||"anh.jpg";}
+  else{const i=wsItems.find(x=>x.id===id);if(!i)return;url=i.imageURL;name="hinh_"+id+".jpg";}
+  lbCtx={url,name};$("lbImg").src=url;$("lightbox").classList.add("show");};
+window.saveLb=()=>lbCtx&&saveUrl(lbCtx.url,lbCtx.name);
+window.shareLb=()=>lbCtx&&shareUrl(lbCtx.url,lbCtx.name);
+window.saveUrl=async(url,name)=>{bumpStats("filesDownloaded");toast("Đang tải…");
+  try{const res=await fetch(url);const blob=await res.blob();const u=URL.createObjectURL(blob);
+    const a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),5000);toast("Đã tải về máy");
+  }catch(_){window.open(url,"_blank");toast("Đã mở ảnh — nhấn giữ để lưu");}};
+window.shareUrl=async(url,name)=>{bumpStats("filesShared");
+  try{
+    if(navigator.canShare){try{const res=await fetch(url);const blob=await res.blob();
+      const file=new File([blob],name,{type:blob.type||"image/jpeg"});
+      if(navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return;}}catch(_){}}
+    if(navigator.share){await navigator.share({title:name,url});return;}
+    await navigator.clipboard.writeText(url);toast("Đã copy link — dán vào Zalo");
+  }catch(_){try{await navigator.clipboard.writeText(url);toast("Đã copy link");}catch(__){toast(url);}}};
+
+/* ══════════ NHÓM CHAT ══════════ */
 let gPicked=new Set();
 window.openGroupModal=()=>{gPicked.clear();$("gName").value="";
   const list=myUsers.filter(p=>!p.disabled&&(p.status||"pending")==="approved");
   $("gPick").innerHTML=list.map(p=>`<div class="pk" data-uid="${p.uid}" onclick="togglePick(this)">${avatar(p,"sm")}
-    <div class="mid"><div class="nm">${esc(p.name||p.email)}</div><div class="sub">${esc(p.email)}</div></div>
-    <div class="cbx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></div></div>`).join("")||`<div class="empty-list">Chưa có đồng nghiệp nào để thêm.</div>`;
+    <div class="mid"><div class="nm">${esc(p.name||p.email)}</div><p class="sub">${esc(p.email)}</p></div>
+    <div class="cbx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></div></div>`).join("")
+    ||`<div class="empty-list">Chưa có đồng nghiệp nào để thêm.</div>`;
   $("groupModal").classList.add("show");};
-window.togglePick=el=>{const u=el.dataset.uid;el.classList.toggle("sel");el.classList.contains("sel")?gPicked.add(u):gPicked.delete(u);};
+window.togglePick=el=>{const u=el.dataset.uid;el.classList.toggle("sel");
+  el.classList.contains("sel")?gPicked.add(u):gPicked.delete(u);};
 window.closeModal=id=>$(id).classList.remove("show");
-window.createGroup=async()=>{const name=$("gName").value.trim();if(!name)return toast("Đặt tên nhóm đã nhé");if(gPicked.size<1)return toast("Chọn ít nhất 1 thành viên");
+window.createGroup=async()=>{const name=$("gName").value.trim();
+  if(!name)return toast("Đặt tên nhóm đã nhé");if(gPicked.size<1)return toast("Chọn ít nhất 1 thành viên");
   const members=[me.uid,...gPicked].sort();
-  const r=await addDoc(collection(db,"rooms"),{type:"group",name,members,owner:me.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp(),lastMessage:"Nhóm vừa được tạo"});
-  closeModal("groupModal");setTab("chats");openRoom(r.id);};
+  const r=await addDoc(collection(db,"rooms"),{type:"group",name,members,owner:me.uid,
+    createdAt:serverTimestamp(),updatedAt:serverTimestamp(),lastMessage:"Nhóm vừa được tạo",msgCount:0});
+  closeModal("groupModal");setView("chat");tab="chats";openRoom(r.id);};
 
-/* ---------- admin ---------- */
-window.openAdmin=()=>{if(!me.isAdmin)return;renderAdmin();setAdminTab("stats");$("adminModal").classList.add("show");};
-window.setAdminTab=t=>{$("atab-stats").classList.toggle("on",t==="stats");$("atab-users").classList.toggle("on",t==="users");
-  $("adminStats").style.display=t==="stats"?"block":"none";$("adminUsers").style.display=t==="users"?"block":"none";
-  if(t==="stats")renderAdminStats();};
-function roomLabel(r){if(r.type==="group")return (r.name||"Nhóm");
-  return (r.members||[]).map(u=>usersMap[u]?.name||usersMap[u]?.email||"?").join(" ↔ ");}
-async function renderAdminStats(){const box=$("adminStats");box.innerHTML='<div class="empty-list">Đang tải…</div>';
-  let s={};try{const g=await getDoc(doc(db,"stats","global"));s=g.exists()?g.data():{};}catch(_){}
-  let rooms=[];try{const rs=await getDocs(collection(db,"rooms"));rooms=rs.docs.map(d=>({id:d.id,...d.data()}));}catch(_){}
-  rooms.sort((a,b)=>(b.msgCount||0)-(a.msgCount||0));const top=rooms.filter(r=>(r.msgCount||0)>0).slice(0,10);
-  const card=(n,l)=>`<div class="stat-card"><div class="n">${n||0}</div><div class="l">${l}</div></div>`;
-  box.innerHTML=`<div class="stat-grid">
-    ${card(s.messagesSent,"Tin nhắn đã gửi")}${card(s.filesUploaded,"File/hình đã gửi")}
-    ${card(s.filesDownloaded,"Lượt tải về")}${card(s.filesShared,"Lượt chia sẻ Zalo")}</div>
-    <div class="mlabel">XẾP HẠNG TƯƠNG TÁC (${top.length})</div>`+
-    (top.length?top.map((r,i)=>`<div class="rank-row"><div class="rk">${i+1}</div>
-      <div class="mid"><div class="nm">${esc(roomLabel(r))}${r.type==="group"?' · nhóm':''}</div><div class="ct">${r.msgCount||0} tin</div></div>
-      <button class="mini view" onclick="adminView('${r.id}')">Xem</button>
-      <button class="mini del" onclick="adminClear('${r.id}')">Xoá</button></div>`).join("")
-      :'<div class="empty-list">Chưa có dữ liệu tương tác.</div>');
-}
-window.adminView=async rid=>{closeModal("adminModal");await openRoom(rid);};
-window.adminClear=async rid=>{if(!confirm("Xoá toàn bộ tin nhắn của cuộc trò chuyện này?"))return;
-  try{await deleteAllMessages(rid);await setDoc(doc(db,"rooms",rid),{lastMessage:"",msgCount:0,updatedAt:serverTimestamp()},{merge:true});toast("Đã xoá");renderAdminStats();}catch(e){toast("Lỗi: "+(e.code||e.message));}};
+/* ══════════ QUẢN TRỊ ══════════ */
+window.openAdmin=()=>{if(!me.isAdmin)return;renderAdmin();setAdminTab("users");$("adminModal").classList.add("show");};
+window.setAdminTab=t=>{["users","ws","stats"].forEach(x=>{
+  $("atab-"+x).classList.toggle("on",x===t);
+  $("admin"+x.charAt(0).toUpperCase()+x.slice(1)).style.display=x===t?"block":"none";});
+  if(t==="stats")renderAdminStats();if(t==="ws")renderAdminWs();};
 function renderAdmin(){
   const pend=myUsers.filter(p=>(p.status||"pending")!=="approved"&&!p.disabled);
-  $("admPendingWrap").innerHTML=pend.length?`<div class="mlabel" style="color:var(--amber)">CHỜ DUYỆT (${pend.length})</div>`+
-    pend.map(p=>`<div class="adm-row">${avatar(p,"sm")}<div class="mid"><div class="nm">${esc(p.name||p.email)}<span class="pending-tag">CHỜ</span></div><div class="sub">${esc(p.email)}</div></div>
-      <button class="pill approve" onclick="approveUser('${p.uid}')">Duyệt</button></div>`).join(""):"";
-  const all=myUsers.filter(p=>(p.status||"pending")==="approved"||p.disabled).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-  $("admList").innerHTML=all.map(p=>`<div class="adm-row">${avatar(p,"sm")}
-    <div class="mid"><div class="nm">${esc(p.name||p.email)}${p.disabled?'<span class="disabled-tag">ĐÃ KHOÁ</span>':''}</div><div class="sub">${esc(p.email)}</div></div>
-    <button class="pill ${p.disabled?'unlock':'lock'}" onclick="toggleDisable('${p.uid}',${!p.disabled})">${p.disabled?'Mở khoá':'Khoá'}</button></div>`).join("")||`<div class="empty-list">Chưa có người dùng nào được duyệt.</div>`;
+  const all=myUsers.filter(p=>(p.status||"pending")==="approved"||p.disabled)
+    .sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  $("adminUsers").innerHTML=
+    (pend.length?`<div class="mlabel" style="color:var(--amber)">CHỜ DUYỆT (${pend.length})</div>`+
+      pend.map(p=>`<div class="adm-row">${avatar(p,"sm")}
+        <div class="mid"><div class="nm">${esc(p.name||p.email)}<span class="pending-tag">CHỜ</span></div><p class="sub">${esc(p.email)}</p></div>
+        <button class="pill approve" onclick="approveUser('${p.uid}')">Duyệt</button></div>`).join(""):"")+
+    `<div class="mlabel">TẤT CẢ NGƯỜI DÙNG (${all.length})</div>`+
+    (all.map(p=>`<div class="adm-row">${avatar(p,"sm")}
+      <div class="mid"><div class="nm">${esc(p.name||p.email)}
+        ${p.isAdmin?'<span class="adm-tag">ADMIN</span>':''}${p.disabled?'<span class="disabled-tag">ĐÃ KHOÁ</span>':''}</div>
+        <p class="sub">${esc(p.email)}</p></div>
+      <button class="pill ${p.isAdmin?'unlock':'lock'}" style="background:#ece9fe;color:var(--violet)" onclick="toggleAdmin('${p.uid}',${!p.isAdmin})">${p.isAdmin?'Bỏ admin':'Cho admin'}</button>
+      <button class="pill ${p.disabled?'unlock':'lock'}" onclick="toggleDisable('${p.uid}',${!p.disabled})">${p.disabled?'Mở':'Khoá'}</button></div>`).join("")
+      ||`<div class="empty-list">Chưa có người dùng nào.</div>`);
 }
-window.approveUser=async uid=>{try{await updateDoc(doc(db,"users",uid),{status:"approved"});toast("Đã duyệt tài khoản");}catch(e){toast("Không duyệt được: "+e.code);}};
-window.toggleDisable=async(uid,val)=>{try{await updateDoc(doc(db,"users",uid),{disabled:val});toast(val?"Đã khoá tài khoản":"Đã mở khoá");}catch(e){toast("Không đổi được: "+e.code);}};
+window.approveUser=async uid=>{try{await updateDoc(doc(db,"users",uid),{status:"approved"});toast("Đã duyệt");}
+  catch(e){toast("Không duyệt được: "+e.code);}};
+window.toggleDisable=async(uid,v)=>{try{await updateDoc(doc(db,"users",uid),{disabled:v});
+  toast(v?"Đã khoá":"Đã mở khoá");}catch(e){toast("Lỗi: "+e.code);}};
+window.toggleAdmin=async(uid,v)=>{try{await updateDoc(doc(db,"users",uid),{isAdmin:v});
+  toast(v?"Đã cấp quyền admin":"Đã thu quyền admin");}catch(e){toast("Lỗi: "+e.code);}};
 
-/* live countdown */
+async function renderAdminWs(){
+  const box=$("adminWs");
+  box.innerHTML=`<button class="new-grp" onclick="document.getElementById('wsModal').classList.add('show')">
+    <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Tạo nhóm làm việc</button>
+    <div id="wsAdminList"><div class="empty-list">Đang tải…</div></div>`;
+  let html="";
+  for(const w of workspaces){
+    let mem=[];
+    try{const s=await getDocs(collection(db,"workspaces",w.id,"members"));
+      mem=s.docs.map(d=>({uid:d.id,...d.data()}));}catch(_){}
+    const pend=mem.filter(m=>m.status!=="approved");
+    const ok=mem.filter(m=>m.status==="approved");
+    html+=`<div class="mlabel">${esc(w.code||"")} — ${esc(w.name||"")} (${ok.length} thành viên)</div>`;
+    if(pend.length)html+=pend.map(m=>`<div class="adm-row">
+      <div class="mid"><div class="nm">${esc(m.name||m.email)}<span class="pending-tag">XIN VÀO</span></div><p class="sub">${esc(m.email||"")}</p></div>
+      <select class="rolesel" id="role_${w.id}_${m.uid}">
+        <option value="sender">Người gửi</option><option value="receiver">Người nhận</option><option value="both">Cả hai</option></select>
+      <button class="pill approve" onclick="approveMember('${w.id}','${m.uid}')">Duyệt</button></div>`).join("");
+    html+=ok.map(m=>`<div class="adm-row">
+      <div class="mid"><div class="nm">${esc(m.name||m.email)}</div><p class="sub">${esc(m.email||"")}</p></div>
+      <select class="rolesel" onchange="setRole('${w.id}','${m.uid}',this.value)">
+        <option value="sender" ${m.role==="sender"?"selected":""}>Người gửi</option>
+        <option value="receiver" ${m.role==="receiver"?"selected":""}>Người nhận</option>
+        <option value="both" ${m.role==="both"?"selected":""}>Cả hai</option></select>
+      <button class="pill lock" onclick="kickMember('${w.id}','${m.uid}')">Xoá</button></div>`).join("")
+      ||(pend.length?"":`<div class="empty-list">Chưa có thành viên.</div>`);
+  }
+  if(!workspaces.length)html=`<div class="empty-list">Chưa có nhóm làm việc nào.</div>`;
+  const el=$("wsAdminList");if(el)el.innerHTML=html;
+}
+window.createWorkspace=async()=>{
+  const code=$("wsCode").value.trim().toUpperCase(),name=$("wsName").value.trim()||code;
+  if(!code)return toast("Nhập mã nhóm");
+  try{await addDoc(collection(db,"workspaces"),{code,name,createdBy:me.uid,createdAt:serverTimestamp(),active:true});
+    closeModal("wsModal");$("wsCode").value="";$("wsName").value="";toast("Đã tạo nhóm "+code);
+    setTimeout(renderAdminWs,600);}catch(e){toast("Lỗi: "+(e.code||e.message));}};
+window.approveMember=async(wsId,uid)=>{
+  const sel=$(`role_${wsId}_${uid}`);const role=sel?sel.value:"sender";
+  try{await updateDoc(doc(db,"workspaces",wsId,"members",uid),
+    {status:"approved",role,approvedBy:me.uid,approvedAt:serverTimestamp()});
+    toast("Đã duyệt vào nhóm");renderAdminWs();}catch(e){toast("Lỗi: "+(e.code||e.message));}};
+window.setRole=async(wsId,uid,role)=>{
+  try{await updateDoc(doc(db,"workspaces",wsId,"members",uid),{role});toast("Đã đổi quyền");}
+  catch(e){toast("Lỗi: "+(e.code||e.message));}};
+window.kickMember=async(wsId,uid)=>{if(!confirm("Xoá người này khỏi nhóm?"))return;
+  try{await deleteDoc(doc(db,"workspaces",wsId,"members",uid));toast("Đã xoá");renderAdminWs();}
+  catch(e){toast("Lỗi: "+(e.code||e.message));}};
+async function renderAdminStats(){
+  const box=$("adminStats");box.innerHTML='<div class="empty-list">Đang tải…</div>';
+  let s={};try{const g=await getDoc(doc(db,"stats","global"));s=g.exists()?g.data():{};}catch(_){}
+  let totals={pending:0,received:0,returned:0};
+  for(const w of workspaces){
+    try{const snap=await getDocs(query(collection(db,"workspaces",w.id,"items"),limit(300)));
+      snap.docs.forEach(d=>{const st=d.data().status;totals[st]=(totals[st]||0)+1;});}catch(_){}
+  }
+  const card=(n,l)=>`<div class="stat-card"><div class="n">${n||0}</div><div class="l">${l}</div></div>`;
+  box.innerHTML=`<div class="mlabel">KHU VỰC LÀM VIỆC</div><div class="stat-grid">
+    ${card(totals.pending,"Đang chờ xử lý")}${card(totals.received,"Đã nhận")}
+    ${card(totals.returned,"Đã trả lại")}${card(workspaces.length,"Số nhóm")}</div>
+    <div class="mlabel">TRÒ CHUYỆN</div><div class="stat-grid">
+    ${card(s.messagesSent,"Tin nhắn đã gửi")}${card(s.filesUploaded,"File/hình đã gửi")}
+    ${card(s.filesDownloaded,"Lượt tải về")}${card(s.filesShared,"Lượt chia sẻ")}</div>`;
+}
+
+/* ── đồng hồ đếm ngược chat ── */
 setInterval(()=>{document.querySelectorAll(".m[data-exp]").forEach(el=>{
-  const r=remain(+el.dataset.exp);const out=el.classList.contains("out");
-  const bar=el.querySelector(".life i");if(bar){bar.style.width=r.pct+"%";bar.style.background=r.lv==="crit"?"var(--red)":r.lv==="warn"?"var(--amber)":(out?"rgba(255,255,255,.85)":"var(--cyan)");}
-  const ttl=el.querySelector(".ttl");if(ttl){ttl.className="ttl "+(r.lv==="crit"?"crit":r.lv==="warn"?"warn":"");ttl.innerHTML=clock+(r.lv==="crit"?"sắp xoá · ":"")+r.label;}});},1000);
+  const r=remain(+el.dataset.exp),out=el.classList.contains("out");
+  const bar=el.querySelector(".life i");
+  if(bar){bar.style.width=r.pct+"%";
+    bar.style.background=r.lv==="crit"?"var(--red)":r.lv==="warn"?"var(--amber)":(out?"rgba(255,255,255,.85)":"var(--cyan)");}
+  const ttl=el.querySelector(".ttl");
+  if(ttl){ttl.className="ttl "+(r.lv==="crit"?"crit":r.lv==="warn"?"warn":"");
+    ttl.innerHTML=clock+(r.lv==="crit"?"sắp xoá · ":"")+r.label;}});},1000);
 </script>
 </body>
 </html>
