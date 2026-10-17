@@ -90,8 +90,11 @@
     const total = Math.floor((bin.length - off) / 2);
     const f = new Float32Array(total);
     for (let i = 0; i < total; i++) { let v = bin.charCodeAt(off + 2 * i) | (bin.charCodeAt(off + 2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; f[i] = v / 0x8000; }
-    M.lastRaw = { f: f.slice(), rate }; // giữ bản gốc để tải về chẩn đoán
+    // giữ bản gốc của TẤT CẢ các đoạn trong lần đọc gần nhất để tải về chẩn đoán
+    (M.rawChunks = M.rawChunks || []).push({ f: f.slice(), rate });
+    M.lastRaw = { f: f.slice(), rate };
     let end = cutTailArtifact(f, rate);
+    (M.cuts = M.cuts || []).push(M.lastCut ? `${M.lastCut.ms} ms (${M.lastCut.rule})` : 'không');
     // tìm mẫu cuối cùng còn tiếng nói rõ (bỏ qua đuôi im lặng/nhiễu), giữ thêm 60 ms cho tự nhiên
     end = Math.min(end, total - Math.round(rate * 0.025));
     let lastVoice = 0; for (let i = end - 1; i >= 0; i--) { if (Math.abs(f[i]) > 0.02) { lastVoice = i; break; } }
@@ -123,6 +126,24 @@
     const SIL = 0.012, LOUD = 0.02;
     let last = nW - 1; while (last >= 0 && rms[last] < LOUD) last--;      // khung cuối còn âm thanh
     if (last < 5) return f.length;
+
+    // (0) Dữ liệu rác Gemini đôi khi gắn ở cuối: phát ra như cú nổ CHẠM KỊCH TRẦN (|mẫu| ~ 1,0)
+    //     trong khi giọng thật không bao giờ chạm. Tìm khung như vậy trong 0,8 giây cuối -> cắt từ đầu cụm âm chứa nó.
+    const pk = new Float32Array(nW);
+    for (let w = 0; w < nW; w++) { let m = 0; for (let i = w * W; i < (w + 1) * W; i++) { const x = Math.abs(f[i]); if (x > m) m = x; } pk[w] = m; }
+    const tailW = Math.max(5, nW - 40);
+    let spPeak = 0, spRms = 0; for (let w = 0; w < tailW; w++) { spPeak = Math.max(spPeak, pk[w]); spRms = Math.max(spRms, rms[w]); }
+    for (let w = tailW; w <= last; w++) {
+      if ((pk[w] >= 0.98 && spPeak < 0.97) || (rms[w] > 0.3 && rms[w] > spRms * 1.5)) {
+        // lùi về đầu cụm rác: chỉ đi qua khung bất thường (gần kịch trần / to hơn giọng) hoặc im lặng,
+        // dừng ngay khi gặp khung giọng nói bình thường -> rác dính liền sau lời nói cũng cắt đúng chỗ
+        let s = w;
+        while (s > 0 && (pk[s - 1] >= 0.9 || rms[s - 1] > spRms * 1.2) && !(rms[s - 1] < SIL)) s--;
+        while (s > 0 && rms[s - 1] < SIL && s > w - 30) s--; // khoảng lặng ngay trước rác (nếu có) cũng bỏ
+        if (s > 5) { M.lastCut = { ms: (nW - s) * 20, rule: 'rác chạm kịch trần' }; return s * W; }
+        break;
+      }
+    }
     let start = last; while (start > 0 && rms[start - 1] >= SIL) start--;   // đầu đoạn âm cuối cùng
     let gap = 0, g = start - 1; while (g >= 0 && rms[g] < SIL) { gap++; g--; } // khoảng lặng phía trước
     const burstW = last - start + 1;
@@ -171,7 +192,7 @@
   // Đọc bằng Gemini: phát câu 1 ngay khi có, trong lúc đó tạo sẵn câu tiếp theo
   async function geminiSpeak(text, voiceName) {
     const parts = chunkText(text);
-    M.ttsStop = false;
+    M.ttsStop = false; M.rawChunks = []; M.cuts = [];
     let next = ttsFetch(parts[0], voiceName);
     for (let i = 0; i < parts.length; i++) {
       const buf = await next;
@@ -487,12 +508,15 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
         const was = M.active; M.active = true;
         return speak(o.lang === 'en' ? 'Hello, thanks for joining. Could you briefly introduce yourself?' : 'Chào em, cảm ơn em đã tham gia buổi phỏng vấn. Em giới thiệu ngắn gọn về bản thân nhé.').then(() => {
           M.active = was;
-          const ci = $('#mkCutInfo'); if (ci) ci.textContent = M.lastCut ? `đã cắt ${M.lastCut.ms} ms tiếng lạ ở cuối` : '';
+          const ci = $('#mkCutInfo'); if (ci) ci.textContent = (M.cuts || []).length ? 'Cắt tiếng lạ — ' + M.cuts.map((c, i) => `đoạn ${i + 1}: ${c}`).join(' · ') : '';
         });
       }
       case 'mkRawDl': {
-        if (!M.lastRaw) return U.toast('Chưa có âm thanh — bấm “Nghe thử giọng” trước.', 'info');
-        const { f, rate } = M.lastRaw;
+        if (!(M.rawChunks || []).length) return U.toast('Chưa có âm thanh — bấm “Nghe thử giọng” trước.', 'info');
+        // ghép mọi đoạn của lần đọc gần nhất, cách nhau 0,5 giây im lặng
+        const rate = M.rawChunks[0].rate, gapN = Math.round(rate * 0.5);
+        const f = new Float32Array(M.rawChunks.reduce((s, c) => s + c.f.length + gapN, 0));
+        let p = 0; M.rawChunks.forEach((c) => { f.set(c.f, p); p += c.f.length + gapN; });
         const buf = new ArrayBuffer(44 + f.length * 2), v = new DataView(buf);
         const w = (o, s) => { for (let i = 0; i < 4; i++) v.setUint8(o + i, s.charCodeAt(i)); };
         w(0, 'RIFF'); v.setUint32(4, 36 + f.length * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
