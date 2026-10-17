@@ -30,8 +30,13 @@
     return list.find((v) => v.name === o.voice) || list.find((v) => /natural|online|google/i.test(v.name)) || list[0] || null;
   }
   function stopSpeaking() {
+    M.ttsStop = true;
     if (window.speechSynthesis) speechSynthesis.cancel();
-    if (M.src) { try { M.src.onended = null; M.src.stop(); } catch (e) { /* đã dừng */ } M.src = null; }
+    if (M.src) {
+      // giảm âm trong ~50 ms rồi mới dừng -> không bị tiếng bụp khi bấm Bỏ qua/Kết thúc
+      try { const t = M.ac.currentTime; M.gain.gain.setTargetAtTime(0, t, 0.012); M.src.onended = null; M.src.stop(t + 0.06); } catch (e) { /* đã dừng */ }
+      M.src = null;
+    }
     if (M.speakDone) { const f = M.speakDone; M.speakDone = null; f(); }
   }
 
@@ -50,8 +55,8 @@
     return model;
   }
 
-  // Gemini trả về âm thanh PCM 16-bit (vd audio/L16;rate=24000) -> phát bằng Web Audio
-  async function geminiSpeak(text, voiceName) {
+  // Gọi Gemini TTS cho 1 đoạn văn -> AudioBuffer đã làm sạch
+  async function ttsFetch(text, voiceName) {
     const key = MD.CP.keys().geminiKey;
     if (!key) throw new Error('Chưa có Gemini key');
     let model = await ttsModel(key), r;
@@ -67,20 +72,76 @@
     if (!r.ok) throw new Error((r.status === 429 ? 'Hết hạn mức giọng đọc Gemini: ' : 'Gemini TTS: ') + ((j.error && j.error.message) || r.status));
     const part = (((j.candidates || [])[0] || {}).content || { parts: [] }).parts.find((p) => p.inlineData);
     if (!part) throw new Error('Gemini TTS không trả về âm thanh');
-    const mime = part.inlineData.mimeType || '', rate = +((mime.match(/rate=(\d+)/) || [])[1] || 24000);
-    const bin = atob(part.inlineData.data), n = Math.floor(bin.length / 2);
+    return pcmToBuffer(part.inlineData.data, part.inlineData.mimeType || '');
+  }
+
+  /* PCM 16-bit -> AudioBuffer, có làm sạch để tránh tiếng "bụp/khẹt":
+     - bỏ header nếu dữ liệu là file WAV
+     - cắt đuôi im lặng/nhiễu và 25 ms cuối (hay có mẫu lỗi)
+     - tăng âm dần 10 ms ở đầu, giảm âm dần 40 ms ở cuối */
+  function pcmToBuffer(b64, mime) {
+    const bin = atob(b64);
+    let off = 0, rate = +((mime.match(/rate=(\d+)/) || [])[1] || 24000);
+    if (bin.slice(0, 4) === 'RIFF') {
+      const u32 = (i) => (bin.charCodeAt(i) | (bin.charCodeAt(i + 1) << 8) | (bin.charCodeAt(i + 2) << 16) | (bin.charCodeAt(i + 3) << 24)) >>> 0;
+      rate = u32(24) || rate;
+      let p = 12; while (p + 8 <= bin.length) { const id = bin.slice(p, p + 4), sz = u32(p + 4); if (id === 'data') { off = p + 8; break; } p += 8 + sz + (sz & 1); }
+    }
+    const total = Math.floor((bin.length - off) / 2);
+    const f = new Float32Array(total);
+    for (let i = 0; i < total; i++) { let v = bin.charCodeAt(off + 2 * i) | (bin.charCodeAt(off + 2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; f[i] = v / 0x8000; }
+    // tìm mẫu cuối cùng còn tiếng nói rõ (bỏ qua đuôi im lặng/nhiễu), giữ thêm 60 ms cho tự nhiên
+    let end = total - Math.round(rate * 0.025);
+    let lastVoice = 0; for (let i = end - 1; i >= 0; i--) { if (Math.abs(f[i]) > 0.02) { lastVoice = i; break; } }
+    end = Math.max(1, Math.min(end, lastVoice + Math.round(rate * 0.06)));
+    const fin = Math.min(Math.round(rate * 0.01), end), fout = Math.min(Math.round(rate * 0.04), end);
+    for (let i = 0; i < fin; i++) f[i] *= i / fin;
+    for (let i = 0; i < fout; i++) f[end - 1 - i] *= i / fout;
     M.ac = M.ac || new (window.AudioContext || window.webkitAudioContext)();
-    if (M.ac.state === 'suspended') await M.ac.resume();
-    const buf = M.ac.createBuffer(1, n, rate), ch = buf.getChannelData(0);
-    for (let i = 0; i < n; i++) { let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; ch[i] = v / 0x8000; }
-    return new Promise((resolve) => {
-      const src = M.ac.createBufferSource(); src.buffer = buf; src.connect(M.ac.destination);
-      M.src = src; M.speakDone = resolve;
+    const buf = M.ac.createBuffer(1, end, rate);
+    buf.getChannelData(0).set(f.subarray(0, end));
+    return buf;
+  }
+
+  function playBuffer(buf) {
+    return new Promise(async (resolve) => {
+      if (M.ac.state === 'suspended') await M.ac.resume();
+      const src = M.ac.createBufferSource(); src.buffer = buf;
+      // đi qua 1 nút gain để có thể tắt mượt khi bấm dừng, không bị bụp
+      const g = M.ac.createGain(); src.connect(g); g.connect(M.ac.destination);
+      M.src = src; M.gain = g; M.speakDone = resolve;
       src.onended = () => { M.src = null; M.speakDone = null; resolve(); };
       src.start();
     });
   }
 
+  // Chia đoạn đọc thành các câu (gộp câu quá ngắn) để câu đầu phát sớm hơn
+  function chunkText(text) {
+    const sents = text.replace(/\s+/g, ' ').match(/[^.!?…]+[.!?…]*\s*/g) || [text];
+    const out = [];
+    sents.forEach((s) => { s = s.trim(); if (!s) return; if (out.length && (out[out.length - 1].length < 40 || s.length < 25)) out[out.length - 1] += ' ' + s; else out.push(s); });
+    return out.length ? out : [text];
+  }
+
+  // Đọc bằng Gemini: phát câu 1 ngay khi có, trong lúc đó tạo sẵn câu tiếp theo
+  async function geminiSpeak(text, voiceName) {
+    const parts = chunkText(text);
+    M.ttsStop = false;
+    let next = ttsFetch(parts[0], voiceName);
+    for (let i = 0; i < parts.length; i++) {
+      const buf = await next;
+      if (M.ttsStop) return;
+      if (i + 1 < parts.length) { next = ttsFetch(parts[i + 1], voiceName); next.catch(() => {}); }
+      const st = $('#mkInfo'); if (st && i === 0) st.textContent = '';
+      await playBuffer(buf);
+      if (M.ttsStop) return;
+    }
+  }
+
+  MK._test = { pcmToBuffer, chunkText }; // dùng để kiểm tra tự động
+
+  // Dò sẵn mô hình đọc giọng để lần đọc đầu không phải chờ thêm
+  MK.warmup = () => { const k = MD.CP.keys().geminiKey; if (k && isGemini(opts())) ttsModel(k).catch(() => {}); };
   async function speak(text) {
     const o = opts();
     if (isGemini(o)) {
@@ -142,6 +203,7 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
     if (M.active || M.feedback !== undefined) return renderLive();
     const o = opts(), p = MD.CP.profile(), k = MD.CP.keys();
     const vlist = voicesFor(o.lang);
+    MK.warmup();
     const sel = (id, obj, cur) => `<select id="${id}">${Object.entries(obj).map(([v, l]) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
     body.innerHTML = `
       ${!k.geminiKey ? '<div class="note warn">Cần Gemini API key để nghe câu trả lời của bạn — nhập ở tab <a href="#settings" data-go="settings">Cài đặt</a>.</div>' : ''}
