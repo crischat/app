@@ -34,10 +34,21 @@
     if (!list.length) throw new Error('Key hợp lệ nhưng không thấy mô hình Gemini nào dùng được.');
     return list;
   };
-  // Ưu tiên bản Flash mới nhất (gói miễn phí rộng rãi), không chọn bản thử nghiệm nếu có bản ổn định
-  AI.pickGeminiDefault = (list) => {
+  /* Chọn mô hình Gemini theo mục đích — ưu tiên DÒNG mô hình trước, phiên bản sau:
+     fast  (chép lời): Flash-Lite > Flash;  smart (gợi ý): Flash > Flash-Lite > Pro;  balanced: Flash.
+     Tên mã lạ (không có flash/pro/lite), bản thử nghiệm, và mô hình chuyên dụng (tts, image, live…) bị đẩy xuống cuối. */
+  const FAMILY_W = {
+    fast: { lite: 30, flash: 20, pro: -10, other: -40 },
+    smart: { flash: 30, lite: 15, pro: 5, other: -40 },
+    balanced: { flash: 30, lite: 10, pro: 10, other: -40 }
+  };
+  AI.pickGeminiDefault = (list, purpose = 'balanced') => {
     const ver = (id) => { const m = id.match(/gemini-(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1]) : 0; };
-    const score = (m) => ver(m.id) * 10 + (/flash/.test(m.id) ? 3 : 0) - (/lite/.test(m.id) ? 1 : 0) - (/preview|exp|\d{2}-\d{2}/.test(m.id) ? 5 : 0);
+    const fam = (id) => (/lite/.test(id) ? 'lite' : /flash/.test(id) ? 'flash' : /pro/.test(id) ? 'pro' : 'other');
+    const w = FAMILY_W[purpose] || FAMILY_W.balanced;
+    const score = (m) => w[fam(m.id)] + ver(m.id) * 2
+      - (/preview|exp|\d{2}-\d{2}|latest/.test(m.id) ? 8 : 0)
+      - (/tts|audio|image|live|thinking|robotics|computer|nano|gemma|learnlm/.test(m.id) ? 60 : 0);
     return list.slice().sort((a, b) => score(b) - score(a))[0].id;
   };
 
@@ -117,18 +128,35 @@ Viết tiếng Việt, súc tích, dùng Markdown (tiêu đề ##, bảng khi so
       return b;
     });
 
-  AI.geminiModelFor = async (s, want) => {
+  // purpose: không truyền -> dùng mô hình chung của Master Data Pro; 'fast' / 'smart' -> tự chọn riêng theo mục đích
+  AI.geminiModelFor = async (s, want, purpose) => {
     if (want) return want;
-    if (s.geminiModel) return s.geminiModel;
-    const list = await AI.listGeminiModels(s.geminiKey);
-    const model = AI.pickGeminiDefault(list);
-    U.store.set('settings', Object.assign(U.store.get('settings', {}), { geminiModel: model, geminiModels: list }));
+    const cacheKey = purpose ? 'geminiAuto_' + purpose : 'geminiModel';
+    const cur = U.store.get('settings', {});
+    if (cur[cacheKey]) return cur[cacheKey];
+    const list = cur.geminiModels && cur.geminiModels.length ? cur.geminiModels : await AI.listGeminiModels(s.geminiKey);
+    const model = AI.pickGeminiDefault(list, purpose || 'balanced');
+    U.store.set('settings', Object.assign(U.store.get('settings', {}), { [cacheKey]: model, geminiModels: list }));
     return model;
   };
+  AI.resetGeminiAuto = () => {
+    const cur = U.store.get('settings', {});
+    delete cur.geminiAuto_fast; delete cur.geminiAuto_smart;
+    U.store.set('settings', cur);
+  };
+
+  /* Giảm "suy nghĩ" để trả lời nhanh. Mỗi dòng mô hình nhận tham số khác nhau, nên thử lần lượt
+     và nhớ cấu hình mô hình đó chấp nhận (thinkMemo) để các lần sau không phải thử lại. */
+  const thinkMemo = {};
+  function thinkCandidates(model, level) {
+    if (/gemini-(1\.|2\.0)/.test(model)) return [null];
+    if (/gemini-2\.5/.test(model)) return [{ thinkingBudget: /pro/.test(model) ? 128 : 0 }, null];
+    return level === 'off' ? [{ thinkingLevel: 'minimal' }, { thinkingLevel: 'low' }, { thinkingBudget: 0 }, null] : [{ thinkingLevel: 'low' }, { thinkingBudget: 512 }, null];
+  }
 
   async function callGemini(messages, opts, s) {
     if (!s.geminiKey) throw new Error('Chưa nhập Gemini API key (tab Cài đặt).');
-    const model = await AI.geminiModelFor(s, opts.model);
+    const model = await AI.geminiModelFor(s, opts.model, opts.purpose);
     const body = {
       systemInstruction: { parts: [{ text: opts.system || SYSTEM }] },
       contents: messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: geminiParts(m.content) })),
@@ -137,7 +165,19 @@ Viết tiếng Việt, súc tích, dùng Markdown (tiêu đề ##, bảng khi so
     if (opts.json) { body.generationConfig.responseMimeType = 'application/json'; if (opts.schema) body.generationConfig.responseSchema = opts.schema; }
     const stream = typeof opts.onText === 'function';
     const url = `${GEMINI_BASE}/models/${encodeURIComponent(model)}:${stream ? 'streamGenerateContent?alt=sse' : 'generateContent'}`;
-    const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': s.geminiKey }, body: JSON.stringify(body), signal: opts.signal });
+    const memoKey = model + '|' + opts.think;
+    const tries = opts.think ? (memoKey in thinkMemo ? [thinkMemo[memoKey]] : thinkCandidates(model, opts.think)) : [undefined];
+    let r;
+    for (let i = 0; i < tries.length; i++) {
+      if (tries[i]) body.generationConfig.thinkingConfig = tries[i]; else delete body.generationConfig.thinkingConfig;
+      r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': s.geminiKey }, body: JSON.stringify(body), signal: opts.signal });
+      if (r.ok) { if (opts.think) thinkMemo[memoKey] = tries[i] || null; break; }
+      if (r.status === 400 && i < tries.length - 1) {
+        const j = await r.clone().json().catch(() => ({}));
+        if (/think|budget|level/i.test((j.error && j.error.message) || '')) continue; // mô hình không nhận kiểu cấu hình này -> thử kiểu tiếp theo
+      }
+      break;
+    }
     if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(geminiError(r.status, j)); }
     let text = '', finish = '', usage = null, version = model;
     const take = (j) => {
@@ -152,6 +192,7 @@ Viết tiếng Việt, súc tích, dùng Markdown (tiêu đề ##, bảng khi so
     if (stream) await readSSE(r, (j) => { take(j); opts.onText(text); });
     else take(await r.json());
     if (['SAFETY', 'RECITATION', 'PROHIBITED_CONTENT', 'BLOCKLIST'].includes(finish)) throw new Error('Gemini dừng vì bộ lọc an toàn (' + finish + ').');
+    if (!text.trim() && finish === 'MAX_TOKENS' && !opts.json) throw new Error(`Mô hình ${version} dùng hết giới hạn token để "suy nghĩ" mà chưa trả lời — hãy chọn bản Flash/Flash-Lite trong Cài đặt.`);
     return {
       text: text + (finish === 'MAX_TOKENS' && !opts.json ? '\n\n_(Phản hồi bị cắt do giới hạn độ dài)_' : ''),
       content: [{ type: 'text', text }], usage, model: version

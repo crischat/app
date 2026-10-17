@@ -17,7 +17,7 @@
     let list = a.slice(0, 30);
     while (!U.store.set(SKEY, list) && list.length) { const old = list.find((s) => s.turns && s.turns.length); if (old) old.turns = []; else list = list.slice(0, -1); }
   };
-  const cset = () => Object.assign({ sugProvider: '', sugClaudeModel: 'claude-opus-5-5', sugGeminiModel: '', sttModel: '', sensitivity: 3, silenceMs: 900, memory: true, autoDrive: false }, U.store.get(CKEY, {}));
+  const cset = () => Object.assign({ sugProvider: '', sugClaudeModel: 'claude-opus-5-5', sugGeminiModel: '', sttModel: '', sensitivity: 3, silenceMs: 700, memory: true, autoDrive: false }, U.store.get(CKEY, {}));
   const saveCset = (p) => U.store.set(CKEY, Object.assign(cset(), p));
   const keys = () => AI.settings();
   const sugProvider = () => { const c = cset(), k = keys(); return c.sugProvider || (k.claudeKey && !k.geminiKey ? 'claude' : 'gemini'); };
@@ -179,14 +179,14 @@ Sau đó dịch sang ${L.lang === 'vi' ? 'tiếng Anh' : 'tiếng Việt'} (nế
 Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng thở) thì để text rỗng. Trả về JSON {text, lang, translation}.`;
     try {
       const r = await AI.call([{ role: 'user', content: [{ type: 'audio', mime: seg.mime, data: seg.b64 }, { type: 'text', text: prompt }] }],
-        { provider: 'gemini', model: cset().sttModel || undefined, system: 'Bạn là hệ thống chép lời và phiên dịch chính xác.', json: true, schema: STT_SCHEMA, maxTokens: 4096 });
+        { provider: 'gemini', model: cset().sttModel || undefined, purpose: 'fast', think: 'off', system: 'Bạn là hệ thống chép lời và phiên dịch chính xác.', json: true, schema: STT_SCHEMA, maxTokens: 4096 });
       let j; try { j = JSON.parse(r.text); } catch (e) { j = { text: r.text.trim(), translation: '' }; }
       t.text = (j.text || '').trim(); t.tr = (j.translation || '').trim(); t.lang = j.lang; t.pending = false;
       if (!t.text) L.turns = L.turns.filter((x) => x !== t);
       renderTranscript();
       if (t.text && t.who === 'them' && $('#autoSuggest').checked && L.active) {
         const isQ = /\?|\b(what|why|how|when|where|who|which|tell me|can you|could you|would you|do you|did you|have you|describe|walk me|explain)\b|\b(gì|sao|thế nào|như thế nào|bao giờ|ở đâu|ai|nào|không\?|hãy|kể|giới thiệu)\b/i.test(t.text);
-        if (isQ || t.text.length > 40) { clearTimeout(L.sugTimer); L.sugTimer = setTimeout(() => suggest(), 1300); }
+        if (isQ || t.text.length > 40) { clearTimeout(L.sugTimer); L.sugTimer = setTimeout(() => suggest(), 700); }
       }
     } catch (e) {
       if (/429|hạn mức/.test(e.message) && job.tries < 3) { job.tries++; $('#sugState').textContent = 'Gemini đang giới hạn tốc độ, thử lại…'; await new Promise((r) => setTimeout(r, 4000 * job.tries)); return transcribe(job); }
@@ -212,7 +212,7 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
   /* ---------- Gợi ý ---------- */
   function sugOpts() {
     const prov = sugProvider(), c = cset();
-    return { provider: prov, model: prov === 'claude' ? c.sugClaudeModel : (c.sugGeminiModel || undefined), effort: 'low', maxTokens: 2000, cacheSystem: true };
+    return { provider: prov, model: prov === 'claude' ? c.sugClaudeModel : (c.sugGeminiModel || undefined), purpose: 'smart', think: 'low', effort: 'low', maxTokens: 6000, cacheSystem: true };
   }
 
   async function suggest(manual) {
@@ -230,22 +230,31 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
     }
     content.push({ type: 'text', text: req });
     box.dataset.text = ''; box.classList.add('streaming'); box.innerHTML = '<p class="muted">Đang soạn gợi ý…</p>';
-    $('#sugState').textContent = 'đang soạn…';
     const t0 = Date.now();
+    let first = 0, timedOut = false;
+    // đồng hồ chờ + tự huỷ sau SUG_TIMEOUT giây để không treo giữa buổi phỏng vấn
+    const tick = setInterval(() => { if (!first) $('#sugState').textContent = `đang soạn… ${Math.round((Date.now() - t0) / 1000)}s`; }, 500);
+    const killer = setTimeout(() => { timedOut = true; ctrl.abort(); }, SUG_TIMEOUT * 1000);
     try {
       const r = await AI.call([{ role: 'user', content }], Object.assign(sugOpts(), {
         system: SUG_SYS(), signal: ctrl.signal,
-        onText: (txt) => { if (L.sugAbort === ctrl) { box.innerHTML = md(txt); box.dataset.text = txt; } }
+        onText: (txt) => {
+          if (L.sugAbort !== ctrl) return;
+          if (!first) { first = Date.now(); $('#sugState').textContent = `chữ đầu sau ${((first - t0) / 1000).toFixed(1)}s…`; }
+          box.innerHTML = md(txt); box.dataset.text = txt;
+        }
       }));
       if (L.sugAbort !== ctrl) return;
       box.innerHTML = md(r.text); box.dataset.text = r.text;
       L.sugs = (L.sugs || []).concat([{ at: Date.now(), q: manual || lastThem(), text: r.text }]);
-      $('#sugState').textContent = `${((Date.now() - t0) / 1000).toFixed(1)} giây · ${r.model}`;
+      $('#sugState').textContent = `${first ? 'chữ đầu ' + ((first - t0) / 1000).toFixed(1) + 's · ' : ''}xong ${((Date.now() - t0) / 1000).toFixed(1)}s · ${r.model}`;
     } catch (e) {
-      if (e.name === 'AbortError') return;
-      box.innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`; $('#sugState').textContent = '';
-    } finally { if (L.sugAbort === ctrl) box.classList.remove('streaming'); }
+      if (e.name === 'AbortError' && !timedOut) return;
+      const msg = timedOut ? `Quá ${SUG_TIMEOUT} giây chưa có gợi ý — mô hình đang chậm hoặc bị giới hạn. Bấm “Gợi ý ngay” để thử lại, hoặc đổi sang bản Flash/Flash-Lite (hoặc Claude Haiku/Sonnet) trong Cài đặt.` : e.message;
+      box.innerHTML = `<p style="color:var(--bad)">${esc(msg)}</p>`; $('#sugState').textContent = '';
+    } finally { clearInterval(tick); clearTimeout(killer); if (L.sugAbort === ctrl) box.classList.remove('streaming'); }
   }
+  const SUG_TIMEOUT = 30;
   const lastThem = () => { const t = L.turns.filter((x) => x.who === 'them' && x.text).pop(); return t ? t.text : ''; };
 
   function showShot(f) { $('#shotWrap').hidden = false; $('#shotImg').src = f.url; }
@@ -259,7 +268,7 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
     const box = $('#suggest'); box.classList.add('streaming'); box.innerHTML = '<p class="muted">Đang đọc màn hình…</p>';
     try {
       const r = await AI.call([{ role: 'user', content: [{ type: 'image', mime: f.mime, data: f.b64 }, { type: 'text', text: `Đây là ảnh màn hình cuộc gọi. Nếu có câu hỏi/đề bài (code, SQL, case study, slide, biểu đồ…): tóm tắt đề, đưa cách làm và đáp án/gợi ý trả lời dựa trên hồ sơ của tôi theo định dạng quy định. Nếu chỉ là màn hình bình thường, mô tả ngắn những gì quan trọng.\n\nBản ghi gần đây:\n${transcriptText(L.turns, 12)}` }] }],
-        Object.assign(sugOpts(), { system: SUG_SYS(), signal: ctrl.signal, maxTokens: 3000, onText: (t) => { if (L.sugAbort === ctrl) box.innerHTML = md(t); } }));
+        Object.assign(sugOpts(), { system: SUG_SYS(), signal: ctrl.signal, maxTokens: 6000, onText: (t) => { if (L.sugAbort === ctrl) box.innerHTML = md(t); } }));
       box.innerHTML = md(r.text); box.dataset.text = r.text;
     } catch (e) { if (e.name !== 'AbortError') box.innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`; }
     box.classList.remove('streaming');
@@ -270,7 +279,7 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
     box.innerHTML = '<p class="muted">Đang phân tích cuộc trò chuyện…</p>';
     try {
       const r = await AI.call([{ role: 'user', content: `Toàn bộ bản ghi đến hiện tại:\n${transcriptText(L.turns, 400)}\n\nPhân tích bằng tiếng Việt (Markdown, ngắn gọn):\n## 🎯 Mục tiêu cuộc trò chuyện\n## 🧭 Đang ở giai đoạn nào\n## 🔍 Người phỏng vấn quan tâm điều gì (tiêu chí ngầm)\n## ✅ Tôi đã trả lời tốt / ⚠\ufe0f cần cải thiện\n## ❓ Câu hỏi có thể tới tiếp & ý trả lời\n## 💡 Câu hỏi nên hỏi ngược lại người phỏng vấn` }],
-        Object.assign(sugOpts(), { system: SUG_SYS(), maxTokens: 3000, effort: 'medium', onText: (t) => { box.innerHTML = md(t); } }));
+        Object.assign(sugOpts(), { system: SUG_SYS(), maxTokens: 8000, effort: 'medium', onText: (t) => { box.innerHTML = md(t); } }));
       L.analysis = r.text; box.innerHTML = md(r.text);
     } catch (e) { box.innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`; }
   }
@@ -296,7 +305,7 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
       U.loading(true, 'AI đang tóm tắt buổi…');
       try {
         const r = await AI.call([{ role: 'user', content: `Bản ghi buổi "${sess.title}":\n${transcriptText(sess.turns, 600)}\n\nViết tóm tắt tiếng Việt (Markdown) để lưu làm trí nhớ cho các buổi sau:\n- Mục tiêu & bối cảnh buổi\n- Các câu hỏi chính và ý tôi đã trả lời\n- Thông tin mới về công ty / vị trí / người phỏng vấn\n- Điểm mạnh, điểm cần cải thiện\n- Việc cần chuẩn bị tiếp / cam kết đã hứa` }],
-          Object.assign(sugOpts(), { system: SUG_SYS(), maxTokens: 2500, effort: 'medium' }));
+          Object.assign(sugOpts(), { system: SUG_SYS(), maxTokens: 6000, effort: 'medium' }));
         sess.summary = r.text;
       } catch (e) { sess.summary = ''; U.toast('Không tóm tắt được: ' + e.message, 'err'); }
     }
@@ -465,12 +474,14 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
   function renderSettings() {
     const k = keys(), c = cset(), prov = sugProvider();
     const gm = k.geminiModels || [];
-    const gOpts = (sel) => `<option value="">Tự chọn (Flash mới nhất)</option>` + gm.map((m) => `<option value="${esc(m.id)}" ${m.id === sel ? 'selected' : ''}>${esc(m.label)} · ${esc(m.id)}</option>`).join('');
+    // "Tự chọn" hiển thị luôn mô hình sẽ được dùng, để thấy ngay app chọn gì
+    const auto = (purpose) => (gm.length ? AI.pickGeminiDefault(gm, purpose) : '');
+    const gOpts = (sel, purpose, label) => `<option value="">Tự chọn — ${label}${auto(purpose) ? ' → ' + esc(auto(purpose)) : ''}</option>` + gm.map((m) => `<option value="${esc(m.id)}" ${m.id === sel ? 'selected' : ''}>${esc(m.label)} · ${esc(m.id)}</option>`).join('');
     $('#setBody').innerHTML = `
       <div class="grid2">
         <div class="card"><div class="cardhead"><h3>Gemini — nghe & chép lời (bắt buộc)</h3><span class="chip ${k.geminiKey ? 'on' : ''}">${k.geminiKey ? 'Đã có key' : 'Chưa có key'}</span></div>
           <label class="field">Gemini API key<input type="password" id="cGKey" value="${esc(k.geminiKey)}" placeholder="Dán key từ aistudio.google.com/apikey" autocomplete="off"></label>
-          <label class="field mt">Mô hình chép lời<select id="cStt">${gOpts(c.sttModel)}</select><span class="muted">Bản Flash/Flash-Lite cho độ trễ thấp nhất.</span></label>
+          <label class="field mt">Mô hình chép lời<select id="cStt">${gOpts(c.sttModel, 'fast', 'Flash-Lite nhanh nhất')}</select><span class="muted">Nên dùng Flash-Lite/Flash. Tránh bản Pro hoặc tên mã lạ: chậm vì “suy nghĩ” lâu.</span></label>
           <div class="row wrap mt"><button class="btn" id="cGList">Tải danh sách mô hình</button><button class="btn" id="cGTest">Kiểm tra key</button></div>
           <p class="muted" style="font-size:12.5px">Key lưu trên trình duyệt, dùng chung với Master Data Pro. Gói miễn phí giới hạn số lần gọi/phút — buổi dài có thể bị chậm.</p></div>
         <div class="card"><h3>AI gợi ý câu trả lời</h3>
@@ -478,7 +489,7 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
           ${prov === 'claude' ? `
           <label class="field mt">Claude API key<input type="password" id="cCKey" value="${esc(k.claudeKey)}" placeholder="sk-ant-…" autocomplete="off"></label>
           <label class="field mt">Mô hình Claude<select id="cCModel">${AI.MODELS.map((m) => `<option value="${m.id}" ${m.id === c.sugClaudeModel ? 'selected' : ''}>${m.label}</option>`).join('')}</select><span class="muted">Cần nhanh trong phỏng vấn trực tiếp: Sonnet 5.5 hoặc Haiku 5.5 trả lời nhanh hơn Opus.</span></label>`
-          : `<label class="field mt">Mô hình Gemini cho gợi ý<select id="cGModel">${gOpts(c.sugGeminiModel)}</select></label>`}
+          : `<label class="field mt">Mô hình Gemini cho gợi ý<select id="cGModel">${gOpts(c.sugGeminiModel, 'smart', 'Flash')}</select></label>`}
           <div class="row mt"><button class="btn" id="cTestSug">Thử gợi ý</button></div></div>
       </div>
       <div class="grid2 mt">
@@ -555,7 +566,7 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
           const box = $('#prOut'); box.innerHTML = '<p class="muted">Đang chấm…</p>';
           try {
             await AI.call([{ role: 'user', content: `Câu hỏi phỏng vấn: ${q}\nCâu trả lời của tôi: ${a || '(chưa có — hãy soạn giúp)'}\n\nChấm điểm /10 (rõ ràng, đúng trọng tâm, có số liệu, khớp JD), chỉ ra 3 điểm cần sửa (tiếng Việt), rồi viết lại câu trả lời tốt hơn bằng ngôn ngữ của câu hỏi, dựa đúng hồ sơ, đọc trong 60–90 giây.` }],
-              Object.assign(sugOpts(), { system: SUG_SYS(), maxTokens: 3000, effort: 'medium', onText: (x) => { box.innerHTML = md(x); } }));
+              Object.assign(sugOpts(), { system: SUG_SYS(), maxTokens: 6000, effort: 'medium', onText: (x) => { box.innerHTML = md(x); } }));
           } catch (er) { box.innerHTML = `<p style="color:var(--bad)">${esc(er.message)}</p>`; }
           return;
         }
@@ -564,10 +575,10 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
         case 'hExport': return U.download(new Blob([JSON.stringify(snapshot(), null, 2)], { type: 'application/json' }), 'interview-copilot.json');
         case 'cSave': saveSettingsForm(); U.toast('Đã lưu cài đặt', 'ok'); return renderSettings();
         case 'cGList': saveSettingsForm(); U.loading(true, 'Đang lấy danh sách mô hình…');
-          try { const list = await AI.listGeminiModels(keys().geminiKey); U.store.set('settings', Object.assign(U.store.get('settings', {}), { geminiModels: list })); U.toast(`Có ${list.length} mô hình`, 'ok'); } catch (er) { U.toast(er.message, 'err', 7000); }
+          try { const list = await AI.listGeminiModels(keys().geminiKey); U.store.set('settings', Object.assign(U.store.get('settings', {}), { geminiModels: list })); AI.resetGeminiAuto(); U.toast(`Có ${list.length} mô hình`, 'ok'); } catch (er) { U.toast(er.message, 'err', 7000); }
           U.loading(false); return renderSettings();
         case 'cGTest': saveSettingsForm(); U.loading(true, 'Đang kiểm tra…');
-          try { const r = await AI.call([{ role: 'user', content: 'Reply with one word: OK' }], { provider: 'gemini', model: cset().sttModel || undefined, maxTokens: 64 }); U.toast('Gemini hoạt động ✓ (' + r.model + ')', 'ok'); } catch (er) { U.toast(er.message, 'err', 8000); }
+          try { const r = await AI.call([{ role: 'user', content: 'Reply with one word: OK' }], { provider: 'gemini', model: cset().sttModel || undefined, purpose: 'fast', think: 'off', maxTokens: 256 }); U.toast('Gemini hoạt động ✓ (' + r.model + ')', 'ok'); } catch (er) { U.toast(er.message, 'err', 8000); }
           U.loading(false); return renderSettings();
         case 'cTestSug': saveSettingsForm(); U.loading(true, 'Đang thử gợi ý…');
           try { const r = await AI.call([{ role: 'user', content: 'Bản ghi:\n[Người phỏng vấn] Could you briefly introduce yourself?\n\nHãy gợi ý cho lượt mới nhất.' }], Object.assign(sugOpts(), { system: SUG_SYS() })); U.toast('Gợi ý hoạt động ✓ (' + r.model + ')', 'ok'); } catch (er) { U.toast(er.message, 'err', 8000); }
@@ -583,6 +594,17 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
       if (t.id === 'sessSource') renderStart();
     });
   }
+
+  // Nâng cấp cài đặt cũ (v2): ngắt câu nhanh hơn, bỏ mô hình tự chọn cũ (có thể là bản "suy nghĩ" chậm)
+  (function migrate() {
+    const c = U.store.get(CKEY, {});
+    if (c.v >= 2) return;
+    if (c.silenceMs === 900) c.silenceMs = 700;
+    c.v = 2; U.store.set(CKEY, c);
+    AI.resetGeminiAuto();
+    const s = U.store.get('settings', {});
+    if (s.geminiModel && !/flash|pro|lite/.test(s.geminiModel)) { delete s.geminiModel; U.store.set('settings', s); }
+  })();
 
   bind();
   const start = (location.hash || '').slice(1);
