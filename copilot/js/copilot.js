@@ -29,7 +29,7 @@
     $$('.sidenav button').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
     $$('.tab').forEach((t) => t.classList.toggle('active', t.id === 'tab-' + name));
     $('#sidenav').classList.remove('open');
-    ({ live: renderStart, profile: renderProfile, prep: renderPrep, history: renderHistory, settings: renderSettings }[name] || (() => {}))();
+    ({ live: renderStart, profile: renderProfile, prep: renderPrep, history: renderHistory, settings: renderSettings, mock: () => MD.Mock && MD.Mock.render() }[name] || (() => {}))();
     try { history.replaceState(null, '', '#' + name); } catch (e) { /* bỏ qua */ }
   }
 
@@ -177,17 +177,24 @@ ${profileBlock()}${memoryBlock()}`;
   }
 
   const STT_SCHEMA = { type: 'OBJECT', properties: { text: { type: 'STRING' }, lang: { type: 'STRING' }, translation: { type: 'STRING' } }, required: ['text', 'translation'] };
-  async function transcribe(job) {
-    const { t, seg } = job, p = profile();
-    const langHint = L.lang === 'en' ? 'tiếng Anh' : L.lang === 'vi' ? 'tiếng Việt' : 'tự nhận diện';
-    const prompt = `Chép lại NGUYÊN VĂN lời nói trong đoạn âm thanh (giữ ngôn ngữ gốc, có dấu câu, không thêm lời bình). Người nói: ${WHO[t.who]}. Ngôn ngữ chính của buổi: ${langHint}.
+  // Chép lời + dịch 1 đoạn âm thanh. lang: 'auto' | 'en' | 'vi'. Trả về {text, lang, translation}
+  async function sttCall(seg, who, lang) {
+    const p = profile();
+    const langHint = lang === 'en' ? 'tiếng Anh' : lang === 'vi' ? 'tiếng Việt' : 'tự nhận diện';
+    const prompt = `Chép lại NGUYÊN VĂN lời nói trong đoạn âm thanh (giữ ngôn ngữ gốc, có dấu câu, không thêm lời bình). Người nói: ${WHO[who]}. Ngôn ngữ chính của buổi: ${langHint}.
 Tên riêng/thuật ngữ có thể xuất hiện: ${[p.company, p.role, p.name, p.terms].filter(Boolean).join(', ') || '(không có)'}.
-Sau đó dịch sang ${L.lang === 'vi' ? 'tiếng Anh' : 'tiếng Việt'} (nếu lời nói đã là ngôn ngữ đích thì dịch sang ${L.lang === 'vi' ? 'tiếng Việt' : 'tiếng Anh'}).
+Sau đó dịch sang ${lang === 'vi' ? 'tiếng Anh' : 'tiếng Việt'} (nếu lời nói đã là ngôn ngữ đích thì dịch sang ${lang === 'vi' ? 'tiếng Việt' : 'tiếng Anh'}).
 Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng thở) thì để text rỗng. Trả về JSON {text, lang, translation}.`;
+    const r = await AI.call([{ role: 'user', content: [{ type: 'audio', mime: seg.mime, data: seg.b64 }, { type: 'text', text: prompt }] }],
+      { provider: 'gemini', model: cset().sttModel || undefined, purpose: 'fast', think: 'off', system: 'Bạn là hệ thống chép lời và phiên dịch chính xác.', json: true, schema: STT_SCHEMA, maxTokens: 4096 });
+    let j; try { j = JSON.parse(r.text); } catch (e) { j = { text: r.text.trim(), translation: '' }; }
+    return { text: (j.text || '').trim(), translation: (j.translation || '').trim(), lang: j.lang };
+  }
+
+  async function transcribe(job) {
+    const { t, seg } = job;
     try {
-      const r = await AI.call([{ role: 'user', content: [{ type: 'audio', mime: seg.mime, data: seg.b64 }, { type: 'text', text: prompt }] }],
-        { provider: 'gemini', model: cset().sttModel || undefined, purpose: 'fast', think: 'off', system: 'Bạn là hệ thống chép lời và phiên dịch chính xác.', json: true, schema: STT_SCHEMA, maxTokens: 4096 });
-      let j; try { j = JSON.parse(r.text); } catch (e) { j = { text: r.text.trim(), translation: '' }; }
+      const j = await sttCall(seg, t.who, L.lang);
       t.text = (j.text || '').trim(); t.tr = (j.translation || '').trim(); t.lang = j.lang; t.pending = false;
       t.lat = (Date.now() - seg.end) / 1000; // độ trễ chép lời tính từ lúc hết câu
       if (!t.text) L.turns = L.turns.filter((x) => x !== t);
@@ -652,7 +659,10 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
     if (s.geminiModel && !/flash|pro|lite/.test(s.geminiModel)) { delete s.geminiModel; U.store.set('settings', s); }
   })();
 
+  // API nội bộ cho tab Phỏng vấn thử (mock.js)
+  MD.CP = { profile, cset, keys, sugProvider, sugOpts, SUG_SYS, md, sessions, saveSessions, sttCall, transcriptText, WHO, showTab, langName };
+
   bind();
   const start = (location.hash || '').slice(1);
-  showTab(['live', 'profile', 'prep', 'history', 'settings'].includes(start) ? start : 'live');
+  showTab(['live', 'mock', 'profile', 'prep', 'history', 'settings'].includes(start) ? start : 'live');
 })(window.MD);

@@ -27,6 +27,7 @@
     <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></symbol>
     <symbol id="i-screen" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
     <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+    <symbol id="i-mock" viewBox="0 0 24 24"><path d="M4 5h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM19 9h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1v2l-3-2h-4"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
   </defs>
 </svg>
@@ -47,6 +48,7 @@
 <div class="layout">
   <nav class="sidenav" id="sidenav">
     <button data-tab="live" class="active"><svg><use href="#i-live"/></svg><span>Phiên trực tiếp</span></button>
+    <button data-tab="mock"><svg><use href="#i-mock"/></svg><span>Phỏng vấn thử với AI</span></button>
     <button data-tab="profile"><svg><use href="#i-user"/></svg><span>Hồ sơ của tôi</span></button>
     <button data-tab="prep"><svg><use href="#i-prep"/></svg><span>Chuẩn bị</span></button>
     <button data-tab="history"><svg><use href="#i-history"/></svg><span>Lịch sử</span></button>
@@ -108,6 +110,12 @@
       <video id="screenVideo" muted playsinline hidden></video>
     </section>
 
+    <!-- ============ PHỎNG VẤN THỬ ============ -->
+    <section class="tab" id="tab-mock">
+      <div class="pagehead"><h1>Phỏng vấn thử với AI</h1><p>AI đóng vai người phỏng vấn, đọc to câu hỏi; bạn trả lời bằng giọng nói. Cuối buổi AI chấm điểm từng câu.</p></div>
+      <div id="mockBody"></div>
+    </section>
+
     <!-- ============ HỒ SƠ ============ -->
     <section class="tab" id="tab-profile">
       <div class="pagehead"><h1>Hồ sơ của tôi</h1><p>AI chỉ gợi ý dựa trên những gì có ở đây; không bịa kinh nghiệm bạn không có.</p></div>
@@ -147,6 +155,7 @@
 <script src="../masterdata/js/drive.js?v=8"></script>
 <script src="../masterdata/js/ai.js?v=10"></script>
 <script src="js/audio.js?v=2"></script>
-<script src="js/copilot.js?v=4"></script>
+<script src="js/mock.js?v=2"></script>
+<script src="js/copilot.js?v=5"></script>
 </body>
 </html>

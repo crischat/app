@@ -16,6 +16,17 @@ Trợ lý phỏng vấn/cuộc gọi chạy theo thời gian thực trên trình
 - Ngữ cảnh gửi kèm gồm: CV, JD, kinh nghiệm bổ sung, câu trả lời đã chuẩn bị, phong cách trả lời, và tóm tắt 5 buổi gần nhất.
 - Khi kết thúc buổi, AI tóm tắt buổi và lưu vào Lịch sử. Các tóm tắt này thành "trí nhớ" cho các buổi sau.
 
+## Phỏng vấn thử với AI
+
+Tab **Phỏng vấn thử với AI** dùng để luyện bằng giọng nói khi chưa có người tập cùng.
+
+- Chọn vai người phỏng vấn (HR, quản lý trực tiếp, chuyên môn, giám đốc), ngôn ngữ, số câu hỏi và độ khó.
+- AI chỉ đọc CV và JD (không thấy ghi chú riêng của bạn), mỗi lượt hỏi 1 câu và hỏi đào sâu khi câu trả lời chung chung.
+- Câu hỏi được **đọc to** bằng giọng có sẵn của trình duyệt/Windows. Muốn có giọng tiếng Việt: Windows Cài đặt → Thời gian & ngôn ngữ → Giọng nói → thêm giọng Tiếng Việt (Microsoft An).
+- Bạn trả lời bằng mic. Im lặng 2,5 giây (chỉnh được) hoặc bấm **Space** là chốt câu trả lời. Có các nút Nhắc lại câu hỏi, Bỏ qua câu này, Kết thúc.
+- Có thể bật **gợi ý Copilot** song song để tập cách liếc gợi ý, hoặc ẩn chữ câu hỏi để luyện nghe.
+- Cuối buổi AI chấm điểm từng câu (điểm, chỗ làm tốt, chỗ cần sửa, câu trả lời mẫu tốt hơn). Buổi tập được lưu vào Lịch sử và dùng làm trí nhớ cho các buổi sau.
+
 ## Phím tắt khi đang chạy
 
 - `Ctrl + Enter`: gợi ý ngay, không chờ hết câu.
