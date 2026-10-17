@@ -102,21 +102,27 @@ Viết tiếng Việt, súc tích, dùng Markdown (tiêu đề ##, bảng khi so
     return provider === 'gemini' ? callGemini(messages, opts, s) : callClaude(messages, opts, s);
   };
 
-  // Đọc luồng Server-Sent Events, gọi onData(jsonObject) cho mỗi sự kiện
+  // Đọc luồng Server-Sent Events, gọi onData(jsonObject) cho mỗi sự kiện.
+  // Gemini ngăn sự kiện bằng "\r\n\r\n", Claude bằng "\n\n" -> chuẩn hoá xuống dòng trước khi tách,
+  // và xử lý cả phần còn lại trong bộ đệm khi luồng kết thúc.
   async function readSSE(resp, onData) {
     const reader = resp.body.getReader(), dec = new TextDecoder();
     let buf = '';
+    const emit = (chunk) => {
+      const data = chunk.split('\n').filter((l) => l.startsWith('data:')).map((l) => l.slice(5).trim()).join('');
+      if (!data || data === '[DONE]') return;
+      let obj; try { obj = JSON.parse(data); } catch (e) { return; } // bỏ qua dòng hỏng
+      onData(obj); // lỗi do onData ném ra (vd sự kiện error) phải được truyền ra ngoài
+    };
     for (;;) {
       const { value, done } = await reader.read();
       if (done) break;
-      buf += dec.decode(value, { stream: true });
+      buf = (buf + dec.decode(value, { stream: true })).replace(/\r\n?/g, '\n');
       let k;
-      while ((k = buf.indexOf('\n\n')) >= 0) {
-        const chunk = buf.slice(0, k); buf = buf.slice(k + 2);
-        const data = chunk.split('\n').filter((l) => l.startsWith('data:')).map((l) => l.slice(5).trim()).join('');
-        if (data && data !== '[DONE]') { try { onData(JSON.parse(data)); } catch (e) { /* bỏ qua dòng hỏng */ } }
-      }
+      while ((k = buf.indexOf('\n\n')) >= 0) { emit(buf.slice(0, k)); buf = buf.slice(k + 2); }
     }
+    buf = (buf + dec.decode()).replace(/\r\n?/g, '\n');
+    if (buf.trim()) emit(buf);
   }
 
   const geminiParts = (content) => typeof content === 'string' ? [{ text: content }]
@@ -193,6 +199,7 @@ Viết tiếng Việt, súc tích, dùng Markdown (tiêu đề ##, bảng khi so
     else take(await r.json());
     if (['SAFETY', 'RECITATION', 'PROHIBITED_CONTENT', 'BLOCKLIST'].includes(finish)) throw new Error('Gemini dừng vì bộ lọc an toàn (' + finish + ').');
     if (!text.trim() && finish === 'MAX_TOKENS' && !opts.json) throw new Error(`Mô hình ${version} dùng hết giới hạn token để "suy nghĩ" mà chưa trả lời — hãy chọn bản Flash/Flash-Lite trong Cài đặt.`);
+    if (!text.trim() && !opts.json) throw new Error(`Gemini (${version}) trả về rỗng${finish ? ' — lý do dừng: ' + finish : ''}. Bấm “Gợi ý ngay” để thử lại.`);
     return {
       text: text + (finish === 'MAX_TOKENS' && !opts.json ? '\n\n_(Phản hồi bị cắt do giới hạn độ dài)_' : ''),
       content: [{ type: 'text', text }], usage, model: version
