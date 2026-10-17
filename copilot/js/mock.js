@@ -19,14 +19,82 @@
   // Trạng thái buổi tập
   const M = { active: false, state: 'idle', turns: [], messages: [], parts: [], pendingStt: 0, timer: null, mic: null, listener: null, ttsEnd: 0, asked: 0, startedAt: 0, ended: false, hintAbort: null };
 
-  /* =================== Giọng đọc (Text-to-Speech của trình duyệt) =================== */
+  /* =================== Giọng đọc =================== */
+  // Giọng AI Gemini (đọc tốt tiếng Việt, không cần cài giọng trên máy). Giá trị opts.voice: 'g:<tên giọng>'
+  const GEMINI_VOICES = { Kore: 'Nữ — rõ ràng, chắc chắn', Aoede: 'Nữ — nhẹ nhàng', Leda: 'Nữ — trẻ trung', Zephyr: 'Nữ — tươi sáng', Charon: 'Nam — trầm, điềm tĩnh', Puck: 'Nam — vui vẻ', Orus: 'Nam — chắc chắn', Fenrir: 'Nam — hào hứng' };
   const voices = () => (window.speechSynthesis ? speechSynthesis.getVoices() : []);
   const voicesFor = (lang) => voices().filter((v) => v.lang && v.lang.toLowerCase().startsWith(lang));
+  const isGemini = (o) => !o.voice || o.voice.startsWith('g:');
   function pickVoice(o) {
     const list = voicesFor(o.lang);
     return list.find((v) => v.name === o.voice) || list.find((v) => /natural|online|google/i.test(v.name)) || list[0] || null;
   }
-  function speak(text) {
+  function stopSpeaking() {
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    if (M.src) { try { M.src.onended = null; M.src.stop(); } catch (e) { /* đã dừng */ } M.src = null; }
+    if (M.speakDone) { const f = M.speakDone; M.speakDone = null; f(); }
+  }
+
+  // Tìm mô hình Gemini đọc giọng (tên có "tts") trong danh sách Google trả về, nhớ lại để lần sau khỏi tìm
+  async function ttsModel(key, refresh) {
+    const s = U.store.get('settings', {});
+    if (s.geminiTTSModel && !refresh) return s.geminiTTSModel;
+    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error((j.error && j.error.message) || 'Không lấy được danh sách mô hình');
+    const list = (j.models || []).map((m) => m.name.replace(/^models\//, '')).filter((n) => /tts/i.test(n));
+    if (!list.length) throw new Error('Key Gemini này chưa có mô hình đọc giọng (TTS).');
+    const ver = (n) => { const m = n.match(/gemini-(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1]) : 0; };
+    const model = list.sort((a, b) => ((/flash/.test(b) ? 10 : 0) + ver(b)) - ((/flash/.test(a) ? 10 : 0) + ver(a)))[0];
+    U.store.set('settings', Object.assign(U.store.get('settings', {}), { geminiTTSModel: model }));
+    return model;
+  }
+
+  // Gemini trả về âm thanh PCM 16-bit (vd audio/L16;rate=24000) -> phát bằng Web Audio
+  async function geminiSpeak(text, voiceName) {
+    const key = MD.CP.keys().geminiKey;
+    if (!key) throw new Error('Chưa có Gemini key');
+    let model = await ttsModel(key), r;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+        method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
+        body: JSON.stringify({ contents: [{ parts: [{ text }] }], generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } } } })
+      });
+      if (r.status === 404 && attempt === 0) { model = await ttsModel(key, true); continue; } // mô hình đã đổi tên -> tìm lại
+      break;
+    }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error((r.status === 429 ? 'Hết hạn mức giọng đọc Gemini: ' : 'Gemini TTS: ') + ((j.error && j.error.message) || r.status));
+    const part = (((j.candidates || [])[0] || {}).content || { parts: [] }).parts.find((p) => p.inlineData);
+    if (!part) throw new Error('Gemini TTS không trả về âm thanh');
+    const mime = part.inlineData.mimeType || '', rate = +((mime.match(/rate=(\d+)/) || [])[1] || 24000);
+    const bin = atob(part.inlineData.data), n = Math.floor(bin.length / 2);
+    M.ac = M.ac || new (window.AudioContext || window.webkitAudioContext)();
+    if (M.ac.state === 'suspended') await M.ac.resume();
+    const buf = M.ac.createBuffer(1, n, rate), ch = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) { let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; ch[i] = v / 0x8000; }
+    return new Promise((resolve) => {
+      const src = M.ac.createBufferSource(); src.buffer = buf; src.connect(M.ac.destination);
+      M.src = src; M.speakDone = resolve;
+      src.onended = () => { M.src = null; M.speakDone = null; resolve(); };
+      src.start();
+    });
+  }
+
+  async function speak(text) {
+    const o = opts();
+    if (isGemini(o)) {
+      const st = $('#mkInfo'); if (st) st.textContent = 'đang tạo giọng đọc…';
+      try { await geminiSpeak(text, (o.voice || 'g:Kore').slice(2)); M.ttsEnd = Date.now(); if (st) st.textContent = ''; return; }
+      catch (e) {
+        U.toast('Giọng Gemini lỗi: ' + e.message + (voicesFor(o.lang).length ? ' — chuyển sang giọng trình duyệt.' : ' — chỉ hiện chữ.'), 'err', 7000);
+        if (!voicesFor(o.lang).length) { M.ttsEnd = Date.now(); return; }
+      }
+    }
+    return browserSpeak(text);
+  }
+
+  function browserSpeak(text) {
     return new Promise((resolve) => {
       if (!window.speechSynthesis) return resolve();
       const o = opts(), v = pickVoice(o);
@@ -84,8 +152,11 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
           <label class="field">Ngôn ngữ${sel('mkLang', { vi: 'Tiếng Việt', en: 'Tiếng Anh' }, o.lang)}</label>
           <label class="field">Số câu hỏi chính${sel('mkN', { 5: '5 câu (~10 phút)', 8: '8 câu (~15 phút)', 12: '12 câu (~25 phút)' }, o.n)}</label>
           <label class="field">Độ khó${sel('mkDiff', { easy: 'Thân thiện', real: 'Thực tế', hard: 'Khó — gây áp lực' }, o.diff)}</label>
-          <label class="field">Giọng đọc<select id="mkVoice">${vlist.length ? vlist.map((v) => `<option value="${esc(v.name)}" ${v.name === (pickVoice(o) || {}).name ? 'selected' : ''}>${esc(v.name)}</option>`).join('') : '<option value="">(Máy chưa có giọng ' + (o.lang === 'en' ? 'tiếng Anh' : 'tiếng Việt') + ' — chỉ hiện chữ)</option>'}</select></label>
-          <label class="field">Tốc độ đọc <span class="muted">${o.rate}x</span><input type="range" id="mkRate" min="0.7" max="1.4" step="0.05" value="${o.rate}"></label>
+          <label class="field">Giọng đọc<select id="mkVoice">
+            <optgroup label="Giọng AI Gemini (không cần cài, dùng key Gemini)">${Object.entries(GEMINI_VOICES).map(([v, l]) => `<option value="g:${v}" ${(o.voice || 'g:Kore') === 'g:' + v ? 'selected' : ''}>${v} — ${l}</option>`).join('')}</optgroup>
+            <optgroup label="Giọng có sẵn trên máy">${vlist.length ? vlist.map((v) => `<option value="${esc(v.name)}" ${v.name === o.voice ? 'selected' : ''}>${esc(v.name)}</option>`).join('') : `<option value="" disabled>(máy chưa có giọng ${o.lang === 'en' ? 'tiếng Anh' : 'tiếng Việt'})</option>`}</optgroup>
+          </select></label>
+          <label class="field">Tốc độ đọc <span class="muted">${o.rate}x</span><input type="range" id="mkRate" min="0.7" max="1.4" step="0.05" value="${o.rate}"><span class="muted">Chỉ áp dụng cho giọng có sẵn trên máy.</span></label>
           <label class="field">Tự chốt câu trả lời khi im lặng<select id="mkWait">${[1.5, 2, 2.5, 3, 4, 6].map((s) => `<option value="${s}" ${+o.wait === s ? 'selected' : ''}>${s} giây</option>`).join('')}</select></label>
         </div>
         <div class="row wrap mt">
@@ -94,8 +165,8 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
         </div>
         <ul class="steps mt muted" style="font-size:13px">
           <li>Đeo tai nghe để mic không thu lại giọng AI. Trả lời xong thì im lặng ${o.wait} giây hoặc bấm <b>Space</b>.</li>
-          <li>Câu hỏi do ${MD.CP.sugProvider() === 'claude' ? 'Claude' : 'Gemini'} soạn (đổi ở Cài đặt → AI gợi ý); giọng đọc là giọng có sẵn của trình duyệt/Windows.</li>
-          ${!vlist.length ? `<li style="color:var(--warn)">Windows: Cài đặt → Thời gian & ngôn ngữ → Giọng nói → Thêm giọng ${o.lang === 'en' ? 'English' : 'Tiếng Việt'}, rồi tải lại trang. Chrome có sẵn giọng Google cho tiếng Anh.</li>` : ''}
+          <li>Câu hỏi do ${MD.CP.sugProvider() === 'claude' ? 'Claude' : 'Gemini'} soạn (đổi ở Cài đặt → AI gợi ý).</li>
+          <li>Giọng AI Gemini: đọc tự nhiên cả tiếng Việt lẫn tiếng Anh, mất khoảng 1–3 giây để tạo mỗi câu; tốn thêm hạn mức Gemini (gói miễn phí giới hạn số lần đọc mỗi ngày). Nếu lỗi sẽ tự chuyển sang giọng trên máy, hoặc chỉ hiện chữ.</li>
         </ul>
         <div class="row wrap mt"><button class="btn primary" id="mkStart">▶ Bắt đầu phỏng vấn thử</button><button class="btn" id="mkTestVoice">🔊 Nghe thử giọng</button></div>
       </div>`;
@@ -240,7 +311,7 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
 
   function skipQuestion() {
     clearTimeout(M.timer);
-    if (window.speechSynthesis) speechSynthesis.cancel();
+    stopSpeaking();
     const cur = M.turns[M.turns.length - 1];
     if (cur && cur.who === 'me') cur.closed = true;
     M.turns.push({ who: 'me', text: '(bỏ qua câu này)', closed: true });
@@ -270,7 +341,7 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
     if (!M.active) return;
     M.active = false; window.onbeforeunload = null;
     clearTimeout(M.timer);
-    if (window.speechSynthesis) speechSynthesis.cancel();
+    stopSpeaking();
     if (M.hintAbort) M.hintAbort.abort();
     if (M.listener) M.listener.stop();
     if (M.mic) M.mic.getTracks().forEach((t) => t.stop());
@@ -321,7 +392,7 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
     }
   });
   document.addEventListener('change', (e) => {
-    if (e.target.id === 'mkLang') { readForm(); saveOpts({ voice: '' }); MK.render(); }
+    if (e.target.id === 'mkLang') { readForm(); if (!isGemini(opts())) saveOpts({ voice: '' }); MK.render(); }
     else if (e.target.closest && e.target.closest('#mockBody') && !M.active) readForm();
   });
   document.addEventListener('input', (e) => { if (e.target.id === 'mkRate') { const s = e.target.parentElement.querySelector('.muted'); if (s) s.textContent = e.target.value + 'x'; } });
