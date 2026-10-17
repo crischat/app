@@ -90,8 +90,10 @@
     const total = Math.floor((bin.length - off) / 2);
     const f = new Float32Array(total);
     for (let i = 0; i < total; i++) { let v = bin.charCodeAt(off + 2 * i) | (bin.charCodeAt(off + 2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; f[i] = v / 0x8000; }
+    M.lastRaw = { f: f.slice(), rate }; // giữ bản gốc để tải về chẩn đoán
+    let end = cutTailArtifact(f, rate);
     // tìm mẫu cuối cùng còn tiếng nói rõ (bỏ qua đuôi im lặng/nhiễu), giữ thêm 60 ms cho tự nhiên
-    let end = total - Math.round(rate * 0.025);
+    end = Math.min(end, total - Math.round(rate * 0.025));
     let lastVoice = 0; for (let i = end - 1; i >= 0; i--) { if (Math.abs(f[i]) > 0.02) { lastVoice = i; break; } }
     end = Math.max(1, Math.min(end, lastVoice + Math.round(rate * 0.06)));
     const fin = Math.min(Math.round(rate * 0.01), end), fout = Math.min(Math.round(rate * 0.04), end);
@@ -103,12 +105,55 @@
     return buf;
   }
 
+  /* Tìm "tiếng rít" mô hình đọc giọng đôi khi sinh ra sau chữ cuối và trả về vị trí nên cắt.
+     Chia khung 20 ms, đo độ to (RMS) và tỉ lệ đổi dấu (ZCR — càng cao âm càng the/chói).
+     Đoạn cuối bị coi là lỗi nếu:
+       (a) đứng sau một khoảng lặng >= 200 ms, ngắn hơn 0,7 giây VÀ cao/to bất thường so với giọng phía trước
+           (để không cắt nhầm chữ cuối sau dấu phẩy như "…, nhé."), hoặc
+       (b) cao bất thường (ZCR > 0,35 ≈ trên 4 kHz) và to, dài <= 0,6 giây — không giống âm cuối của lời nói. */
+  function cutTailArtifact(f, rate) {
+    const W = Math.round(rate * 0.02), nW = Math.floor(f.length / W);
+    if (nW < 10) return f.length;
+    const rms = new Float32Array(nW), zcr = new Float32Array(nW);
+    for (let w = 0; w < nW; w++) {
+      let s = 0, z = 0; const a = w * W;
+      for (let i = a; i < a + W; i++) { s += f[i] * f[i]; if (i > a && (f[i] >= 0) !== (f[i - 1] >= 0)) z++; }
+      rms[w] = Math.sqrt(s / W); zcr[w] = z / W;
+    }
+    const SIL = 0.012, LOUD = 0.02;
+    let last = nW - 1; while (last >= 0 && rms[last] < LOUD) last--;      // khung cuối còn âm thanh
+    if (last < 5) return f.length;
+    let start = last; while (start > 0 && rms[start - 1] >= SIL) start--;   // đầu đoạn âm cuối cùng
+    let gap = 0, g = start - 1; while (g >= 0 && rms[g] < SIL) { gap++; g--; } // khoảng lặng phía trước
+    const burstW = last - start + 1;
+    let zAvg = 0, rMax = 0; for (let w = start; w <= last; w++) { zAvg += zcr[w]; rMax = Math.max(rMax, rms[w]); }
+    zAvg /= burstW;
+    // (a) đoạn cuối tách rời sau khoảng lặng, và cao (the) hoặc TO HƠN mức to nhất của lời nói trước đó
+    let prevMax = 0, prevN = 0; for (let w = 0; w < g; w++) if (rms[w] >= LOUD) { prevMax = Math.max(prevMax, rms[w]); prevN++; }
+    const afterGap = g >= 0 && prevN >= 5 && gap * 20 >= 200 && burstW * 20 <= 700 && (zAvg > 0.25 || rMax > prevMax * 1.2);
+    if (afterGap) { M.lastCut = { ms: burstW * 20, rule: 'sau khoảng lặng', zcr: +zAvg.toFixed(2) }; return start * W; }
+    // (b) tiếng rít cao dính liền: quét từ cuối lên, gom các khung cao (ZCR > 0,35) và to
+    let k = last, sMax = 0; while (k >= 0 && zcr[k] > 0.35 && rms[k] >= SIL) { sMax = Math.max(sMax, rms[k]); k--; }
+    const shrillW = last - k;
+    let spMax = 0; for (let w = 0; w <= k; w++) if (zcr[w] <= 0.35) spMax = Math.max(spMax, rms[w]);
+    if (shrillW >= 2 && shrillW * 20 <= 600 && k > 5 && sMax > Math.max(0.05, spMax * 0.5)) {
+      M.lastCut = { ms: shrillW * 20, rule: 'rít cao', zcr: +zcr[last].toFixed(2) }; return (k + 1) * W;
+    }
+    M.lastCut = null;
+    return f.length;
+  }
+
   function playBuffer(buf) {
     return new Promise(async (resolve) => {
       if (M.ac.state === 'suspended') await M.ac.resume();
       const src = M.ac.createBufferSource(); src.buffer = buf;
-      // đi qua 1 nút gain để có thể tắt mượt khi bấm dừng, không bị bụp
-      const g = M.ac.createGain(); src.connect(g); g.connect(M.ac.destination);
+      // chuỗi phát: lọc âm cao (> 7 kHz, giọng nói vẫn rõ) -> giới hạn đỉnh âm lượng -> gain (để tắt mượt)
+      // => nếu mô hình còn sinh tiếng rít/chói thì cũng bị chặn bớt, không gây chói tai
+      const lp = M.ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7000; lp.Q.value = 0.7;
+      const lim = M.ac.createDynamicsCompressor();
+      lim.threshold.value = -10; lim.knee.value = 6; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.1;
+      const g = M.ac.createGain();
+      src.connect(lp); lp.connect(lim); lim.connect(g); g.connect(M.ac.destination);
       M.src = src; M.gain = g; M.speakDone = resolve;
       src.onended = () => { M.src = null; M.speakDone = null; resolve(); };
       src.start();
@@ -230,7 +275,7 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
           <li>Câu hỏi do ${MD.CP.sugProvider() === 'claude' ? 'Claude' : 'Gemini'} soạn (đổi ở Cài đặt → AI gợi ý).</li>
           <li>Giọng AI Gemini: đọc tự nhiên cả tiếng Việt lẫn tiếng Anh, mất khoảng 1–3 giây để tạo mỗi câu; tốn thêm hạn mức Gemini (gói miễn phí giới hạn số lần đọc mỗi ngày). Nếu lỗi sẽ tự chuyển sang giọng trên máy, hoặc chỉ hiện chữ.</li>
         </ul>
-        <div class="row wrap mt"><button class="btn primary" id="mkStart">▶ Bắt đầu phỏng vấn thử</button><button class="btn" id="mkTestVoice">🔊 Nghe thử giọng</button></div>
+        <div class="row wrap mt"><button class="btn primary" id="mkStart">▶ Bắt đầu phỏng vấn thử</button><button class="btn" id="mkTestVoice">🔊 Nghe thử giọng</button><button class="btn ghost" id="mkRawDl" title="Tải đoạn âm thanh gốc Gemini vừa trả về (chưa xử lý) để gửi kiểm tra lỗi">⬇ Tải âm thanh gốc</button><span class="muted" id="mkCutInfo"></span></div>
       </div>`;
   };
 
@@ -434,13 +479,26 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
 
   /* =================== Sự kiện =================== */
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('#mkStart,#mkTestVoice,#mkDone,#mkRepeat,#mkSkip,#mkEnd,#mkAgain'); if (!t) return;
+    const t = e.target.closest('#mkStart,#mkTestVoice,#mkRawDl,#mkDone,#mkRepeat,#mkSkip,#mkEnd,#mkAgain'); if (!t) return;
     switch (t.id) {
       case 'mkStart': return start();
       case 'mkTestVoice': {
         readForm(); const o = opts();
         const was = M.active; M.active = true;
-        return speak(o.lang === 'en' ? 'Hello, thanks for joining. Could you briefly introduce yourself?' : 'Chào em, cảm ơn em đã tham gia buổi phỏng vấn. Em giới thiệu ngắn gọn về bản thân nhé.').then(() => { M.active = was; });
+        return speak(o.lang === 'en' ? 'Hello, thanks for joining. Could you briefly introduce yourself?' : 'Chào em, cảm ơn em đã tham gia buổi phỏng vấn. Em giới thiệu ngắn gọn về bản thân nhé.').then(() => {
+          M.active = was;
+          const ci = $('#mkCutInfo'); if (ci) ci.textContent = M.lastCut ? `đã cắt ${M.lastCut.ms} ms tiếng lạ ở cuối` : '';
+        });
+      }
+      case 'mkRawDl': {
+        if (!M.lastRaw) return U.toast('Chưa có âm thanh — bấm “Nghe thử giọng” trước.', 'info');
+        const { f, rate } = M.lastRaw;
+        const buf = new ArrayBuffer(44 + f.length * 2), v = new DataView(buf);
+        const w = (o, s) => { for (let i = 0; i < 4; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+        w(0, 'RIFF'); v.setUint32(4, 36 + f.length * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+        v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, f.length * 2, true);
+        for (let i = 0; i < f.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, f[i])) * 0x7fff, true);
+        return U.download(new Blob([buf], { type: 'audio/wav' }), 'gemini-tts-goc.wav');
       }
       case 'mkDone': return finishAnswer(true);
       case 'mkRepeat': {
