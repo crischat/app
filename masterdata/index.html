@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Master Data Pro</title>
+<meta name="description" content="Phân tích chất lượng dữ liệu Excel, Google Sheets, PDF, Word, PowerPoint: lỗi, trùng lặp, không khớp, biến thể, báo cáo theo mục.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231d4ed8'/%3E%3Cpath d='M8 22V10l8 7 8-7v12' stroke='white' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css?v=3">
+<script>try{var t=localStorage.getItem('md_theme');if(t)document.documentElement.dataset.theme=JSON.parse(t);}catch(e){}</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3m0 0-4 4m4-4 4 4M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol>
+    <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+    <symbol id="i-bug" viewBox="0 0 24 24"><path d="M8 7V5a4 4 0 0 1 8 0v2M5 11h14M5 11a7 7 0 0 0 14 0M12 11v10M3 7l3 2m15-2-3 2M3 17l3-1m15 1-3-1"/></symbol>
+    <symbol id="i-cols" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></symbol>
+    <symbol id="i-broom" viewBox="0 0 24 24"><path d="m14 4 6 6M17 7l-7.5 7.5M4 20c0-4 2-6 5.5-5.5L11 16c.5 3.5-1.5 5.5-5.5 5.5"/></symbol>
+    <symbol id="i-merge" viewBox="0 0 24 24"><path d="M6 3v6a6 6 0 0 0 6 6h6M15 12l3 3-3 3M6 21v-4"/></symbol>
+    <symbol id="i-rules" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></symbol>
+    <symbol id="i-ai" viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+    <symbol id="i-report" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 3"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+    <symbol id="i-drive" viewBox="0 0 24 24"><path d="M8 3h8l6 10-4 7H6l-4-7zM8 3l6 10h8M2 13h12l-4 7"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <button class="iconbtn only-mobile" id="navToggle" aria-label="Mở menu"><svg><use href="#i-cols"/></svg></button>
+  <a class="brand" href="./">
+    <span class="logo">M</span>
+    <span><b>Master Data Pro</b><small>Chuyên gia chất lượng dữ liệu</small></span>
+  </a>
+  <div class="dsbar">
+    <label for="dsSelect" class="sr">Bảng dữ liệu đang xem</label>
+    <select id="dsSelect"><option value="">— Chưa có dữ liệu —</option></select>
+    <span id="dsScore" class="scorechip" hidden></span>
+  </div>
+  <div class="topactions">
+    <button class="chip" id="driveChip" title="Google Drive"><svg><use href="#i-drive"/></svg><span>Drive: chưa kết nối</span></button>
+    <button class="iconbtn" id="themeBtn" title="Đổi giao diện sáng/tối" aria-label="Đổi giao diện"><svg><use href="#i-moon"/></svg></button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidenav" id="sidenav">
+    <button data-tab="upload" class="active"><svg><use href="#i-upload"/></svg><span>Nạp dữ liệu</span></button>
+    <button data-tab="overview"><svg><use href="#i-dash"/></svg><span>Tổng quan</span></button>
+    <button data-tab="issues"><svg><use href="#i-bug"/></svg><span>Danh sách lỗi</span><em id="navIssues"></em></button>
+    <button data-tab="profile"><svg><use href="#i-cols"/></svg><span>Hồ sơ cột</span></button>
+    <button data-tab="clean"><svg><use href="#i-broom"/></svg><span>Chuẩn hoá &amp; làm sạch</span></button>
+    <button data-tab="reconcile"><svg><use href="#i-merge"/></svg><span>Đối chiếu 2 bảng</span></button>
+    <button data-tab="rules"><svg><use href="#i-rules"/></svg><span>Quy tắc kiểm tra</span></button>
+    <button data-tab="ai"><svg><use href="#i-ai"/></svg><span>Chuyên gia AI</span></button>
+    <button data-tab="report"><svg><use href="#i-report"/></svg><span>Báo cáo</span></button>
+    <button data-tab="history"><svg><use href="#i-history"/></svg><span>Lịch sử</span></button>
+    <button data-tab="settings"><svg><use href="#i-gear"/></svg><span>Cài đặt &amp; Drive</span></button>
+    <div class="navfoot">Dữ liệu được xử lý ngay trên trình duyệt của bạn.</div>
+  </nav>
+
+  <main id="main">
+    <!-- ============ NẠP DỮ LIỆU ============ -->
+    <section class="tab active" id="tab-upload">
+      <div class="pagehead"><h1>Nạp dữ liệu</h1><p>Excel, CSV, JSON, Google Sheets, PDF, Word, PowerPoint — nhiều file cùng lúc.</p></div>
+      <div class="grid2">
+        <label class="drop" id="dropZone">
+          <input type="file" id="fileInput" multiple accept=".xlsx,.xlsm,.xls,.xlsb,.ods,.csv,.tsv,.txt,.json,.pdf,.docx,.pptx">
+          <svg><use href="#i-upload"/></svg>
+          <b>Kéo thả file vào đây</b>
+          <span>hoặc bấm để chọn · .xlsx .xls .csv .json .pdf .docx .pptx</span>
+        </label>
+        <div class="card">
+          <h3><svg class="ic"><use href="#i-link"/></svg> Liên kết Google Sheets</h3>
+          <p class="muted">Sheet công khai đọc được ngay. Sheet riêng tư: kết nối Google ở tab Cài đặt.</p>
+          <div class="row"><input type="url" id="gsUrl" placeholder="https://docs.google.com/spreadsheets/d/..."><button class="btn primary" id="gsLoad">Nạp</button></div>
+          <h3 class="mt">Dùng thử với dữ liệu mẫu</h3>
+          <div class="row wrap">
+            <button class="btn" data-sample="inventory">Nhập xuất tồn (có lỗi)</button>
+            <button class="btn" data-sample="hr">Danh sách nhân sự (có lỗi)</button>
+            <button class="btn" data-sample="reconcile">Tồn hệ thống vs kiểm kê</button>
+          </div>
+        </div>
+      </div>
+      <div class="card mt" id="dsListCard" hidden>
+        <div class="cardhead"><h3>Các bảng đã nạp</h3><div class="row"><button class="btn primary" id="analyzeAll"><svg class="ic"><use href="#i-play"/></svg> Phân tích lại tất cả</button><button class="btn ghost" id="clearAll">Xoá hết</button></div></div>
+        <div class="tablewrap"><table class="tbl" id="dsList"></table></div>
+      </div>
+      <div class="card mt" id="previewCard" hidden>
+        <div class="cardhead"><h3>Xem trước: <span id="previewName"></span></h3>
+          <div class="row"><label class="muted" for="headerRowInput">Dòng tiêu đề</label><input type="number" min="1" id="headerRowInput" class="w80"><button class="btn" id="headerRowApply">Áp dụng</button></div></div>
+        <div class="tablewrap tall"><table class="tbl compact" id="previewTable"></table></div>
+      </div>
+    </section>
+
+    <!-- ============ TỔNG QUAN ============ -->
+    <section class="tab" id="tab-overview">
+      <div class="pagehead"><h1>Tổng quan chất lượng</h1><p id="ovSub">Chưa có kết quả phân tích.</p></div>
+      <div id="ovBody" class="empty-state">Nạp dữ liệu ở tab <b>Nạp dữ liệu</b> để bắt đầu.</div>
+    </section>
+
+    <!-- ============ DANH SÁCH LỖI ============ -->
+    <section class="tab" id="tab-issues">
+      <div class="pagehead"><h1>Danh sách lỗi</h1><p>Lọc theo mức độ, nhóm, cột, loại kiểm tra; bấm một dòng để xem bản ghi đầy đủ.</p></div>
+      <div class="card filters">
+        <input type="search" id="fSearch" placeholder="Tìm giá trị, mô tả, dòng…">
+        <select id="fCat"><option value="">Mọi nhóm lỗi</option></select>
+        <select id="fCheck"><option value="">Mọi loại kiểm tra</option></select>
+        <select id="fCol"><option value="">Mọi cột</option></select>
+        <div class="sevfilter" id="fSev"></div>
+        <div class="row ml-auto"><button class="btn" id="fReset">Bỏ lọc</button><button class="btn" id="fExport"><svg class="ic"><use href="#i-down"/></svg> Xuất Excel</button></div>
+      </div>
+      <div class="card mt">
+        <div class="cardhead"><h3 id="issueCount">0 lỗi</h3><div class="pager" id="pager"></div></div>
+        <div class="tablewrap tall"><table class="tbl" id="issueTable"></table></div>
+      </div>
+    </section>
+
+    <!-- ============ HỒ SƠ CỘT ============ -->
+    <section class="tab" id="tab-profile">
+      <div class="pagehead"><h1>Hồ sơ cột</h1><p>Kiểu dữ liệu, độ đầy, số giá trị khác nhau, phân bố và giá trị phổ biến của từng cột.</p></div>
+      <div id="profileBody" class="empty-state">Chưa có dữ liệu dạng bảng.</div>
+    </section>
+
+    <!-- ============ LÀM SẠCH ============ -->
+    <section class="tab" id="tab-clean">
+      <div class="pagehead"><h1>Chuẩn hoá &amp; làm sạch</h1><p>Chọn các sửa tự động, duyệt nhóm biến thể, rồi tải file sạch hoặc phân tích lại.</p></div>
+      <div id="cleanBody" class="empty-state">Chưa có kết quả phân tích.</div>
+    </section>
+
+    <!-- ============ ĐỐI CHIẾU ============ -->
+    <section class="tab" id="tab-reconcile">
+      <div class="pagehead"><h1>Đối chiếu 2 bảng</h1><p>Ví dụ: tồn hệ thống và kiểm kê thực tế, sổ kho và sổ kế toán, danh sách nhân sự 2 hệ thống.</p></div>
+      <div id="recBody"></div>
+    </section>
+
+    <!-- ============ QUY TẮC ============ -->
+    <section class="tab" id="tab-rules">
+      <div class="pagehead"><h1>Quy tắc kiểm tra</h1><p>Tinh chỉnh bộ máy kiểm tra và thêm quy tắc riêng cho nghiệp vụ của bạn.</p></div>
+      <div id="rulesBody"></div>
+    </section>
+
+    <!-- ============ AI ============ -->
+    <section class="tab" id="tab-ai">
+      <div class="pagehead"><h1>Chuyên gia AI</h1><p>Claude đọc kết quả quét, giải thích nguyên nhân gốc rễ và lập kế hoạch xử lý.</p></div>
+      <div id="aiBody"></div>
+    </section>
+
+    <!-- ============ BÁO CÁO ============ -->
+    <section class="tab" id="tab-report">
+      <div class="pagehead"><h1>Báo cáo</h1><p>Báo cáo theo từng mục, tải về HTML/PDF/Excel hoặc lưu thẳng lên Google Drive.</p></div>
+      <div class="card row wrap" id="reportActions">
+        <button class="btn primary" id="repDrive"><svg class="ic"><use href="#i-drive"/></svg> Lưu tất cả lên Drive</button>
+        <button class="btn" id="repXlsx"><svg class="ic"><use href="#i-down"/></svg> Excel đầy đủ</button>
+        <button class="btn" id="repHtml"><svg class="ic"><use href="#i-down"/></svg> HTML</button>
+        <button class="btn" id="repPrint">In / Lưu PDF</button>
+        <span class="muted" id="repDriveLink"></span>
+      </div>
+      <iframe id="reportFrame" class="reportframe" title="Xem trước báo cáo"></iframe>
+    </section>
+
+    <!-- ============ LỊCH SỬ ============ -->
+    <section class="tab" id="tab-history">
+      <div class="pagehead"><h1>Lịch sử phân tích</h1><p>Theo dõi điểm chất lượng qua các lần kiểm tra.</p></div>
+      <div id="histBody"></div>
+    </section>
+
+    <!-- ============ CÀI ĐẶT ============ -->
+    <section class="tab" id="tab-settings">
+      <div class="pagehead"><h1>Cài đặt &amp; Google Drive</h1><p>Cấu hình được lưu trên trình duyệt này; có thể sao lưu lên Drive.</p></div>
+      <div id="setBody"></div>
+    </section>
+  </main>
+</div>
+
+<aside class="drawer" id="drawer" hidden>
+  <div class="drawerhead"><h3 id="drawerTitle">Chi tiết</h3><button class="iconbtn" id="drawerClose" aria-label="Đóng"><svg><use href="#i-x"/></svg></button></div>
+  <div id="drawerBody"></div>
+</aside>
+
+<div id="loading" hidden><div class="spinner"></div><div id="loadingText">Đang xử lý…</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="js/config.js?v=3"></script>
+<script src="js/util.js?v=3"></script>
+<script src="js/parsers.js?v=3"></script>
+<script src="js/analyzer.js?v=3"></script>
+<script src="js/export.js?v=3"></script>
+<script src="js/drive.js?v=3"></script>
+<script src="js/ai.js?v=3"></script>
+<script src="js/samples.js?v=3"></script>
+<script src="js/app.js?v=3"></script>
+</body>
+</html>
