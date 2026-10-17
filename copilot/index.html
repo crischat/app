@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interview Copilot</title>
+<meta name="description" content="Trợ lý phỏng vấn thời gian thực: nghe Google Meet và mic, chép lời, dịch, gợi ý câu trả lời từ CV và kinh nghiệm của bạn.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d9488'/%3E%3Cpath d='M16 7a4 4 0 0 1 4 4v5a4 4 0 0 1-8 0v-5a4 4 0 0 1 4-4zM9 15a7 7 0 0 0 14 0M16 22v4' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../masterdata/css/app.css?v=1">
+<link rel="stylesheet" href="css/copilot.css?v=1">
+<script>try{var t=localStorage.getItem('md_theme');if(t)document.documentElement.dataset.theme=JSON.parse(t);}catch(e){}</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-live" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3zM5 11a7 7 0 0 0 14 0M12 18v4"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-prep" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 3"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+    <symbol id="i-drive" viewBox="0 0 24 24"><path d="M8 3h8l6 10-4 7H6l-4-7zM8 3l6 10h8M2 13h12l-4 7"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+    <symbol id="i-cols" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></symbol>
+    <symbol id="i-screen" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <button class="iconbtn only-mobile" id="navToggle" aria-label="Mở menu"><svg><use href="#i-cols"/></svg></button>
+  <a class="brand" href="./">
+    <span class="logo" style="background:linear-gradient(135deg,#0d9488,#2563eb)">IC</span>
+    <span><b>Interview Copilot</b><small>Nghe · dịch · gợi ý trả lời</small></span>
+  </a>
+  <div class="dsbar"><span class="livechip" id="liveChip">● Chưa bắt đầu</span><span class="muted" id="liveTimer"></span></div>
+  <div class="topactions">
+    <a class="chip" href="../masterdata/" title="Mở Master Data Pro">Master Data Pro ↗</a>
+    <button class="iconbtn" id="themeBtn" title="Đổi giao diện sáng/tối" aria-label="Đổi giao diện"><svg><use href="#i-moon"/></svg></button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidenav" id="sidenav">
+    <button data-tab="live" class="active"><svg><use href="#i-live"/></svg><span>Phiên trực tiếp</span></button>
+    <button data-tab="profile"><svg><use href="#i-user"/></svg><span>Hồ sơ của tôi</span></button>
+    <button data-tab="prep"><svg><use href="#i-prep"/></svg><span>Chuẩn bị</span></button>
+    <button data-tab="history"><svg><use href="#i-history"/></svg><span>Lịch sử</span></button>
+    <button data-tab="settings"><svg><use href="#i-gear"/></svg><span>Cài đặt</span></button>
+    <div class="navfoot">Âm thanh chỉ gửi tới AI bạn chọn để chép lời; không lưu file ghi âm.</div>
+  </nav>
+
+  <main id="main">
+    <!-- ============ PHIÊN TRỰC TIẾP ============ -->
+    <section class="tab active" id="tab-live">
+      <div class="card" id="startCard">
+        <h2 style="margin:0 0 6px">Bắt đầu phiên</h2>
+        <p class="muted" style="margin:0 0 12px">Mở Google Meet ở một tab Chrome khác, đeo tai nghe để mic không thu lại tiếng người phỏng vấn.</p>
+        <div class="formgrid">
+          <label class="field">Tên buổi<input type="text" id="sessTitle" placeholder="vd: Phỏng vấn Data Analyst — Công ty ABC"></label>
+          <label class="field">Ngôn ngữ chính<select id="sessLang"><option value="auto">Tự nhận diện</option><option value="en">Tiếng Anh</option><option value="vi">Tiếng Việt</option></select></label>
+          <label class="field">Nguồn tiếng người kia<select id="sessSource"><option value="tab">Tab Google Meet (khuyên dùng)</option><option value="none">Không — chỉ dùng mic</option></select></label>
+        </div>
+        <ol class="steps mt" id="permSteps">
+          <li><b>Micro</b> → giọng của <b>Tôi</b>. Trình duyệt sẽ hỏi quyền dùng mic.</li>
+          <li><b>Chia sẻ tab</b> → chọn tab <b>Google Meet</b> và bật <b>“Chia sẻ cả âm thanh của thẻ”</b> → giọng <b>Người phỏng vấn</b> + hình ảnh để đọc màn hình.</li>
+          <li><b>API key</b>: Gemini (bắt buộc để chép lời) <span id="keyState"></span></li>
+        </ol>
+        <div class="row wrap mt"><button class="btn primary" id="btnStart">● Cấp quyền &amp; bắt đầu</button><span class="muted" id="startNote"></span></div>
+      </div>
+
+      <div id="liveWrap" hidden>
+        <div class="card livebar">
+          <div class="meters">
+            <div class="meter"><span>🎙 Tôi</span><i><b id="lvMe"></b></i><em id="spMe"></em></div>
+            <div class="meter"><span>🖥 Người kia</span><i><b id="lvThem"></b></i><em id="spThem"></em></div>
+          </div>
+          <div class="row wrap">
+            <label class="check"><input type="checkbox" id="autoSuggest" checked><span>Tự gợi ý khi được hỏi</span></label>
+            <label class="check"><input type="checkbox" id="withScreen"><span>Kèm ảnh màn hình</span></label>
+          </div>
+          <div class="row wrap">
+            <button class="btn primary" id="btnSuggest" title="Ctrl+Enter"><svg class="ic"><use href="#i-spark"/></svg> Gợi ý ngay</button>
+            <button class="btn" id="btnShot"><svg class="ic"><use href="#i-screen"/></svg> Đọc màn hình</button>
+            <button class="btn" id="btnAnalyze">Phân tích cuộc trò chuyện</button>
+            <button class="btn danger" id="btnStop">■ Kết thúc</button>
+          </div>
+        </div>
+        <div class="livegrid mt">
+          <div class="card col">
+            <div class="cardhead"><h3>Hội thoại &amp; bản dịch</h3><label class="check"><input type="checkbox" id="showTrans" checked><span>Hiện bản dịch</span></label></div>
+            <div class="transcript" id="transcript"><p class="muted">Lời nói sẽ xuất hiện ở đây sau mỗi câu (độ trễ khoảng 2–4 giây).</p></div>
+            <div class="row mt"><input type="text" id="manualQ" placeholder="Gõ câu hỏi nếu AI nghe sót… (Enter để gợi ý)" style="flex:1"></div>
+          </div>
+          <div class="card col">
+            <div class="cardhead"><h3>Gợi ý trả lời</h3><span class="muted" id="sugState"></span></div>
+            <div class="suggest aiout" id="suggest"><p class="muted">Khi người phỏng vấn hỏi xong, gợi ý sẽ hiện ở đây.</p></div>
+            <details class="mt" id="olderWrap"><summary>Gợi ý trước đó</summary><div id="older"></div></details>
+            <details class="mt" id="shotWrap" hidden><summary>Ảnh màn hình gần nhất</summary><img id="shotImg" alt="Ảnh màn hình đã chụp" style="max-width:100%;border-radius:8px;margin-top:8px"></details>
+            <div class="aiout mt" id="analysis"></div>
+          </div>
+        </div>
+      </div>
+      <video id="screenVideo" muted playsinline hidden></video>
+    </section>
+
+    <!-- ============ HỒ SƠ ============ -->
+    <section class="tab" id="tab-profile">
+      <div class="pagehead"><h1>Hồ sơ của tôi</h1><p>AI chỉ gợi ý dựa trên những gì có ở đây; không bịa kinh nghiệm bạn không có.</p></div>
+      <div id="profileBody"></div>
+    </section>
+
+    <!-- ============ CHUẨN BỊ ============ -->
+    <section class="tab" id="tab-prep">
+      <div class="pagehead"><h1>Chuẩn bị trước buổi phỏng vấn</h1><p>Dự đoán câu hỏi từ JD + CV, luyện câu trả lời và lưu thành câu trả lời chuẩn bị sẵn.</p></div>
+      <div id="prepBody"></div>
+    </section>
+
+    <!-- ============ LỊCH SỬ ============ -->
+    <section class="tab" id="tab-history">
+      <div class="pagehead"><h1>Lịch sử các buổi</h1><p>Biên bản, tóm tắt và đánh giá từng buổi — được dùng làm ngữ cảnh cho các buổi sau.</p></div>
+      <div id="histBody"></div>
+    </section>
+
+    <!-- ============ CÀI ĐẶT ============ -->
+    <section class="tab" id="tab-settings">
+      <div class="pagehead"><h1>Cài đặt</h1><p>Key và kết nối Google dùng chung với Master Data Pro (cùng trình duyệt).</p></div>
+      <div id="setBody"></div>
+    </section>
+  </main>
+</div>
+
+<div id="loading" hidden><div class="spinner"></div><div id="loadingText">Đang xử lý…</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="../masterdata/js/config.js?v=8"></script>
+<script src="../masterdata/js/util.js?v=8"></script>
+<script src="../masterdata/js/parsers.js?v=8"></script>
+<script src="../masterdata/js/drive.js?v=8"></script>
+<script src="../masterdata/js/ai.js?v=8"></script>
+<script src="js/audio.js?v=1"></script>
+<script src="js/copilot.js?v=1"></script>
+</body>
+</html>

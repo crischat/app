@@ -82,67 +82,125 @@ Viết tiếng Việt, súc tích, dùng Markdown (tiêu đề ##, bảng khi so
     return JSON.stringify(ctx);
   };
 
-  // messages theo dạng Claude: {role:'user'|'assistant', content: string | [{type:'text', text}, ...]}
+  /* messages theo dạng Claude: {role:'user'|'assistant', content: string | [block...]}
+     block: {type:'text', text} | {type:'image', mime, data(base64)} | {type:'audio', mime, data(base64)} (audio: chỉ Gemini)
+     opts: provider, model, system, maxTokens, effort (Claude), json + schema (Gemini), onText(textSoFar) => bật streaming */
   AI.call = async (messages, opts = {}) => {
     const s = AI.settings();
     const provider = opts.provider || s.provider;
     return provider === 'gemini' ? callGemini(messages, opts, s) : callClaude(messages, opts, s);
   };
 
-  const textOf = (content) => typeof content === 'string' ? content
-    : (content || []).filter((b) => b.type === 'text').map((b) => b.text).join('\n');
+  // Đọc luồng Server-Sent Events, gọi onData(jsonObject) cho mỗi sự kiện
+  async function readSSE(resp, onData) {
+    const reader = resp.body.getReader(), dec = new TextDecoder();
+    let buf = '';
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let k;
+      while ((k = buf.indexOf('\n\n')) >= 0) {
+        const chunk = buf.slice(0, k); buf = buf.slice(k + 2);
+        const data = chunk.split('\n').filter((l) => l.startsWith('data:')).map((l) => l.slice(5).trim()).join('');
+        if (data && data !== '[DONE]') { try { onData(JSON.parse(data)); } catch (e) { /* bỏ qua dòng hỏng */ } }
+      }
+    }
+  }
+
+  const geminiParts = (content) => typeof content === 'string' ? [{ text: content }]
+    : (content || []).map((b) => b.type === 'text' ? { text: b.text } : (b.type === 'image' || b.type === 'audio') ? { inlineData: { mimeType: b.mime, data: b.data } } : null).filter(Boolean);
+  const claudeContent = (content) => typeof content === 'string' ? content
+    : content.map((b) => {
+      if (b.type === 'image') return { type: 'image', source: { type: 'base64', media_type: b.mime, data: b.data } };
+      if (b.type === 'audio') throw new Error('Claude không nhận âm thanh — phần nghe/chép lời cần Gemini.');
+      return b;
+    });
+
+  AI.geminiModelFor = async (s, want) => {
+    if (want) return want;
+    if (s.geminiModel) return s.geminiModel;
+    const list = await AI.listGeminiModels(s.geminiKey);
+    const model = AI.pickGeminiDefault(list);
+    U.store.set('settings', Object.assign(U.store.get('settings', {}), { geminiModel: model, geminiModels: list }));
+    return model;
+  };
 
   async function callGemini(messages, opts, s) {
     if (!s.geminiKey) throw new Error('Chưa nhập Gemini API key (tab Cài đặt).');
-    let model = opts.model || s.geminiModel;
-    if (!model) {
-      const list = await AI.listGeminiModels(s.geminiKey);
-      model = AI.pickGeminiDefault(list);
-      U.store.set('settings', Object.assign(U.store.get('settings', {}), { geminiModel: model, geminiModels: list }));
-    }
+    const model = await AI.geminiModelFor(s, opts.model);
     const body = {
-      systemInstruction: { parts: [{ text: SYSTEM }] },
-      contents: messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: textOf(m.content) }] })),
+      systemInstruction: { parts: [{ text: opts.system || SYSTEM }] },
+      contents: messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: geminiParts(m.content) })),
       generationConfig: { maxOutputTokens: opts.maxTokens || 16000 }
     };
-    const r = await fetch(`${GEMINI_BASE}/models/${encodeURIComponent(model)}:generateContent`, {
-      method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': s.geminiKey }, body: JSON.stringify(body)
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(geminiError(r.status, j));
-    if (j.promptFeedback && j.promptFeedback.blockReason) throw new Error('Gemini chặn yêu cầu: ' + j.promptFeedback.blockReason);
-    const cand = (j.candidates || [])[0];
-    if (!cand) throw new Error('Gemini không trả về kết quả.');
-    if (['SAFETY', 'RECITATION', 'PROHIBITED_CONTENT', 'BLOCKLIST'].includes(cand.finishReason)) throw new Error('Gemini dừng vì bộ lọc an toàn (' + cand.finishReason + ').');
-    const text = ((cand.content && cand.content.parts) || []).filter((p) => p.text && !p.thought).map((p) => p.text).join('');
+    if (opts.json) { body.generationConfig.responseMimeType = 'application/json'; if (opts.schema) body.generationConfig.responseSchema = opts.schema; }
+    const stream = typeof opts.onText === 'function';
+    const url = `${GEMINI_BASE}/models/${encodeURIComponent(model)}:${stream ? 'streamGenerateContent?alt=sse' : 'generateContent'}`;
+    const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': s.geminiKey }, body: JSON.stringify(body), signal: opts.signal });
+    if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(geminiError(r.status, j)); }
+    let text = '', finish = '', usage = null, version = model;
+    const take = (j) => {
+      if (j.promptFeedback && j.promptFeedback.blockReason) throw new Error('Gemini chặn yêu cầu: ' + j.promptFeedback.blockReason);
+      const cand = (j.candidates || [])[0];
+      if (j.usageMetadata) usage = j.usageMetadata;
+      if (j.modelVersion) version = j.modelVersion;
+      if (!cand) return;
+      if (cand.finishReason) finish = cand.finishReason;
+      text += ((cand.content && cand.content.parts) || []).filter((p) => p.text && !p.thought).map((p) => p.text).join('');
+    };
+    if (stream) await readSSE(r, (j) => { take(j); opts.onText(text); });
+    else take(await r.json());
+    if (['SAFETY', 'RECITATION', 'PROHIBITED_CONTENT', 'BLOCKLIST'].includes(finish)) throw new Error('Gemini dừng vì bộ lọc an toàn (' + finish + ').');
     return {
-      text: text + (cand.finishReason === 'MAX_TOKENS' ? '\n\n_(Phản hồi bị cắt do giới hạn độ dài)_' : ''),
-      content: [{ type: 'text', text }], usage: j.usageMetadata, model: j.modelVersion || model
+      text: text + (finish === 'MAX_TOKENS' && !opts.json ? '\n\n_(Phản hồi bị cắt do giới hạn độ dài)_' : ''),
+      content: [{ type: 'text', text }], usage, model: version
     };
   }
 
   async function callClaude(messages, opts, s) {
     if (!s.claudeKey) throw new Error('Chưa nhập Claude API key (tab Cài đặt).');
-    s = Object.assign({}, s, { key: s.claudeKey });
     const model = opts.model || s.model;
+    const stream = typeof opts.onText === 'function';
     const body = {
-      model, max_tokens: 16000, system: SYSTEM, messages,
+      model, max_tokens: opts.maxTokens || 16000,
+      // cacheSystem: system prompt dài và cố định (vd hồ sơ CV) được cache, các lần gọi sau rẻ và nhanh hơn
+      system: opts.cacheSystem ? [{ type: 'text', text: opts.system || SYSTEM, cache_control: { type: 'ephemeral' } }] : (opts.system || SYSTEM),
+      messages: messages.map((m) => ({ role: m.role, content: claudeContent(m.content) })),
       thinking: { type: 'adaptive' },
       output_config: { effort: opts.effort || s.effort }
     };
+    if (stream) body.stream = true;
     const headers = {
-      'content-type': 'application/json', 'x-api-key': s.key, 'anthropic-version': '2023-06-01',
+      'content-type': 'application/json', 'x-api-key': s.claudeKey, 'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     };
     if (FALLBACK_OK.includes(model)) { body.fallbacks = 'default'; headers['anthropic-beta'] = 'server-side-fallback-2026-07-01'; }
-    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers, body: JSON.stringify(body) });
-    const j = await r.json().catch(() => ({}));
+    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers, body: JSON.stringify(body), signal: opts.signal });
     if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
       const m = (j.error && j.error.message) || r.statusText;
       if (r.status === 401) throw new Error('API key không hợp lệ (401).');
       if (r.status === 429) throw new Error('Vượt giới hạn tốc độ (429) — thử lại sau ít phút.');
       throw new Error(`Claude API lỗi ${r.status}: ${m}`);
     }
+    let j;
+    if (stream) {
+      // ghép lại message đầy đủ từ các sự kiện streaming
+      const blocks = []; let stop = null, stopDetails = null, usage = null, mdl = model, text = '';
+      await readSSE(r, (ev) => {
+        if (ev.type === 'message_start') { mdl = ev.message.model; usage = ev.message.usage; }
+        else if (ev.type === 'content_block_start') blocks[ev.index] = Object.assign({}, ev.content_block);
+        else if (ev.type === 'content_block_delta') {
+          const b = blocks[ev.index], d = ev.delta;
+          if (d.type === 'text_delta') { b.text = (b.text || '') + d.text; text += d.text; opts.onText(text); }
+          else if (d.type === 'thinking_delta') b.thinking = (b.thinking || '') + d.thinking;
+          else if (d.type === 'signature_delta') b.signature = (b.signature || '') + d.signature;
+        } else if (ev.type === 'message_delta') { stop = ev.delta.stop_reason; stopDetails = ev.delta.stop_details; if (ev.usage) usage = Object.assign({}, usage, ev.usage); }
+        else if (ev.type === 'error') throw new Error('Claude API: ' + (ev.error && ev.error.message));
+      });
+      j = { content: blocks.filter(Boolean), stop_reason: stop, stop_details: stopDetails, usage, model: mdl };
+    } else j = await r.json();
     if (j.stop_reason === 'refusal') throw new Error('Mô hình từ chối yêu cầu' + (j.stop_details && j.stop_details.explanation ? ': ' + j.stop_details.explanation : '.'));
     const text = (j.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('\n');
     return { text: text + (j.stop_reason === 'max_tokens' ? '\n\n_(Phản hồi bị cắt do giới hạn độ dài)_' : ''), content: j.content, usage: j.usage, model: j.model };

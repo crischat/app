@@ -131,6 +131,12 @@
     return JSON.parse(await (blob instanceof Blob ? blob.text() : JSON.stringify(blob)));
   };
 
+  /* Đọc nội dung 1 file (do app tạo) thành chuỗi */
+  D.readText = async (fileId) => {
+    const b = await api(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
+    return b instanceof Blob ? b.text() : JSON.stringify(b);
+  };
+
   /* Đọc Google Sheet (kể cả riêng tư) qua Sheets API */
   D.readSheet = async (id) => {
     const meta = await api(`https://sheets.googleapis.com/v4/spreadsheets/${id}?fields=properties.title,sheets.properties(title,sheetId)`);
