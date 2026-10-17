@@ -1,19 +1,54 @@
-/* Master Data Pro — Chuyên gia AI (Claude API, gọi trực tiếp từ trình duyệt bằng key của người dùng) */
+/* Master Data Pro — Chuyên gia AI: Claude hoặc Gemini, gọi trực tiếp từ trình duyệt bằng key của người dùng */
 (function (MD) {
   'use strict';
   const U = MD.U, A = MD.Analyzer;
   const AI = {};
+  AI.PROVIDERS = { claude: 'Claude (Anthropic)', gemini: 'Gemini (Google)' };
   AI.MODELS = [
     { id: 'claude-opus-5-5', label: 'Claude Opus 5.5 — sâu nhất (mặc định)' },
     { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5 — nhanh, cân bằng' },
     { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5 — rẻ nhất' }
   ];
   const FALLBACK_OK = ['claude-opus-5-5', 'claude-sonnet-5-5'];
+  const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
   AI.settings = () => {
     const s = U.store.get('settings', {});
-    return { key: s.claudeKey || '', model: s.claudeModel || 'claude-opus-5-5', effort: s.claudeEffort || 'medium', sendSamples: s.aiSamples !== false };
+    const provider = s.aiProvider || (s.claudeKey ? 'claude' : s.geminiKey ? 'gemini' : 'claude');
+    return {
+      provider, claudeKey: s.claudeKey || '', geminiKey: s.geminiKey || '',
+      key: provider === 'gemini' ? (s.geminiKey || '') : (s.claudeKey || ''),
+      model: s.claudeModel || 'claude-opus-5-5', geminiModel: s.geminiModel || '',
+      geminiModels: s.geminiModels || [], effort: s.claudeEffort || 'medium', sendSamples: s.aiSamples !== false
+    };
   };
+
+  /* ---------- Danh sách mô hình Gemini (lấy trực tiếp từ Google, không đoán tên) ---------- */
+  AI.listGeminiModels = async (key) => {
+    const r = await fetch(`${GEMINI_BASE}/models?pageSize=200`, { headers: { 'x-goog-api-key': key } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(geminiError(r.status, j));
+    const list = (j.models || [])
+      .filter((m) => (m.supportedGenerationMethods || []).includes('generateContent') && /gemini/i.test(m.name) && !/embedding|image|tts|audio|live|vision/i.test(m.name))
+      .map((m) => ({ id: m.name.replace(/^models\//, ''), label: m.displayName || m.name }));
+    if (!list.length) throw new Error('Key hợp lệ nhưng không thấy mô hình Gemini nào dùng được.');
+    return list;
+  };
+  // Ưu tiên bản Flash mới nhất (gói miễn phí rộng rãi), không chọn bản thử nghiệm nếu có bản ổn định
+  AI.pickGeminiDefault = (list) => {
+    const ver = (id) => { const m = id.match(/gemini-(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1]) : 0; };
+    const score = (m) => ver(m.id) * 10 + (/flash/.test(m.id) ? 3 : 0) - (/lite/.test(m.id) ? 1 : 0) - (/preview|exp|\d{2}-\d{2}/.test(m.id) ? 5 : 0);
+    return list.slice().sort((a, b) => score(b) - score(a))[0].id;
+  };
+
+  function geminiError(status, j) {
+    const m = (j.error && j.error.message) || '';
+    if (status === 400 && /API key/i.test(m)) return 'Gemini API key không hợp lệ — kiểm tra lại ký tự cuối.';
+    if (status === 403) return 'Key không có quyền gọi Gemini API (403): ' + m;
+    if (status === 404) return 'Không tìm thấy mô hình Gemini này (404) — bấm "Tải danh sách mô hình" ở tab Cài đặt.';
+    if (status === 429) return 'Vượt hạn mức Gemini (429) — gói miễn phí giới hạn số lần/phút, thử lại sau ít phút.';
+    return `Gemini API lỗi ${status}: ${m}`;
+  }
 
   const SYSTEM = `Bạn là chuyên gia Master Data / Data Quality cấp cao (15+ năm), am hiểu kho vận, kế toán kho, nhân sự và quản trị dữ liệu doanh nghiệp Việt Nam.
 Bạn nhận bản tóm tắt kết quả quét tự động (hồ sơ cột, danh sách lỗi theo nhóm, mẫu dòng). Nhiệm vụ:
@@ -47,9 +82,48 @@ Viết tiếng Việt, súc tích, dùng Markdown (tiêu đề ##, bảng khi so
     return JSON.stringify(ctx);
   };
 
+  // messages theo dạng Claude: {role:'user'|'assistant', content: string | [{type:'text', text}, ...]}
   AI.call = async (messages, opts = {}) => {
     const s = AI.settings();
-    if (!s.key) throw new Error('Chưa nhập Claude API key (tab Cài đặt).');
+    const provider = opts.provider || s.provider;
+    return provider === 'gemini' ? callGemini(messages, opts, s) : callClaude(messages, opts, s);
+  };
+
+  const textOf = (content) => typeof content === 'string' ? content
+    : (content || []).filter((b) => b.type === 'text').map((b) => b.text).join('\n');
+
+  async function callGemini(messages, opts, s) {
+    if (!s.geminiKey) throw new Error('Chưa nhập Gemini API key (tab Cài đặt).');
+    let model = opts.model || s.geminiModel;
+    if (!model) {
+      const list = await AI.listGeminiModels(s.geminiKey);
+      model = AI.pickGeminiDefault(list);
+      U.store.set('settings', Object.assign(U.store.get('settings', {}), { geminiModel: model, geminiModels: list }));
+    }
+    const body = {
+      systemInstruction: { parts: [{ text: SYSTEM }] },
+      contents: messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: textOf(m.content) }] })),
+      generationConfig: { maxOutputTokens: opts.maxTokens || 16000 }
+    };
+    const r = await fetch(`${GEMINI_BASE}/models/${encodeURIComponent(model)}:generateContent`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': s.geminiKey }, body: JSON.stringify(body)
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(geminiError(r.status, j));
+    if (j.promptFeedback && j.promptFeedback.blockReason) throw new Error('Gemini chặn yêu cầu: ' + j.promptFeedback.blockReason);
+    const cand = (j.candidates || [])[0];
+    if (!cand) throw new Error('Gemini không trả về kết quả.');
+    if (['SAFETY', 'RECITATION', 'PROHIBITED_CONTENT', 'BLOCKLIST'].includes(cand.finishReason)) throw new Error('Gemini dừng vì bộ lọc an toàn (' + cand.finishReason + ').');
+    const text = ((cand.content && cand.content.parts) || []).filter((p) => p.text && !p.thought).map((p) => p.text).join('');
+    return {
+      text: text + (cand.finishReason === 'MAX_TOKENS' ? '\n\n_(Phản hồi bị cắt do giới hạn độ dài)_' : ''),
+      content: [{ type: 'text', text }], usage: j.usageMetadata, model: j.modelVersion || model
+    };
+  }
+
+  async function callClaude(messages, opts, s) {
+    if (!s.claudeKey) throw new Error('Chưa nhập Claude API key (tab Cài đặt).');
+    s = Object.assign({}, s, { key: s.claudeKey });
     const model = opts.model || s.model;
     const body = {
       model, max_tokens: 16000, system: SYSTEM, messages,
@@ -72,7 +146,7 @@ Viết tiếng Việt, súc tích, dùng Markdown (tiêu đề ##, bảng khi so
     if (j.stop_reason === 'refusal') throw new Error('Mô hình từ chối yêu cầu' + (j.stop_details && j.stop_details.explanation ? ': ' + j.stop_details.explanation : '.'));
     const text = (j.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('\n');
     return { text: text + (j.stop_reason === 'max_tokens' ? '\n\n_(Phản hồi bị cắt do giới hạn độ dài)_' : ''), content: j.content, usage: j.usage, model: j.model };
-  };
+  }
 
   MD.AI = AI;
 })(window.MD);

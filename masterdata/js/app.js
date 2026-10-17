@@ -517,12 +517,14 @@
     const ds = cur(), res = curRes(), s = AI.settings(), body = $('#aiBody');
     if (!res) { body.innerHTML = '<div class="empty-state">Chưa có kết quả phân tích.</div>'; return; }
     const conv = S.ai[ds.id] || { messages: [], view: [] };
+    const gem = s.provider === 'gemini';
     body.innerHTML = `
-      ${!s.key ? '<div class="note warn">Chưa có Claude API key. Vào <a href="#settings" data-go="settings">Cài đặt</a> để nhập key (lấy tại console.anthropic.com).</div>' : ''}
+      ${!s.key ? `<div class="note warn">Chưa có ${gem ? 'Gemini' : 'Claude'} API key. Vào <a href="#settings" data-go="settings">Cài đặt</a> để nhập key.</div>` : ''}
       <div class="card ${s.key ? '' : 'mt'}">
         <div class="formgrid">
-          <label class="field">Mô hình<select id="aiModel">${AI.MODELS.map((m) => `<option value="${m.id}" ${m.id === s.model ? 'selected' : ''}>${m.label}</option>`).join('')}</select></label>
-          <label class="field">Mức suy luận<select id="aiEffort">${[['low', 'Thấp — nhanh'], ['medium', 'Vừa (khuyên dùng)'], ['high', 'Cao'], ['xhigh', 'Rất cao'], ['max', 'Tối đa']].map(([v, l]) => `<option value="${v}" ${v === s.effort ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+          <label class="field">Nhà cung cấp AI<select id="aiProvider">${Object.entries(AI.PROVIDERS).map(([k, l]) => `<option value="${k}" ${k === s.provider ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+          <label class="field">Mô hình${gem ? geminiModelSelect('aiModel', s) : `<select id="aiModel">${AI.MODELS.map((m) => `<option value="${m.id}" ${m.id === s.model ? 'selected' : ''}>${m.label}</option>`).join('')}</select>`}</label>
+          ${gem ? '' : `<label class="field">Mức suy luận<select id="aiEffort">${[['low', 'Thấp — nhanh'], ['medium', 'Vừa (khuyên dùng)'], ['high', 'Cao'], ['xhigh', 'Rất cao'], ['max', 'Tối đa']].map(([v, l]) => `<option value="${v}" ${v === s.effort ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`}
           <label class="field">Dữ liệu gửi đi<label class="check"><input type="checkbox" id="aiSamples" ${s.sendSamples ? 'checked' : ''}> Kèm 25 dòng mẫu</label><span class="muted">Luôn gửi thống kê và tối đa 3 ví dụ mỗi loại lỗi; không gửi toàn bộ file.</span></label>
         </div>
         <div class="row mt"><button class="btn primary" id="aiRun" ${s.key ? '' : 'disabled'}><svg class="ic"><use href="#i-ai"/></svg> ${conv.view.length ? 'Phân tích lại từ đầu' : 'Phân tích chuyên sâu'}</button></div>
@@ -533,7 +535,8 @@
 
   async function aiRun(followUp) {
     const ds = cur(), res = curRes();
-    saveSettings({ claudeModel: $('#aiModel').value, claudeEffort: $('#aiEffort').value, aiSamples: $('#aiSamples').checked });
+    if (AI.settings().provider === 'gemini') saveSettings({ geminiModel: $('#aiModel').value, aiSamples: $('#aiSamples').checked });
+    else saveSettings({ claudeModel: $('#aiModel').value, claudeEffort: $('#aiEffort').value, aiSamples: $('#aiSamples').checked });
     let conv = S.ai[ds.id];
     if (!followUp || !conv) {
       const ctx = AI.buildContext(ds, res, $('#aiSamples').checked);
@@ -588,8 +591,10 @@
     U.loading(false);
   }
 
+  // Claude key không bao giờ rời trình duyệt; Gemini key chỉ đi kèm khi người dùng bật "sao lưu key vào Drive riêng"
   const stateSnapshot = () => {
     const s = Object.assign({}, U.store.get('settings', {})); delete s.claudeKey;
+    if (!s.backupGeminiKey) delete s.geminiKey;
     return { app: 'Master Data Pro', version: 1, savedAt: new Date().toISOString(), settings: s, history: U.store.get('history', []) };
   };
 
@@ -633,11 +638,19 @@
             <p class="muted">Quyền xin: <code>drive.file</code> (chỉ thấy file do app tạo) và <code>spreadsheets.readonly</code> (đọc Google Sheet bạn dán link). Lần đầu Google báo “ứng dụng chưa xác minh” → Nâng cao → Tiếp tục.</p>
           </details>
         </div>
-        <div class="card"><div class="cardhead"><h3><svg class="ic"><use href="#i-ai"/></svg> Chuyên gia AI (Claude)</h3><span class="chip ${ai.key ? 'on' : ''}">${ai.key ? 'Đã có key' : 'Chưa có key'}</span></div>
-          <label class="field">Claude API key<input type="password" id="sKey" value="${esc(ai.key)}" placeholder="sk-ant-..." autocomplete="off"></label>
+        <div class="card"><div class="cardhead"><h3><svg class="ic"><use href="#i-ai"/></svg> Chuyên gia AI</h3><span class="chip ${ai.key ? 'on' : ''}">${ai.key ? 'Đang dùng ' + (ai.provider === 'gemini' ? 'Gemini' : 'Claude') : 'Chưa có key'}</span></div>
+          <label class="field">Nhà cung cấp mặc định<select id="sProvider">${Object.entries(AI.PROVIDERS).map(([k, l]) => `<option value="${k}" ${k === ai.provider ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+          ${ai.provider === 'gemini' ? `
+          <label class="field mt">Gemini API key<input type="password" id="sGKey" value="${esc(ai.geminiKey)}" placeholder="Dán key Gemini (AI Studio / Google Cloud)" autocomplete="off"></label>
+          <label class="field mt">Mô hình Gemini${geminiModelSelect('sGModel', ai)}</label>
+          <label class="check mt"><input type="checkbox" id="sGBackup" ${s.backupGeminiKey ? 'checked' : ''}><span>Sao lưu Gemini key vào <b>Google Drive riêng</b> của tôi (để máy khác bấm “Khôi phục từ Drive” là có key)</span></label>
+          <p class="muted" style="font-size:12.5px">Lấy key tại <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Nên giới hạn key chỉ cho “Generative Language API”. Gói miễn phí: Google có thể dùng dữ liệu gửi lên để cải thiện sản phẩm — tắt “Kèm 25 dòng mẫu” với dữ liệu nhạy cảm.</p>
+          <div class="row wrap mt"><button class="btn" id="sSaveAI">Lưu</button><button class="btn" id="sGList">Tải danh sách mô hình</button><button class="btn" id="sTestAI">Kiểm tra key</button>${ai.geminiKey ? '<button class="btn ghost danger" id="sDelKey">Xoá key</button>' : ''}</div>`
+          : `
+          <label class="field mt">Claude API key<input type="password" id="sKey" value="${esc(ai.claudeKey)}" placeholder="sk-ant-..." autocomplete="off"></label>
           <p class="muted" style="font-size:12.5px">Key chỉ lưu trên trình duyệt này — không đưa lên GitHub, không sao lưu lên Drive. Lấy key tại <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.</p>
           <label class="field mt">Mô hình mặc định<select id="sModel">${AI.MODELS.map((m) => `<option value="${m.id}" ${m.id === ai.model ? 'selected' : ''}>${m.label}</option>`).join('')}</select></label>
-          <div class="row wrap mt"><button class="btn" id="sSaveAI">Lưu</button><button class="btn" id="sTestAI">Kiểm tra key</button>${ai.key ? '<button class="btn ghost danger" id="sDelKey">Xoá key</button>' : ''}</div>
+          <div class="row wrap mt"><button class="btn" id="sSaveAI">Lưu</button><button class="btn" id="sTestAI">Kiểm tra key</button>${ai.claudeKey ? '<button class="btn ghost danger" id="sDelKey">Xoá key</button>' : ''}</div>`}
         </div>
       </div>
       <div class="grid2 mt">
@@ -648,10 +661,25 @@
       </div>`;
   }
 
+  // Ô chọn mô hình Gemini: danh sách lấy từ Google; chưa tải thì để "tự chọn bản Flash mới nhất"
+  function geminiModelSelect(id, ai) {
+    const list = ai.geminiModels.slice();
+    if (ai.geminiModel && !list.some((m) => m.id === ai.geminiModel)) list.unshift({ id: ai.geminiModel, label: ai.geminiModel });
+    return `<select id="${id}"><option value="" ${ai.geminiModel ? '' : 'selected'}>Tự chọn (Flash mới nhất)</option>${list.map((m) => `<option value="${esc(m.id)}" ${m.id === ai.geminiModel ? 'selected' : ''}>${esc(m.label)} · ${esc(m.id)}</option>`).join('')}</select>`;
+  }
+
+  // Lưu ô cài đặt AI đang hiển thị (Claude hoặc Gemini)
+  function saveAIFields() {
+    const p = {};
+    if ($('#sKey')) Object.assign(p, { claudeKey: $('#sKey').value.trim(), claudeModel: $('#sModel').value });
+    if ($('#sGKey')) Object.assign(p, { geminiKey: $('#sGKey').value.trim(), geminiModel: $('#sGModel').value, backupGeminiKey: $('#sGBackup').checked });
+    saveSettings(p);
+  }
+
   function applyState(st) {
     if (!st || st.app !== 'Master Data Pro') throw new Error('File cấu hình không hợp lệ');
     const keep = U.store.get('settings', {});
-    U.store.set('settings', Object.assign({}, st.settings, { claudeKey: keep.claudeKey }));
+    U.store.set('settings', Object.assign({}, st.settings, { claudeKey: keep.claudeKey, geminiKey: (st.settings && st.settings.geminiKey) || keep.geminiKey }));
     const h = U.store.get('history', []); const ids = new Set(h.map((x) => x.id));
     U.store.set('history', h.concat((st.history || []).filter((x) => !ids.has(x.id))).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 300));
   }
@@ -685,7 +713,7 @@
 
     // Uỷ quyền sự kiện chung
     document.addEventListener('click', async (e) => {
-      const t = e.target.closest('[data-sample],[data-view],[data-del],[data-go],[data-check],[data-issue],[data-pg],[data-colissues],[data-recview],[data-rdel],[data-theme-set],#analyzeAll,#clearAll,#headerRowApply,#fReset,#fExport,#drawerClose,#cleanPreview,#cleanDownload,#cleanReanalyze,#recRun,#recExport,#nrAdd,#rApply,#aiRun,#aiSend,#repDrive,#repXlsx,#repHtml,#repPrint,#hExport,#hBackup,#hRestore,#hClear,#sSaveG,#sConn,#sDisc,#sOpenRoot,#sSaveAI,#sTestAI,#sDelKey,#sExportCfg,#sReset');
+      const t = e.target.closest('[data-sample],[data-view],[data-del],[data-go],[data-check],[data-issue],[data-pg],[data-colissues],[data-recview],[data-rdel],[data-theme-set],#analyzeAll,#clearAll,#headerRowApply,#fReset,#fExport,#drawerClose,#cleanPreview,#cleanDownload,#cleanReanalyze,#recRun,#recExport,#nrAdd,#rApply,#aiRun,#aiSend,#repDrive,#repXlsx,#repHtml,#repPrint,#hExport,#hBackup,#hRestore,#hClear,#sSaveG,#sConn,#sDisc,#sOpenRoot,#sSaveAI,#sGList,#sTestAI,#sDelKey,#sExportCfg,#sReset');
       if (!t) return;
       const d = t.dataset;
       if (d.sample) { e.preventDefault(); return addDatasets(MD.Samples[d.sample]()); }
@@ -750,10 +778,18 @@
           try { await D.connect('consent'); U.toast('Đã kết nối Google', 'ok'); } catch (er) { U.toast(er.message, 'err', 8000); } return renderSettings();
         case 'sDisc': D.disconnect(); return renderSettings();
         case 'sOpenRoot': try { const r = await D.root(); window.open(r.webViewLink, '_blank', 'noopener'); } catch (er) { U.toast(er.message, 'err'); } return;
-        case 'sSaveAI': saveSettings({ claudeKey: $('#sKey').value.trim(), claudeModel: $('#sModel').value }); U.toast('Đã lưu', 'ok'); return renderSettings();
-        case 'sTestAI': saveSettings({ claudeKey: $('#sKey').value.trim(), claudeModel: $('#sModel').value }); U.loading(true, 'Đang kiểm tra key…');
-          try { const r = await AI.call([{ role: 'user', content: 'Trả lời đúng một từ: OK' }], { effort: 'low' }); U.toast('Key hoạt động ✓ (' + r.model + ')', 'ok'); } catch (er) { U.toast(er.message, 'err', 8000); } U.loading(false); return renderSettings();
-        case 'sDelKey': saveSettings({ claudeKey: '' }); return renderSettings();
+        case 'sSaveAI': saveAIFields(); U.toast('Đã lưu', 'ok'); return renderSettings();
+        case 'sGList': saveAIFields(); U.loading(true, 'Đang lấy danh sách mô hình Gemini…');
+          try {
+            const list = await AI.listGeminiModels(AI.settings().geminiKey);
+            const keep = AI.settings().geminiModel;
+            saveSettings({ geminiModels: list, geminiModel: list.some((m) => m.id === keep) ? keep : AI.pickGeminiDefault(list) });
+            U.toast(`Có ${list.length} mô hình Gemini dùng được`, 'ok');
+          } catch (er) { U.toast(er.message, 'err', 8000); }
+          U.loading(false); return renderSettings();
+        case 'sTestAI': saveAIFields(); U.loading(true, 'Đang kiểm tra key…');
+          try { const r = await AI.call([{ role: 'user', content: 'Trả lời đúng một từ: OK' }], { effort: 'low', maxTokens: 64 }); U.toast('Key hoạt động ✓ (' + r.model + ')', 'ok'); } catch (er) { U.toast(er.message, 'err', 8000); } U.loading(false); return renderSettings();
+        case 'sDelKey': saveSettings(AI.settings().provider === 'gemini' ? { geminiKey: '' } : { claudeKey: '' }); return renderSettings();
         case 'sExportCfg': return U.download(new Blob([JSON.stringify(stateSnapshot(), null, 2)], { type: 'application/json' }), 'master-data-state.json');
         case 'sReset': if (confirm('Xoá toàn bộ cài đặt, quy tắc, key và lịch sử trên trình duyệt này?')) { ['settings', 'history', 'theme'].forEach(U.store.del); location.reload(); } return;
       }
@@ -768,6 +804,8 @@
       if (t.id === 'recA') { S.rec.a = t.value; S.rec.keyA = null; return renderReconcile(); }
       if (t.id === 'recB') { S.rec.b = t.value; S.rec.keyA = null; return renderReconcile(); }
       if (t.dataset.rtoggle) { const s = settings(); s.customRules[+t.dataset.rtoggle].enabled = t.checked; return saveSettings({ customRules: s.customRules }); }
+      if (t.id === 'sProvider') { saveAIFields(); saveSettings({ aiProvider: t.value }); return renderSettings(); }
+      if (t.id === 'aiProvider') { saveSettings({ aiProvider: t.value }); return renderAI(); }
       if (t.id === 'sImportCfg' && t.files[0]) { try { applyState(JSON.parse(await t.files[0].text())); U.toast('Đã nhập cấu hình', 'ok'); renderSettings(); } catch (er) { U.toast(er.message, 'err'); } }
     });
     $('#fSearch').addEventListener('input', U.debounce((e) => { S.f.q = e.target.value; S.page = 0; renderIssues(); }, 250));
