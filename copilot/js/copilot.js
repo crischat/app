@@ -17,7 +17,7 @@
     let list = a.slice(0, 30);
     while (!U.store.set(SKEY, list) && list.length) { const old = list.find((s) => s.turns && s.turns.length); if (old) old.turns = []; else list = list.slice(0, -1); }
   };
-  const cset = () => Object.assign({ sugProvider: '', sugClaudeModel: 'claude-opus-5-5', sugGeminiModel: '', sttModel: '', sensitivity: 3, silenceMs: 700, memory: true, autoDrive: false }, U.store.get(CKEY, {}));
+  const cset = () => Object.assign({ sugProvider: '', sugClaudeModel: 'claude-opus-5-5', sugGeminiModel: '', sttModel: '', sensitivity: 3, silenceMs: 700, memory: true, fastSuggest: true, autoDrive: false }, U.store.get(CKEY, {}));
   const saveCset = (p) => U.store.set(CKEY, Object.assign(cset(), p));
   const keys = () => AI.settings();
   const sugProvider = () => { const c = cset(), k = keys(); return c.sugProvider || (k.claudeKey && !k.geminiKey ? 'claude' : 'gemini'); };
@@ -66,7 +66,7 @@ ${p.style}`;
 Nhiệm vụ: khi người phỏng vấn vừa hỏi, đưa ra gợi ý để Tôi trả lời NGAY — đọc lướt trong 10 giây.
 Quy tắc:
 - Chỉ dùng sự thật có trong HỒ SƠ và các buổi trước. KHÔNG bịa kinh nghiệm, số liệu, tên dự án. Nếu hồ sơ không có thông tin, gợi ý cách trả lời trung thực hoặc để chỗ trống [điền …].
-- Câu trả lời gợi ý bằng tiếng Anh nếu cuộc trò chuyện bằng tiếng Anh (tiếng Việt nếu cuộc trò chuyện bằng tiếng Việt), câu ngắn, tự nhiên như văn nói, ưu tiên STAR khi kể kinh nghiệm.
+- NGÔN NGỮ: phần "Trả lời (nói theo)" dùng ĐÚNG ngôn ngữ của câu hỏi mới nhất — hỏi tiếng Anh thì trả lời tiếng Anh, hỏi tiếng Việt thì trả lời tiếng Việt (quy tắc này ưu tiên hơn phong cách trong hồ sơ). Phần "Ý chính" luôn bằng tiếng Việt. Câu ngắn, tự nhiên như văn nói, ưu tiên STAR khi kể kinh nghiệm.
 - Câu hỏi cá nhân / ngoài lề (lương, lý do nghỉ việc, điểm yếu, sở thích, gia đình, thời gian đi làm…): dùng đúng mục "THÔNG TIN NGOÀI LỀ" và kinh nghiệm bổ sung; giữ nhất quán với những gì Tôi đã nói trước đó trong buổi và các buổi trước.
 - Nếu lượt mới nhất không phải câu hỏi (chào hỏi, giới thiệu, nói chuyện phiếm), gợi ý 1–2 câu đáp lại phù hợp.
 - Nếu có ảnh màn hình (đề bài, code, slide), đọc và dùng nó.
@@ -156,9 +156,16 @@ ${profileBlock()}${memoryBlock()}`;
   function addNote(text) { L.turns.push({ id: ++L.seq, who: 'note', text, start: Date.now() }); renderTranscript(); }
 
   function onSegment(who, seg) {
-    const t = { id: ++L.seq, who, start: seg.start, text: '', tr: '', pending: true };
+    const t = { id: ++L.seq, who, start: seg.start, end: seg.end, text: '', tr: '', pending: true };
     L.turns.push(t); L.turns.sort((a, b) => a.start - b.start);
     renderTranscript();
+    // Gợi ý siêu tốc: người phỏng vấn vừa nói xong -> gửi thẳng âm thanh cho Gemini soạn gợi ý,
+    // chạy SONG SONG với bước chép lời thay vì chờ chép lời xong mới gợi ý.
+    if (who === 'them' && L.active && $('#autoSuggest').checked && cset().fastSuggest && sugProvider() === 'gemini' && seg.reason !== 'max' && seg.voiceMs >= 900) {
+      t.sugFast = true;
+      clearTimeout(L.sugTimer);
+      suggest({ audio: seg, turn: t });
+    }
     L.queue.push({ t, seg, tries: 0 }); pump();
   }
 
@@ -182,9 +189,10 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
         { provider: 'gemini', model: cset().sttModel || undefined, purpose: 'fast', think: 'off', system: 'Bạn là hệ thống chép lời và phiên dịch chính xác.', json: true, schema: STT_SCHEMA, maxTokens: 4096 });
       let j; try { j = JSON.parse(r.text); } catch (e) { j = { text: r.text.trim(), translation: '' }; }
       t.text = (j.text || '').trim(); t.tr = (j.translation || '').trim(); t.lang = j.lang; t.pending = false;
+      t.lat = (Date.now() - seg.end) / 1000; // độ trễ chép lời tính từ lúc hết câu
       if (!t.text) L.turns = L.turns.filter((x) => x !== t);
       renderTranscript();
-      if (t.text && t.who === 'them' && $('#autoSuggest').checked && L.active) {
+      if (t.text && t.who === 'them' && !t.sugFast && $('#autoSuggest').checked && L.active) {
         const isQ = /\?|\b(what|why|how|when|where|who|which|tell me|can you|could you|would you|do you|did you|have you|describe|walk me|explain)\b|\b(gì|sao|thế nào|như thế nào|bao giờ|ở đâu|ai|nào|không\?|hãy|kể|giới thiệu)\b/i.test(t.text);
         if (isQ || t.text.length > 40) { clearTimeout(L.sugTimer); L.sugTimer = setTimeout(() => suggest(), 700); }
       }
@@ -203,7 +211,7 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
     box.innerHTML = L.turns.map((t) => {
       if (t.who === 'note') return `<div class="turn note">${esc(t.text)}</div>`;
       const time = new Date(t.start).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      return `<div class="turn ${t.who} ${t.pending ? 'pending' : ''}"><div class="who">${WHO[t.who]}<time>${time}</time></div>
+      return `<div class="turn ${t.who} ${t.pending ? 'pending' : ''}"><div class="who">${WHO[t.who]}<time>${time}</time>${t.lat ? `<time title="Độ trễ chép lời tính từ lúc hết câu">· chép lời ${t.lat.toFixed(1)}s</time>` : ''}${t.lang ? `<time>· ${esc(String(t.lang).slice(0, 5))}</time>` : ''}</div>
         <div class="txt">${t.pending ? '… đang chép lời' : t.err ? `<span style="color:var(--bad)">Lỗi: ${esc(t.err)}</span>` : esc(t.text)}</div>${t.tr ? `<div class="tr">${esc(t.tr)}</div>` : ''}</div>`;
     }).join('') || '<p class="muted">Đang nghe…</p>';
     if (atBottom) box.scrollTop = box.scrollHeight;
@@ -215,43 +223,80 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
     return { provider: prov, model: prov === 'claude' ? c.sugClaudeModel : (c.sugGeminiModel || undefined), purpose: 'smart', think: 'low', effort: 'low', maxTokens: 6000, cacheSystem: true };
   }
 
-  async function suggest(manual) {
+  const langName = (l) => { const k = String(l || '').toLowerCase(); return /^en|english|anh/.test(k) ? 'tiếng Anh' : /^vi|viet/.test(k) ? 'tiếng Việt' : ''; };
+
+  /* arg: chuỗi (câu hỏi gõ tay) | { audio: seg, turn } (gợi ý siêu tốc từ âm thanh) | không có (gợi ý cho lượt mới nhất) */
+  async function suggest(arg) {
+    const manual = typeof arg === 'string' ? arg : '';
+    const fast = arg && typeof arg === 'object' && arg.audio ? arg : null;
     clearTimeout(L.sugTimer);
     if (L.sugAbort) L.sugAbort.abort();
     const ctrl = new AbortController(); L.sugAbort = ctrl;
     const box = $('#suggest');
-    const prev = box.dataset.text;
-    if (prev) { L.older.unshift({ at: Date.now(), text: prev }); $('#older').innerHTML = L.older.slice(0, 20).map((o) => `<div class="oldsug aiout">${md(o.text)}</div>`).join(''); }
+    const prevText = box.dataset.text || '', prevHtml = box.innerHTML;
     const content = [];
-    let req = `Bản ghi cuộc trò chuyện gần đây:\n${transcriptText(L.turns, 24) || '(chưa có)'}\n\n`;
-    req += manual ? `Câu hỏi cần trả lời (người dùng gõ tay): ${manual}` : 'Hãy gợi ý cho lượt mới nhất của Người phỏng vấn.';
+    // bản ghi: ở chế độ siêu tốc, lượt đang nói chưa chép xong nên không đưa vào (âm thanh của nó đi kèm riêng)
+    const turns = fast ? L.turns.filter((x) => x !== fast.turn) : L.turns;
+    let req = `Bản ghi cuộc trò chuyện gần đây:\n${transcriptText(turns, 24) || '(chưa có)'}\n\n`;
+    if (fast) {
+      content.push({ type: 'audio', mime: fast.audio.mime, data: fast.audio.b64 });
+      req += `Đoạn âm thanh kèm theo là lượt nói MỚI NHẤT của Người phỏng vấn (chưa có trong bản ghi). Hãy nghe kỹ.
+- Nếu đó là câu hỏi hoặc yêu cầu cần Tôi trả lời: gợi ý theo đúng định dạng, trả lời bằng đúng ngôn ngữ người phỏng vấn dùng trong đoạn âm thanh.
+- Nếu chỉ là câu xã giao/đệm ngắn không cần trả lời (vd "alo", "ok", "ừ", "để chị xem", tiếng ồn): chỉ trả về đúng một chữ SKIP.`;
+    } else {
+      const last = L.turns.filter((x) => x.who === 'them' && x.text).pop();
+      const ln = langName(last && last.lang);
+      req += manual ? `Câu hỏi cần trả lời (người dùng gõ tay): ${manual}` : 'Hãy gợi ý cho lượt mới nhất của Người phỏng vấn.';
+      if (ln && !manual) req += `\nCâu hỏi mới nhất bằng ${ln} → phần "Trả lời (nói theo)" viết bằng ${ln}.`;
+    }
     if ($('#withScreen').checked && L.tab) {
       try { const f = await AU.grabFrame($('#screenVideo')); L.lastShot = f; showShot(f); content.push({ type: 'image', mime: f.mime, data: f.b64 }); req += '\n(Kèm ảnh màn hình cuộc gọi hiện tại.)'; } catch (e) { /* không có hình */ }
     }
     content.push({ type: 'text', text: req });
-    box.dataset.text = ''; box.classList.add('streaming'); box.innerHTML = '<p class="muted">Đang soạn gợi ý…</p>';
-    const t0 = Date.now();
-    let first = 0, timedOut = false;
-    // đồng hồ chờ + tự huỷ sau SUG_TIMEOUT giây để không treo giữa buổi phỏng vấn
-    const tick = setInterval(() => { if (!first) $('#sugState').textContent = `đang soạn… ${Math.round((Date.now() - t0) / 1000)}s`; }, 500);
+    box.classList.add('streaming');
+    // mốc tính độ trễ: lúc người hỏi nói xong (nếu biết), không thì lúc bấm
+    const t0 = Date.now(), tEnd = fast ? fast.audio.end : ((L.turns.filter((x) => x.who === 'them').pop() || {}).end || t0);
+    let first = 0, timedOut = false, shown = false;
+    const since = () => ((Date.now() - tEnd) / 1000).toFixed(1);
+    const show = (txt) => {
+      // chưa hiện gì cho tới khi chắc chắn không phải SKIP -> gợi ý cũ không bị xoá oan
+      if (!shown) {
+        if (/^\s*S(K(I(P)?)?)?\s*$/i.test(txt)) return;
+        shown = true;
+        if (prevText) { L.older.unshift({ at: Date.now(), text: prevText }); $('#older').innerHTML = L.older.slice(0, 20).map((o) => `<div class="oldsug aiout">${md(o.text)}</div>`).join(''); }
+      }
+      box.innerHTML = md(txt); box.dataset.text = txt;
+    };
+    if (!fast) show(''); // gọi tay / sau chép lời: xoá ngay để thấy đang soạn
+    if (!fast) box.innerHTML = '<p class="muted">Đang soạn gợi ý…</p>';
+    const tick = setInterval(() => { if (!first) $('#sugState').textContent = `${fast ? '⚡ nghe & soạn' : 'đang soạn'}… ${since()}s từ lúc hết câu`; }, 300);
     const killer = setTimeout(() => { timedOut = true; ctrl.abort(); }, SUG_TIMEOUT * 1000);
     try {
       const r = await AI.call([{ role: 'user', content }], Object.assign(sugOpts(), {
         system: SUG_SYS(), signal: ctrl.signal,
         onText: (txt) => {
           if (L.sugAbort !== ctrl) return;
-          if (!first) { first = Date.now(); $('#sugState').textContent = `chữ đầu sau ${((first - t0) / 1000).toFixed(1)}s…`; }
-          box.innerHTML = md(txt); box.dataset.text = txt;
+          if (!first && !/^\s*S(K(I(P)?)?)?\s*$/i.test(txt)) { first = Date.now(); $('#sugState').textContent = `chữ đầu ${since()}s sau khi hết câu…`; }
+          show(txt);
         }
       }));
       if (L.sugAbort !== ctrl) return;
-      box.innerHTML = md(r.text); box.dataset.text = r.text;
-      L.sugs = (L.sugs || []).concat([{ at: Date.now(), q: manual || lastThem(), text: r.text }]);
-      $('#sugState').textContent = `${first ? 'chữ đầu ' + ((first - t0) / 1000).toFixed(1) + 's · ' : ''}xong ${((Date.now() - t0) / 1000).toFixed(1)}s · ${r.model}`;
+      if (/^\s*SKIP\s*$/i.test(r.text)) {
+        // câu xã giao: giữ nguyên gợi ý cũ
+        box.innerHTML = prevHtml; box.dataset.text = prevText;
+        $('#sugState').textContent = `bỏ qua câu xã giao (${since()}s)`;
+        return;
+      }
+      show(r.text);
+      L.sugs = (L.sugs || []).concat([{ at: Date.now(), q: manual || (fast ? '(âm thanh) ' + (fast.turn.text || '') : lastThem()), text: r.text }]);
+      $('#sugState').textContent = `${fast ? '⚡ ' : ''}${first ? 'chữ đầu ' + ((first - tEnd) / 1000).toFixed(1) + 's · ' : ''}xong ${since()}s sau khi hết câu · ${r.model}`;
     } catch (e) {
       if (e.name === 'AbortError' && !timedOut) return;
       const msg = timedOut ? `Quá ${SUG_TIMEOUT} giây chưa có gợi ý — mô hình đang chậm hoặc bị giới hạn. Bấm “Gợi ý ngay” để thử lại, hoặc đổi sang bản Flash/Flash-Lite (hoặc Claude Haiku/Sonnet) trong Cài đặt.` : e.message;
-      box.innerHTML = `<p style="color:var(--bad)">${esc(msg)}</p>`; $('#sugState').textContent = '';
+      if (fast && !shown) { box.innerHTML = prevHtml; box.dataset.text = prevText; $('#sugState').textContent = 'gợi ý siêu tốc lỗi: ' + msg.slice(0, 80); }
+      else { box.innerHTML = `<p style="color:var(--bad)">${esc(msg)}</p>`; $('#sugState').textContent = ''; }
+      // siêu tốc lỗi -> để luồng thường (sau chép lời) gợi ý thay
+      if (fast) fast.turn.sugFast = false;
     } finally { clearInterval(tick); clearTimeout(killer); if (L.sugAbort === ctrl) box.classList.remove('streaming'); }
   }
   const SUG_TIMEOUT = 30;
@@ -496,7 +541,8 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
         <div class="card"><h3>Nghe & ngắt câu</h3>
           <label class="field mt">Độ nhạy micro (1 = ít nhạy, 5 = rất nhạy)<input type="range" id="cSens" min="1" max="5" step="1" value="${c.sensitivity}"></label>
           <label class="field mt">Ngắt câu sau khoảng lặng (ms)<input type="number" id="cSil" min="400" max="3000" step="100" value="${c.silenceMs}"></label>
-          <label class="check mt"><input type="checkbox" id="cMem" ${c.memory ? 'checked' : ''}><span>Dùng tóm tắt 5 buổi gần nhất làm ngữ cảnh</span></label></div>
+          <label class="check mt"><input type="checkbox" id="cMem" ${c.memory ? 'checked' : ''}><span>Dùng tóm tắt 5 buổi gần nhất làm ngữ cảnh</span></label>
+          <label class="check mt"><input type="checkbox" id="cFast" ${c.fastSuggest ? 'checked' : ''}><span><b>⚡ Gợi ý siêu tốc</b> (chỉ khi gợi ý bằng Gemini): người hỏi vừa nói xong là gửi thẳng âm thanh để soạn gợi ý, song song với chép lời — nhanh hơn khoảng 2–3 giây, tốn thêm 1 lượt gọi Gemini mỗi câu của người kia.</span></label></div>
         <div class="card"><h3>Google Drive</h3>
           <p class="muted">Dùng chung kết nối với Master Data Pro. Lưu vào <b>${esc(D.rootName())}/Interview Copilot/</b>.</p>
           <label class="check"><input type="checkbox" id="cAutoDrive" ${c.autoDrive ? 'checked' : ''}><span>Tự lưu biên bản lên Drive khi kết thúc buổi</span></label>
@@ -508,7 +554,7 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
     const kp = { geminiKey: $('#cGKey').value.trim() };
     if ($('#cCKey')) kp.claudeKey = $('#cCKey').value.trim();
     U.store.set('settings', Object.assign(U.store.get('settings', {}), kp));
-    const p = { sttModel: $('#cStt').value, sugProvider: $('#cProv').value, sensitivity: +$('#cSens').value, silenceMs: +$('#cSil').value || 900, memory: $('#cMem').checked, autoDrive: $('#cAutoDrive').checked };
+    const p = { sttModel: $('#cStt').value, sugProvider: $('#cProv').value, sensitivity: +$('#cSens').value, silenceMs: +$('#cSil').value || 700, memory: $('#cMem').checked, fastSuggest: $('#cFast').checked, autoDrive: $('#cAutoDrive').checked };
     if ($('#cCModel')) p.sugClaudeModel = $('#cCModel').value;
     if ($('#cGModel')) p.sugGeminiModel = $('#cGModel').value;
     saveCset(p);

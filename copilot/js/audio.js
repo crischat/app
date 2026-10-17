@@ -35,27 +35,29 @@
         chunks.push(data);
         const dur = chunks.length * frameMs;
         if (silenceFor >= c.silenceMs || dur >= c.maxMs) {
-          const seg = chunks; chunks = []; speaking = false; silenceFor = 0;
+          const seg = chunks; chunks = []; speaking = false;
+          const reason = silenceFor >= c.silenceMs ? 'silence' : 'max'; silenceFor = 0;
           opts.onSpeaking && opts.onSpeaking(false);
-          if (voiceMs >= c.minVoiceMs) emit(seg, segStart, Date.now());
+          if (voiceMs >= c.minVoiceMs) emit(seg, segStart, Date.now(), reason, voiceMs);
         }
       } else {
         pre.push(data); if (pre.length > PRE_FRAMES) pre.shift();
       }
     };
 
-    function emit(seg, start, end) {
+    // reason: 'silence' (người nói ngừng) | 'max' (câu quá dài, cắt giữa chừng) | 'flush' (bấm tay)
+    function emit(seg, start, end, reason, voiced) {
       const len = seg.reduce((s, a) => s + a.length, 0);
       const all = new Float32Array(len); let o = 0; seg.forEach((a) => { all.set(a, o); o += a.length; });
       const pcm = downsample(all, rate, TARGET_RATE);
-      opts.onSegment && opts.onSegment({ b64: wavBase64(pcm, TARGET_RATE), mime: 'audio/wav', start, end, durMs: end - start });
+      opts.onSegment && opts.onSegment({ b64: wavBase64(pcm, TARGET_RATE), mime: 'audio/wav', start, end, durMs: end - start, reason: reason || 'flush', voiceMs: voiced || 0 });
     }
 
     return {
       ctx,
       setOpts: (o) => Object.assign(opts, o),
       // ép kết thúc câu đang nói (vd khi bấm "Gợi ý ngay")
-      flush: () => { if (speaking && chunks.length) { const seg = chunks; chunks = []; speaking = false; if (voiceMs >= cfg().minVoiceMs) emit(seg, segStart, Date.now()); } },
+      flush: () => { if (speaking && chunks.length) { const seg = chunks; chunks = []; speaking = false; if (voiceMs >= cfg().minVoiceMs) emit(seg, segStart, Date.now(), 'flush', voiceMs); } },
       stop: () => { try { proc.disconnect(); src.disconnect(); mute.disconnect(); ctx.close(); } catch (e) { /* bỏ qua */ } }
     };
   };
