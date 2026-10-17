@@ -59,6 +59,26 @@
       ds.rows.forEach((r, i) => { const l = byRow.get(i) || []; data.push([ds.firstDataRow + i, l.length, l.join(' ; ')].concat(r)); });
       XLSX.utils.book_append_sheet(wb, sheet(data, [8, 7, 50].concat(ds.headers.map(() => 16))), 'Dữ liệu + lỗi');
     }
+    const dash = opts.dash;
+    if (dash) {
+      const a = [['BÁO CÁO DỮ LIỆU'], ['Bộ lọc', dash.filters], ['Chỉ số', dash.measure], []];
+      dash.kpis.forEach((k) => a.push([k.label, k.value, k.sub || '']));
+      [dash.trend, dash.byA, dash.byB, dash.top].filter(Boolean).forEach((sec) => {
+        a.push([], [sec.title.toUpperCase(), 'Giá trị']);
+        sec.items.forEach((it) => a.push([it.k, it.v]));
+      });
+      XLSX.utils.book_append_sheet(wb, sheet(a, [34, 22, 18]), 'Báo cáo dữ liệu');
+      const p = dash.pivot;
+      if (p) {
+        const pv = [[p.rowName].concat(p.cols, ['Tổng', '%', 'Số dòng'])]
+          .concat(p.rows.map((r, i) => [r].concat(p.cells[i].vals, [p.cells[i].total, p.grand ? +(p.cells[i].total / p.grand).toFixed(4) : 0, p.cells[i].n])))
+          .concat([['Tổng cộng'].concat(p.cols.map(() => ''), [p.grand, 1, dash.rows.length])]);
+        XLSX.utils.book_append_sheet(wb, sheet(pv, [26].concat(p.cols.map(() => 14), [14, 8, 10])), 'Tổng hợp');
+      }
+      if (dash.rows.length !== ds.rows.length) {
+        XLSX.utils.book_append_sheet(wb, sheet([ds.headers].concat(dash.rows.map((i) => ds.rows[i])), ds.headers.map(() => 16)), 'Dữ liệu đã lọc');
+      }
+    }
     if (opts.cleanRows) {
       XLSX.utils.book_append_sheet(wb, sheet([ds.headers].concat(opts.cleanRows), ds.headers.map(() => 16)), 'Dữ liệu sạch');
     }
@@ -88,7 +108,25 @@
     }).join('') + '</svg>';
   };
 
-  E.html = (ds, res, aiText) => {
+  // Phần "Báo cáo dữ liệu" (nội dung file: chỉ số, xu hướng, phân bổ, top, bảng tổng hợp)
+  const dataSection = (d) => {
+    if (!d) return '';
+    const bars = (sec, color) => sec ? `<div><h3>${U.esc(sec.title)}</h3>${svgBars(sec.items.slice(0, 15).map((it) => ({ k: it.k, v: it.v, c: color })))}</div>` : '';
+    const p = d.pivot;
+    const pivot = p ? `<h3>Bảng tổng hợp: ${U.esc(p.rowName)}${p.cols.length ? ' × ' + U.esc(p.colName) : ''} — ${U.esc(d.measure)}</h3>
+      <table><thead><tr><th>${U.esc(p.rowName)}</th>${p.cols.map((c) => `<th>${U.esc(c)}</th>`).join('')}<th>Tổng</th><th>%</th><th>Số dòng</th></tr></thead><tbody>
+      ${p.rows.map((r, i) => `<tr><td><b>${U.esc(r)}</b></td>${p.cells[i].vals.map((v) => `<td>${U.fmtNum(v, 2)}</td>`).join('')}<td><b>${U.fmtNum(p.cells[i].total, 2)}</b></td><td>${p.grand ? U.pct(p.cells[i].total / p.grand) : ''}</td><td>${U.fmtNum(p.cells[i].n)}</td></tr>`).join('')}
+      <tr><td><b>Tổng cộng</b></td>${p.cols.map(() => '<td></td>').join('')}<td><b>${U.fmtNum(p.grand, 2)}</b></td><td>100%</td><td>${U.fmtNum(d.rows.length)}</td></tr></tbody></table>` : '';
+    const trend = d.trend ? `<h3>${U.esc(d.trend.title)}</h3>${d.trend.items.length > 24
+      ? `<table><thead><tr><th>Kỳ</th><th>Giá trị</th></tr></thead><tbody>${d.trend.items.map((it) => `<tr><td>${U.esc(it.k)}</td><td>${U.fmtNum(it.v, 2)}</td></tr>`).join('')}</tbody></table>`
+      : svgBars(d.trend.items.map((it) => ({ k: it.k, v: it.v, c: '#2563eb' })))}` : '';
+    return `<section><h2>A. Báo cáo dữ liệu</h2><p class="muted">Bộ lọc: ${U.esc(d.filters)}</p>
+      <div class="kpis">${d.kpis.map((k) => `<div class="kpi"><span>${U.esc(k.label)}</span><b>${U.esc(k.value)}</b><span>${U.esc(k.sub || '')}</span></div>`).join('')}</div>
+      ${trend}<div class="grid2">${bars(d.byA, '#2563eb')}${bars(d.byB, '#8b5cf6')}</div>${bars(d.top, '#10b981')}${pivot}</section>
+      <h2 style="margin-top:40px">B. Chất lượng dữ liệu</h2>`;
+  };
+
+  E.html = (ds, res, aiText, dash) => {
     const g = A.grade(res.score);
     const sevColor = { critical: '#b91c1c', high: '#dc2626', medium: '#d97706', low: '#64748b', info: '#0ea5e9' };
     const catItems = Object.entries(res.byCat).sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ k: A.CATS[k].label, v, c: A.CATS[k].color }));
@@ -128,7 +166,8 @@ th,td{border:1px solid #e2e8f0;padding:6px 8px;text-align:left;vertical-align:to
 footer{margin-top:40px;color:#94a3b8;font-size:12px;text-align:center}
 @media print{body{background:#fff}.wrap{padding:0}section{page-break-inside:auto}h2{page-break-after:avoid}}
 </style></head><body><div class="wrap">
-<header><h1>Báo cáo chất lượng dữ liệu</h1><div class="muted">${U.esc(ds.name)} · ${domainLabel(res.domain)} · ${new Date().toLocaleString('vi-VN')}</div></header>
+<header><h1>${dash ? 'Báo cáo dữ liệu &amp; chất lượng' : 'Báo cáo chất lượng dữ liệu'}</h1><div class="muted">${U.esc(ds.name)} · ${domainLabel(res.domain)} · ${new Date().toLocaleString('vi-VN')}</div></header>
+${dataSection(dash)}
 <div class="kpis">
 <div class="kpi"><span>Điểm chất lượng</span><div class="score">${res.score}<small style="font-size:16px">/100</small></div><span>Hạng ${g.g} — ${g.t}</span></div>
 <div class="kpi"><span>Số dòng</span><b>${U.fmtNum(res.rows)}</b></div>

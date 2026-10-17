@@ -210,6 +210,29 @@ label.field span.muted { font-weight: 400; font-size: 12px; }
 .note { background: var(--accent-soft); border-radius: 9px; padding: 10px 12px; font-size: 13px; }
 .note.warn { background: color-mix(in srgb, var(--warn) 14%, transparent); }
 
+/* ---------- Báo cáo dữ liệu ---------- */
+.field.inl { flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.field.inl select, .field.inl input { flex: none; min-width: 140px; color: var(--text); font-weight: 500; }
+.presets { align-self: flex-end; gap: 6px; }
+.msel { position: relative; }
+.msel summary { list-style: none; cursor: pointer; display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--border2); border-radius: 9px; padding: 5px 30px 5px 10px; background: var(--surface); min-width: 150px; font-size: 12px; position: relative; }
+.msel summary::-webkit-details-marker { display: none; }
+.msel summary::after { content: '▾'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.msel summary b { color: var(--muted); font-weight: 600; }
+.msel summary span { font-size: 13.5px; color: var(--text); font-weight: 550; }
+.msel[open] summary { border-color: var(--accent); }
+.mselpanel { position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; width: 300px; max-width: 80vw; background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; box-shadow: 0 8px 28px rgba(15,23,42,.18); padding: 8px; }
+.mselpanel input[type=search] { width: 100%; margin-bottom: 6px; }
+.mselbtns { margin-bottom: 6px; }
+.msellist { max-height: 280px; overflow: auto; display: flex; flex-direction: column; }
+.msellist label { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.msellist label:hover { background: var(--surface2); }
+.msellist label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msellist label em { font-style: normal; color: var(--muted); font-size: 11.5px; }
+.dashq { flex: 1 1 200px; align-self: flex-end; }
+.activef { font-size: 13px; }
+.filters .btn.ghost { align-self: flex-end; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1100px) { .grid3 { grid-template-columns: 1fr 1fr; } .dims { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 860px) {

@@ -52,6 +52,7 @@
     ['warehouse', /\b(kho|warehouse|wh|location|vi tri|bin)\b/],
     ['batch', /\b(lo|so lo|batch|lot)\b/],
     ['supplier', /\b(nha cung cap|ncc|supplier|vendor)\b/],
+    ['team', /\b(team|teams|doi|doi nhom|squad|kenh|channel)\b/],
     ['category', /\b(nhom|loai|category|group|nganh hang|class|phan loai)\b/],
     ['name_item', /\b(ten hang|ten vt|ten vat tu|ten sp|ten san pham|item name|product name|description|mo ta|dien giai|ten hh|ten hang hoa|quy cach)\b/],
     ['person_name', /\b(ho ten|ho va ten|full name|ten nv|ten nhan vien|nhan vien|employee name|nguoi)\b/],
@@ -67,7 +68,7 @@
     expiry: 'Hạn dùng', dob: 'Ngày sinh', join_date: 'Ngày vào làm', date: 'Ngày', emp_id: 'Mã nhân viên', email: 'Email',
     phone: 'Số điện thoại', id_card: 'CCCD/CMND', tax: 'Mã số thuế', sku: 'Mã hàng', opening: 'Tồn đầu', closing: 'Tồn cuối',
     inflow: 'Nhập', outflow: 'Xuất', amount: 'Thành tiền', price: 'Đơn giá', qty: 'Số lượng', unit: 'Đơn vị tính',
-    warehouse: 'Kho/Vị trí', batch: 'Số lô', supplier: 'Nhà cung cấp', category: 'Nhóm/Loại', name_item: 'Tên hàng',
+    warehouse: 'Kho/Vị trí', batch: 'Số lô', supplier: 'Nhà cung cấp', team: 'Team/Nhóm', category: 'Nhóm/Loại', name_item: 'Tên hàng',
     person_name: 'Họ tên', gender: 'Giới tính', dept: 'Phòng ban', position: 'Chức vụ', address: 'Địa chỉ',
     status: 'Trạng thái', note: 'Ghi chú'
   };
@@ -79,7 +80,7 @@
   };
   const NUM_ROLES = ['opening', 'closing', 'inflow', 'outflow', 'amount', 'price', 'qty'];
   const DATE_ROLES = ['expiry', 'dob', 'join_date', 'date'];
-  const CAT_ROLES = ['unit', 'warehouse', 'supplier', 'category', 'name_item', 'gender', 'dept', 'position', 'address', 'status', 'person_name'];
+  const CAT_ROLES = ['team', 'unit', 'warehouse', 'supplier', 'category', 'name_item', 'gender', 'dept', 'position', 'address', 'status', 'person_name'];
 
   /* ---------- Từ điển đồng nghĩa (chuẩn hoá biến thể) ---------- */
   const SYN_COMMON = {

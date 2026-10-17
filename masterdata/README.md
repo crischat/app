@@ -9,6 +9,7 @@ Web app phân tích chất lượng dữ liệu, chạy 100% trên trình duyệ
 |---|---|
 | Nạp dữ liệu | Excel (.xlsx/.xls/.xlsb/.ods), CSV/TSV, JSON, **Google Sheets** (link), **PDF** (có lớp chữ), **Word** (.docx), **PowerPoint** (.pptx). Mỗi sheet/bảng thành 1 bảng riêng; phần chữ của tài liệu thành bảng "văn bản". Có thể chỉnh dòng tiêu đề. |
 | Tổng quan | Điểm chất lượng 0–100, 5 chiều (Đầy đủ, Hợp lệ, Duy nhất, Nhất quán, Chính xác), biểu đồ lỗi theo nhóm, mức độ, cột; lỗi theo từng mục; khuyến nghị. |
+| Báo cáo dữ liệu | Báo cáo nội dung file: lọc theo khoảng ngày (7 ngày, tháng, quý, năm…), lọc nhiều giá trị theo Team/Trạng thái/Phòng ban…, tìm kiếm; KPI tổng/trung bình; biểu đồ xu hướng (tách theo nhóm), phân bổ, tỷ trọng, Top 10; bảng tổng hợp nhóm × nhóm; bảng dữ liệu đã lọc (sắp xếp, xuất Excel). Bấm cột biểu đồ để lọc nhanh. |
 | Danh sách lỗi | Lọc theo mức độ, nhóm, loại kiểm tra, cột, tìm kiếm; bấm dòng để xem bản ghi đầy đủ; xuất Excel. |
 | Hồ sơ cột | Kiểu dữ liệu, vai trò nhận diện (Mã hàng, ĐVT, SĐT…), độ đầy, giá trị khác nhau, min/max/tổng, top giá trị. |
 | Chuẩn hoá & làm sạch | Sửa tự động (khoảng trắng, Unicode, số/ngày dạng chữ, SĐT, viết hoa…), gộp biến thể ("HN / Hà Nội / ha noi"), xoá dòng trùng/dòng tổng; tải file sạch hoặc phân tích lại. |

@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=4">
+<link rel="stylesheet" href="css/app.css?v=7">
 <script>try{var t=localStorage.getItem('md_theme');if(t)document.documentElement.dataset.theme=JSON.parse(t);}catch(e){}</script>
 </head>
 <body>
@@ -31,6 +31,7 @@
     <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
     <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18M7 15l4-4 3 3 6-7"/></symbol>
     <symbol id="i-play" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></symbol>
   </defs>
 </svg>
@@ -56,6 +57,7 @@
   <nav class="sidenav" id="sidenav">
     <button data-tab="upload" class="active"><svg><use href="#i-upload"/></svg><span>Nạp dữ liệu</span></button>
     <button data-tab="overview"><svg><use href="#i-dash"/></svg><span>Tổng quan</span></button>
+    <button data-tab="data"><svg><use href="#i-chart"/></svg><span>Báo cáo dữ liệu</span></button>
     <button data-tab="issues"><svg><use href="#i-bug"/></svg><span>Danh sách lỗi</span><em id="navIssues"></em></button>
     <button data-tab="profile"><svg><use href="#i-cols"/></svg><span>Hồ sơ cột</span></button>
     <button data-tab="clean"><svg><use href="#i-broom"/></svg><span>Chuẩn hoá &amp; làm sạch</span></button>
@@ -106,6 +108,17 @@
     <section class="tab" id="tab-overview">
       <div class="pagehead"><h1>Tổng quan chất lượng</h1><p id="ovSub">Chưa có kết quả phân tích.</p></div>
       <div id="ovBody" class="empty-state">Nạp dữ liệu ở tab <b>Nạp dữ liệu</b> để bắt đầu.</div>
+    </section>
+
+    <!-- ============ BÁO CÁO DỮ LIỆU ============ -->
+    <section class="tab" id="tab-data">
+      <div class="pagehead"><h1>Báo cáo dữ liệu</h1><p id="dataSub">Lọc theo ngày tháng, team, trạng thái…; biểu đồ, bảng tổng hợp và dữ liệu chi tiết của file.</p></div>
+      <div id="dataEmpty" class="empty-state">Nạp một file dạng bảng ở tab <b>Nạp dữ liệu</b> để xem báo cáo.</div>
+      <div id="dataWrap" hidden>
+        <div class="card" id="dashFilters"></div>
+        <div class="card mt" id="dashControls"></div>
+        <div class="mt" id="dashOut"></div>
+      </div>
     </section>
 
     <!-- ============ DANH SÁCH LỖI ============ -->
@@ -196,14 +209,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="js/config.js?v=4"></script>
-<script src="js/util.js?v=4"></script>
-<script src="js/parsers.js?v=4"></script>
-<script src="js/analyzer.js?v=4"></script>
-<script src="js/export.js?v=4"></script>
-<script src="js/drive.js?v=4"></script>
-<script src="js/ai.js?v=4"></script>
-<script src="js/samples.js?v=4"></script>
-<script src="js/app.js?v=4"></script>
+<script src="js/config.js?v=7"></script>
+<script src="js/util.js?v=7"></script>
+<script src="js/parsers.js?v=7"></script>
+<script src="js/analyzer.js?v=7"></script>
+<script src="js/export.js?v=7"></script>
+<script src="js/drive.js?v=7"></script>
+<script src="js/ai.js?v=7"></script>
+<script src="js/samples.js?v=7"></script>
+<script src="js/dashboard.js?v=7"></script>
+<script src="js/app.js?v=7"></script>
 </body>
 </html>

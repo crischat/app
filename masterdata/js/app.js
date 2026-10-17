@@ -34,7 +34,7 @@
   }
   function render(name) {
     try {
-      ({ upload: renderUpload, overview: renderOverview, issues: renderIssues, profile: renderProfile, clean: renderClean,
+      ({ upload: renderUpload, overview: renderOverview, data: renderData, issues: renderIssues, profile: renderProfile, clean: renderClean,
         reconcile: renderReconcile, rules: renderRules, ai: renderAI, report: renderReport, history: renderHistory, settings: renderSettings }[name] || (() => {}))();
     } catch (e) { console.error(e); U.toast('Lỗi hiển thị: ' + e.message, 'err'); }
   }
@@ -193,6 +193,92 @@
     S.f = { q: '', cat: f.cat || '', check: f.check || '', col: f.col || '', sev: f.sev ? new Set([f.sev]) : new Set(Object.keys(A.SEV)), row: f.row != null ? f.row : null };
     S.page = 0;
     showTab('issues');
+  }
+
+  /* =================== Tab: Báo cáo dữ liệu =================== */
+  const Dh = MD.Dash;
+  S.dash = {};
+  const dashState = () => {
+    const ds = cur(), res = curRes();
+    if (!ds || !res || res.kind !== 'table') return null;
+    if (!S.dash[ds.id] || S.dash[ds.id].resAt !== res.at) S.dash[ds.id] = Object.assign(Dh.defaultState(ds, res), { resAt: res.at });
+    return S.dash[ds.id];
+  };
+  function renderData() {
+    const ds = cur(), res = curRes(), st = dashState();
+    $('#dataEmpty').hidden = !!st; $('#dataWrap').hidden = !st;
+    if (!st) { if (res && res.kind === 'text') $('#dataEmpty').textContent = 'Bảng đang chọn là phần văn bản — hãy chọn một bảng dữ liệu ở ô phía trên.'; return; }
+    $('#dataSub').innerHTML = `${esc(ds.name)} · ${U.fmtNum(Dh.prepare(ds, res).rows.length)} dòng · bấm vào cột biểu đồ để lọc nhanh`;
+    Dh.renderFilters($('#dashFilters'), ds, res, st);
+    Dh.renderControls($('#dashControls'), ds, res, st);
+    dataOut();
+  }
+  function dataOut() {
+    const st = dashState(); if (!st) return;
+    try { S.dashLast = Dh.renderOut($('#dashOut'), cur(), curRes(), st); } catch (e) { console.error(e); U.toast('Lỗi báo cáo dữ liệu: ' + e.message, 'err'); }
+  }
+  Dh.onDrill = (col, val) => {
+    const st = dashState(); if (!st) return;
+    const s = st.f[col] || new Set();
+    if (s.has(val)) s.delete(val); else s.add(val);
+    st.f[col] = s; st.page = 0;
+    Dh.renderFilters($('#dashFilters'), cur(), curRes(), st); dataOut();
+  };
+  const dashSummary = (id) => {
+    const ds = S.datasets.find((d) => d.id === id), res = S.results[id];
+    if (!ds || !res || res.kind !== 'table') return null;
+    const st = S.dash[id] && S.dash[id].resAt === res.at ? S.dash[id] : Object.assign(Dh.defaultState(ds, res), { resAt: res.at });
+    try { return Dh.summary(ds, res, st); } catch (e) { console.error(e); return null; }
+  };
+
+  function bindData() {
+    const tab = $('#tab-data');
+    const DNUM = ['dateCol', 'measure', 'dimA', 'dimB', 'label'];
+    tab.addEventListener('change', (e) => {
+      const t = e.target, st = dashState(); if (!st) return;
+      if (t.dataset.ds && t.dataset.ds !== 'q') {
+        const k = t.dataset.ds; st[k] = DNUM.includes(k) ? +t.value : t.value; st.page = 0;
+        if (k === 'measure' && st.measure < 0 && !['count', 'distinct'].includes(st.agg)) { st.agg = 'count'; Dh.renderControls($('#dashControls'), cur(), curRes(), st); }
+        if (k === 'measure' && st.measure >= 0 && st.agg === 'count') { st.agg = 'sum'; Dh.renderControls($('#dashControls'), cur(), curRes(), st); }
+        return dataOut();
+      }
+      if (t.dataset.mv) {
+        const [j, k] = t.dataset.mv.split(':').map(Number);
+        const C = Dh.prepare(cur(), curRes()), v = C.values[j][k][0];
+        const s = st.f[j] || new Set(); if (t.checked) s.add(v); else s.delete(v); st.f[j] = s; st.page = 0;
+        return dataOut();
+      }
+    });
+    tab.addEventListener('input', U.debounce((e) => {
+      const t = e.target, st = dashState(); if (!st) return;
+      if (t.dataset.ds === 'q') { st.q = t.value.trim(); st.page = 0; dataOut(); }
+      if (t.classList.contains('mselq')) {
+        const q = U.key(t.value);
+        $$('.msellist label', t.closest('.mselpanel')).forEach((l) => { l.hidden = !!q && !l.dataset.k.includes(q); });
+      }
+    }, 200));
+    tab.addEventListener('click', (e) => {
+      const t = e.target.closest('[data-preset],[data-msel-all],[data-dash],[data-dsort],[data-dpg]'); if (!t) return;
+      const st = dashState(); if (!st) return;
+      const d = t.dataset;
+      if (d.preset) { [st.from, st.to] = Dh.preset(d.preset); st.page = 0; $('[data-ds="from"]').value = st.from; $('[data-ds="to"]').value = st.to; return dataOut(); }
+      if (d.mselAll) { delete st.f[+d.mselAll]; $$(`[data-mv^="${d.mselAll}:"]`).forEach((c) => { c.checked = false; }); st.page = 0; return dataOut(); }
+      if (d.dsort !== undefined) { const j = +d.dsort; st.dir = st.sort === j ? -st.dir : 1; st.sort = j; return dataOut(); }
+      if (d.dpg) { st.page += +d.dpg; return dataOut(); }
+      if (d.dash === 'reset') { Object.assign(st, { f: {}, from: '', to: '', q: '', page: 0 }); return renderData(); }
+      if (d.dash === 'export' && S.dashLast) {
+        const ds = cur(), wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(Dh.exportRows(ds, S.dashLast.idx), { cellDates: true }), 'Dữ liệu đã lọc');
+        return U.download(E.workbookBlob(wb), U.safeName(`${ds.name.replace(/\.\w+$/, '')} - du lieu loc.xlsx`));
+      }
+      if (d.dash === 'pivotx' && S.dashLast) {
+        const ds = cur(), wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(Dh.pivotAOA(S.dashLast.C, st, S.dashLast)), 'Tổng hợp');
+        return U.download(E.workbookBlob(wb), U.safeName(`${ds.name.replace(/\.\w+$/, '')} - tong hop.xlsx`));
+      }
+    });
+    // đóng ô chọn nhiều khi bấm ra ngoài
+    document.addEventListener('click', (e) => { $$('details.msel[open]').forEach((dt) => { if (!dt.contains(e.target)) dt.open = false; }); });
   }
 
   /* =================== Tab: Danh sách lỗi =================== */
@@ -564,7 +650,7 @@
     const ds = cur(), res = curRes(), fr = $('#reportFrame');
     $$('#reportActions button').forEach((b) => { b.disabled = !res; });
     $('#repDriveLink').innerHTML = S.driveLinks[S.active] ? `<a href="${S.driveLinks[S.active]}" target="_blank" rel="noopener">Mở thư mục trên Drive ↗</a>` : '';
-    fr.srcdoc = res ? E.html(ds, res, S.ai[ds.id] && S.ai[ds.id].last) : '<p style="font-family:sans-serif;color:#64748b;padding:24px">Chưa có kết quả phân tích.</p>';
+    fr.srcdoc = res ? E.html(ds, res, S.ai[ds.id] && S.ai[ds.id].last, dashSummary(ds.id)) : '<p style="font-family:sans-serif;color:#64748b;padding:24px">Chưa có kết quả phân tích.</p>';
   }
 
   async function saveToDrive(id) {
@@ -577,8 +663,8 @@
       const folder = await D.reportFolder(ds.name);
       U.loading(true, 'Đang tải báo cáo lên Drive…');
       const aiText = S.ai[ds.id] && S.ai[ds.id].last;
-      await D.upload(new Blob([E.html(ds, res, aiText)], { type: 'text/html' }), 'Báo cáo.html', folder.id, 'text/html');
-      await D.upload(E.workbookBlob(E.workbook(ds, res)), 'Báo cáo chi tiết.xlsx', folder.id, XLSX_MIME);
+      await D.upload(new Blob([E.html(ds, res, aiText, dashSummary(id))], { type: 'text/html' }), 'Báo cáo.html', folder.id, 'text/html');
+      await D.upload(E.workbookBlob(E.workbook(ds, res, { dash: dashSummary(id) })), 'Báo cáo chi tiết.xlsx', folder.id, XLSX_MIME);
       if (aiText) await D.upload(new Blob([aiText], { type: 'text/markdown' }), 'Nhận định AI.md', folder.id, 'text/markdown');
       const f = ds.source && S.files[ds.source.file];
       if (f) await D.upload(f, 'Gốc - ' + f.name, folder.id, f.type);
@@ -761,8 +847,8 @@
         case 'aiRun': return aiRun(false);
         case 'aiSend': return aiRun(true);
         case 'repDrive': return saveToDrive(S.active);
-        case 'repXlsx': return U.download(E.workbookBlob(E.workbook(cur(), curRes())), U.safeName(`Bao cao - ${cur().name}.xlsx`));
-        case 'repHtml': return U.download(new Blob([E.html(cur(), curRes(), S.ai[S.active] && S.ai[S.active].last)], { type: 'text/html' }), U.safeName(`Bao cao - ${cur().name}.html`));
+        case 'repXlsx': return U.download(E.workbookBlob(E.workbook(cur(), curRes(), { dash: dashSummary(S.active) })), U.safeName(`Bao cao - ${cur().name}.xlsx`));
+        case 'repHtml': return U.download(new Blob([E.html(cur(), curRes(), S.ai[S.active] && S.ai[S.active].last, dashSummary(S.active))], { type: 'text/html' }), U.safeName(`Bao cao - ${cur().name}.html`));
         case 'repPrint': return $('#reportFrame').contentWindow.print();
         case 'hExport': {
           const h = U.store.get('history', []);
@@ -826,6 +912,7 @@
   }
 
   bind();
+  bindData();
   refreshTop();
   const start = (location.hash || '').slice(1);
   showTab($(`.sidenav button[data-tab="${start}"]`) ? start : 'upload');
