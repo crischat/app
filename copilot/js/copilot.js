@@ -67,6 +67,7 @@ Nhiệm vụ: khi người phỏng vấn vừa hỏi, đưa ra gợi ý để T�
 Quy tắc:
 - Chỉ dùng sự thật có trong HỒ SƠ và các buổi trước. KHÔNG bịa kinh nghiệm, số liệu, tên dự án. Nếu hồ sơ không có thông tin, gợi ý cách trả lời trung thực hoặc để chỗ trống [điền …].
 - Câu trả lời gợi ý bằng tiếng Anh nếu cuộc trò chuyện bằng tiếng Anh (tiếng Việt nếu cuộc trò chuyện bằng tiếng Việt), câu ngắn, tự nhiên như văn nói, ưu tiên STAR khi kể kinh nghiệm.
+- Câu hỏi cá nhân / ngoài lề (lương, lý do nghỉ việc, điểm yếu, sở thích, gia đình, thời gian đi làm…): dùng đúng mục "THÔNG TIN NGOÀI LỀ" và kinh nghiệm bổ sung; giữ nhất quán với những gì Tôi đã nói trước đó trong buổi và các buổi trước.
 - Nếu lượt mới nhất không phải câu hỏi (chào hỏi, giới thiệu, nói chuyện phiếm), gợi ý 1–2 câu đáp lại phù hợp.
 - Nếu có ảnh màn hình (đề bài, code, slide), đọc và dùng nó.
 Định dạng bắt buộc (Markdown, không thêm lời dẫn):
@@ -85,7 +86,13 @@ ${profileBlock()}${memoryBlock()}`;
   /* =================== Phiên trực tiếp =================== */
   const L = { active: false, turns: [], seq: 0, older: [], analysis: '', running: 0, queue: [], timer: null, sugTimer: null, sugAbort: null, lastShot: null };
 
+  const SHARE_STEP = {
+    tab: '<b>Chia sẻ tab</b> → chọn tab cuộc gọi (<b>Google Meet</b> / <b>Teams web</b>) và bật <b>“Chia sẻ cả âm thanh của thẻ”</b> → giọng <b>Người phỏng vấn</b> + hình ảnh để đọc màn hình.',
+    screen: '<b>Chia sẻ toàn màn hình</b> → chọn màn hình đang có Teams/Zoom và tick <b>“Chia sẻ âm thanh hệ thống”</b> (chỉ có trên Windows). Nên đặt Copilot ở màn hình khác để không tự đọc chính nó.',
+    none: '<b>Không chia sẻ</b> → chỉ nghe mic; mọi lời nói (kể cả người kia nếu loa phát ra) đều ghi là <b>Tôi</b>. Dùng ô “Gõ câu hỏi” để nhờ gợi ý.'
+  };
   function renderStart() {
+    $('#stepShare').innerHTML = SHARE_STEP[$('#sessSource').value];
     const k = keys();
     $('#keyState').innerHTML = k.geminiKey ? '<b style="color:var(--ok)">✓ đã có</b>' : '<b style="color:var(--bad)">chưa có — vào tab Cài đặt</b>';
     if (!$('#sessTitle').value) { const p = profile(); $('#sessTitle').value = [p.role, p.company].filter(Boolean).join(' — ') || ''; }
@@ -100,12 +107,17 @@ ${profileBlock()}${memoryBlock()}`;
       L.mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     } catch (e) { return U.toast('Không được cấp quyền micro: ' + e.message, 'err', 7000); }
     L.tab = null;
-    if ($('#sessSource').value === 'tab') {
-      if (!navigator.mediaDevices.getDisplayMedia) { U.toast('Trình duyệt không hỗ trợ chia sẻ tab — chỉ dùng mic.', 'err'); }
+    const src = $('#sessSource').value;
+    if (src !== 'none') {
+      if (!navigator.mediaDevices.getDisplayMedia) { U.toast('Trình duyệt không hỗ trợ chia sẻ màn hình — chỉ dùng mic.', 'err'); }
       else {
         try {
-          L.tab = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 2 }, audio: true, preferCurrentTab: false, selfBrowserSurface: 'exclude', surfaceSwitching: 'include', systemAudio: 'include' });
-        } catch (e) { U.toast('Bạn chưa chia sẻ tab — tiếp tục chỉ với mic.', 'info', 6000); }
+          // displaySurface chỉ là gợi ý cho hộp thoại chọn của Chrome: tab hoặc toàn màn hình
+          L.tab = await navigator.mediaDevices.getDisplayMedia({
+            video: { frameRate: 2, displaySurface: src === 'screen' ? 'monitor' : 'browser' }, audio: true,
+            preferCurrentTab: false, selfBrowserSurface: 'exclude', surfaceSwitching: 'include', systemAudio: 'include', monitorTypeSurfaces: 'include'
+          });
+        } catch (e) { U.toast('Bạn chưa chia sẻ — tiếp tục chỉ với mic.', 'info', 6000); }
       }
     }
     L.active = true; L.turns = []; L.older = []; L.analysis = ''; L.queue = []; L.running = 0; L.lastShot = null;
@@ -124,7 +136,7 @@ ${profileBlock()}${memoryBlock()}`;
           onSegment: (s) => onSegment('them', s), onLevel: (v) => { $('#lvThem').style.width = (v * 100) + '%'; },
           onSpeaking: (b) => { $('#spThem').textContent = b ? 'đang nói…' : ''; if (b) clearTimeout(L.sugTimer); }
         }));
-      } else addNote('⚠ Tab được chia sẻ không có âm thanh — bấm Kết thúc, bắt đầu lại và bật “Chia sẻ cả âm thanh của thẻ”.');
+      } else addNote(src === 'screen' ? '⚠ Không lấy được âm thanh hệ thống — bấm Kết thúc, bắt đầu lại và tick “Chia sẻ âm thanh hệ thống” (chỉ có trên Windows; trên Mac hãy dùng Teams/Meet bản web).' : '⚠ Tab được chia sẻ không có âm thanh — bấm Kết thúc, bắt đầu lại và bật “Chia sẻ cả âm thanh của thẻ”.');
       const vt = L.tab.getVideoTracks()[0];
       if (vt) {
         const v = $('#screenVideo'); v.srcObject = new MediaStream([vt]); v.play().catch(() => {});
@@ -135,7 +147,7 @@ ${profileBlock()}${memoryBlock()}`;
     $('#startCard').hidden = true; $('#liveWrap').hidden = false;
     $('#liveChip').textContent = '● Đang nghe'; $('#liveChip').classList.add('on');
     $('#transcript').innerHTML = ''; $('#suggest').innerHTML = '<p class="muted">Khi người phỏng vấn hỏi xong, gợi ý sẽ hiện ở đây.</p>'; $('#older').innerHTML = ''; $('#analysis').innerHTML = '';
-    addNote(`Bắt đầu “${L.title}” · nguồn: mic${L.themL ? ' + tab Meet' : ''} · gợi ý bằng ${sugProvider() === 'claude' ? 'Claude' : 'Gemini'}`);
+    addNote(`Bắt đầu “${L.title}” · nguồn: mic${L.themL ? (src === 'screen' ? ' + âm thanh hệ thống' : ' + tab cuộc gọi') : ''} · gợi ý bằng ${sugProvider() === 'claude' ? 'Claude' : 'Gemini'}`);
     clearInterval(L.timer);
     L.timer = setInterval(() => { const s = Math.floor((Date.now() - L.startedAt) / 1000); $('#liveTimer').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }, 1000);
     window.onbeforeunload = () => (L.active ? 'Phiên đang chạy' : undefined);
@@ -313,7 +325,7 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
           <textarea id="pJd" rows="16" placeholder="Dán JD…">${esc(p.jd)}</textarea></div>
       </div>
       <div class="grid2 mt">
-        <div class="card"><h3>Kinh nghiệm, thành tích, câu chuyện</h3><p class="muted" style="margin-top:4px">Những gì CV chưa nói: số liệu, dự án, tình huống khó, lý do nghỉ việc, mức lương mong muốn…</p>
+        <div class="card"><div class="cardhead"><h3>Kinh nghiệm, thành tích, câu chuyện</h3><button class="btn sm" id="pTpl">+ Chèn mẫu câu hỏi ngoài lề</button></div><p class="muted" style="margin-top:0">Những gì CV chưa nói: số liệu, dự án, tình huống khó, và thông tin cá nhân cho các câu hỏi ngoài lề.</p>
           <textarea id="pExp" rows="10">${esc(p.experience)}</textarea></div>
         <div class="card"><h3>Phong cách & thuật ngữ</h3>
           <label class="field mt">Phong cách trả lời<textarea id="pStyle" rows="4">${esc(p.style)}</textarea></label>
@@ -323,6 +335,23 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
         <div id="pQa">${p.qa.map((x, i) => qaRow(x, i)).join('') || '<p class="muted">Chưa có. Thêm tay hoặc tạo ở tab Chuẩn bị.</p>'}</div></div>
       <div class="row wrap mt"><button class="btn primary" id="pSave">Lưu hồ sơ</button><button class="btn" id="pExport"><svg class="ic"><use href="#i-down"/></svg> Xuất hồ sơ (.json)</button><label class="btn">Nhập hồ sơ<input type="file" id="pImport" accept=".json" hidden></label></div>`;
   }
+  const OFFTOPIC_TPL = `## THÔNG TIN NGOÀI LỀ (dùng cho câu hỏi cá nhân)
+- Giới thiệu ngắn về bản thân (30 giây):
+- Quê quán / nơi sống hiện tại, sẵn sàng đi lại/chuyển nơi làm:
+- Lý do nghỉ / muốn rời công ty hiện tại:
+- Vì sao chọn công ty & vị trí này:
+- Điểm mạnh (kèm ví dụ):
+- Điểm yếu & cách đang cải thiện:
+- Mục tiêu nghề nghiệp 3–5 năm:
+- Mức lương hiện tại / mong muốn, có thể thương lượng không:
+- Thời gian có thể bắt đầu / thời gian báo nghỉ:
+- Sở thích, hoạt động ngoài giờ:
+- Phong cách làm việc, làm việc nhóm vs độc lập:
+- Một thất bại / sai lầm và bài học:
+- Một lần bất đồng với sếp/đồng nghiệp và cách xử lý:
+- Áp lực, deadline gấp — cách xử lý:
+- Gia đình / hoàn cảnh (chỉ ghi điều muốn chia sẻ):
+- Câu hỏi muốn hỏi lại nhà tuyển dụng:`;
   const qaRow = (x, i) => `<div class="qa" data-qa="${i}"><div class="row"><input type="text" class="qaq" value="${esc(x.q)}" placeholder="Câu hỏi" style="flex:1"><button class="btn sm ghost danger" data-qadel="${i}">Xoá</button></div><textarea class="qaa mt" rows="3" placeholder="Câu trả lời">${esc(x.a)}</textarea></div>`;
   function readProfileForm() {
     const p = profile();
@@ -506,6 +535,13 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
         case 'btnShot': return readScreen();
         case 'btnAnalyze': return analyze();
         case 'pSave': saveProfile(readProfileForm()); return U.toast('Đã lưu hồ sơ', 'ok');
+        case 'pTpl': {
+          const el = $('#pExp');
+          if (/## THÔNG TIN NGOÀI LỀ/.test(el.value)) return U.toast('Mẫu đã có trong ô này', 'info');
+          el.value = (el.value.trim() ? el.value.trim() + '\n\n' : '') + OFFTOPIC_TPL;
+          el.focus(); el.scrollTop = el.scrollHeight;
+          return U.toast('Đã chèn mẫu — điền phần sau dấu “:” rồi bấm Lưu hồ sơ', 'ok', 5000);
+        }
         case 'pQaAdd': { const p = readProfileForm(); p.qa.push({ q: '', a: '' }); saveProfile(p); return renderProfile(); }
         case 'pExport': return U.download(new Blob([JSON.stringify(snapshot(), null, 2)], { type: 'application/json' }), 'interview-copilot.json');
         case 'prepGen': return prepGen();
@@ -544,6 +580,7 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
       if (t.id === 'pCvFile' && t.files[0]) { const p = readProfileForm(); saveProfile(p); return loadCv(t.files[0]); }
       if ((t.id === 'pImport' || t.id === 'hImport') && t.files[0]) { try { applySnapshot(JSON.parse(await t.files[0].text())); U.toast('Đã nhập dữ liệu', 'ok'); showTab(tab); } catch (er) { U.toast(er.message, 'err'); } }
       if (t.id === 'cProv') { saveSettingsForm(); renderSettings(); }
+      if (t.id === 'sessSource') renderStart();
     });
   }
 

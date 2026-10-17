@@ -59,15 +59,15 @@
     <section class="tab active" id="tab-live">
       <div class="card" id="startCard">
         <h2 style="margin:0 0 6px">Bắt đầu phiên</h2>
-        <p class="muted" style="margin:0 0 12px">Mở Google Meet ở một tab Chrome khác, đeo tai nghe để mic không thu lại tiếng người phỏng vấn.</p>
+        <p class="muted" style="margin:0 0 12px">Mở cuộc gọi (Google Meet, Teams, Zoom…) và đeo tai nghe để mic không thu lại tiếng người phỏng vấn.</p>
         <div class="formgrid">
           <label class="field">Tên buổi<input type="text" id="sessTitle" placeholder="vd: Phỏng vấn Data Analyst — Công ty ABC"></label>
           <label class="field">Ngôn ngữ chính<select id="sessLang"><option value="auto">Tự nhận diện</option><option value="en">Tiếng Anh</option><option value="vi">Tiếng Việt</option></select></label>
-          <label class="field">Nguồn tiếng người kia<select id="sessSource"><option value="tab">Tab Google Meet (khuyên dùng)</option><option value="none">Không — chỉ dùng mic</option></select></label>
+          <label class="field">Nguồn tiếng người kia<select id="sessSource"><option value="tab">Tab trình duyệt — Meet / Teams web (khuyên dùng)</option><option value="screen">Toàn màn hình + âm thanh hệ thống — Teams / Zoom app (Windows)</option><option value="none">Không — chỉ dùng mic</option></select></label>
         </div>
         <ol class="steps mt" id="permSteps">
           <li><b>Micro</b> → giọng của <b>Tôi</b>. Trình duyệt sẽ hỏi quyền dùng mic.</li>
-          <li><b>Chia sẻ tab</b> → chọn tab <b>Google Meet</b> và bật <b>“Chia sẻ cả âm thanh của thẻ”</b> → giọng <b>Người phỏng vấn</b> + hình ảnh để đọc màn hình.</li>
+          <li id="stepShare"></li>
           <li><b>API key</b>: Gemini (bắt buộc để chép lời) <span id="keyState"></span></li>
         </ol>
         <div class="row wrap mt"><button class="btn primary" id="btnStart">● Cấp quyền &amp; bắt đầu</button><span class="muted" id="startNote"></span></div>
@@ -147,6 +147,6 @@
 <script src="../masterdata/js/drive.js?v=8"></script>
 <script src="../masterdata/js/ai.js?v=8"></script>
 <script src="js/audio.js?v=1"></script>
-<script src="js/copilot.js?v=1"></script>
+<script src="js/copilot.js?v=2"></script>
 </body>
 </html>
