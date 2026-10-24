@@ -9,7 +9,7 @@
   const FOLDER = 'application/vnd.google-apps.folder';
   S.MIME = { FOLDER, GSHEET: 'application/vnd.google-apps.spreadsheet', GDOC: 'application/vnd.google-apps.document' };
   S.PATH = ['DIY', 'Warehouse'];
-  S.SUB = { data: 'data', boss: 'Cấp trên', staff: 'Nhân viên', reports: 'Reports', sys: 'Hệ thống' };
+  S.SUB = { data: 'data', boss: 'Cấp trên', req: 'Yêu cầu & Issue', staff: 'Nhân viên', reports: 'Reports', sys: 'Hệ thống' };
   const DATA_NAME = 'office.json';
   /* Chỉ các tài khoản Google này được vào app. Lưu dạng SHA-256 của email (chữ thường) để không lộ email trong repo công khai.
      Thêm người: chạy  python -c "import hashlib;print(hashlib.sha256(b'email@gmail.com').hexdigest())"  rồi thêm vào danh sách. */

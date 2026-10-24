@@ -76,3 +76,31 @@ Web tĩnh, không cần build. Dùng lại `../masterdata/js/{config,util}.js`.
 - `js/app.js`: giao diện
 
 Sau khi sửa CSS/JS, nhớ tăng `?v=N` trong `index.html`.
+
+## Yêu cầu & Issue (bản 2)
+
+Trang "Yêu cầu & Issue" gom mọi việc vào một chỗ, chia theo 5 **nguồn**:
+
+| Nguồn | Mã việc |
+|---|---|
+| Cấp trên | C-xxx |
+| Phòng ban khác, nhà cung cấp/khách hàng, vận hành kho | R-xxx (yêu cầu), I-xxx (issue) |
+| Nhân viên | I-xxx, gắn với nhân viên đó |
+
+- Ưu tiên P1–P4. Nếu để trống hạn chót, app tự đặt theo ưu tiên: P1 trong ngày, P2 +2 ngày, P3 +5 ngày, P4 +14 ngày.
+- Issue có thêm các ô: phạm vi, nguyên nhân, xử lý tạm, khắc phục lâu dài, mã liên quan (PO/ASN/GRN/SKU), cấp trên cần báo cáo.
+- File được lưu ở `/DIY/Warehouse/Yêu cầu & Issue/` (việc cấp trên vẫn ở `Cấp trên/`).
+
+## Hồ sơ, việc định kỳ, định biên
+
+- **Hồ sơ:** sửa ở "✎ Sửa thông tin" trên bàn từng người, hoặc ở Cài đặt › Nhân sự. Gồm họ tên, chức danh, phụ trách, email, điện thoại, ngày vào làm, kỹ năng/ghi chú.
+- **Việc định kỳ (daily task):** bàn nhân viên › thẻ "Việc định kỳ". Thêm từng việc, hoặc dán nhiều dòng theo dạng `Tên | ngày/tuần/tháng | phút`.
+- **Đánh giá khối lượng:** thẻ "Đánh giá" trên bàn từng người, và trang KPI › "Khối lượng công việc & định biên".
+  - Cách tính: tải = (giờ việc định kỳ + giờ task phát sinh) ÷ công suất (mặc định 7.5 giờ × 22 ngày).
+  - Ngưỡng: dưới 50% là thiếu việc, 50–85% phù hợp, 85–105% đầy tải, trên 105% quá tải. Chưa nhập việc định kỳ thì app báo "Chưa đủ dữ liệu".
+  - Nút "Nhờ Claude phân tích định biên" soạn sẵn câu lệnh kèm số liệu. Kết quả chỉ để tham khảo, không phải kết luận nhân sự.
+- **Xuất bối cảnh:** Cài đặt › Nhân sự › "Xuất bối cảnh nhân sự". Nút này tải file `BOI-CANH-NHAN-SU.md` (không gồm email, số điện thoại) để tải lên Context của project Claude hoặc Knowledge của Gem. Nó cũng lưu một bản Google Doc vào `Hệ thống/`.
+
+## Âm thanh và hiệu ứng
+
+Ở góc phải dưới màn hình Văn phòng có các nút: 🔔 âm báo, ⌨️ tiếng gõ phím (khi có nhân viên đang làm việc), 🎵 nhạc nền lo-fi và ⛶ toàn màn hình. Mọi âm thanh đều tạo bằng Web Audio, không dùng file. Pháo giấy bắn khi có điểm mới từ Claude hoặc khi một việc được đánh dấu xong. App tắt hiệu ứng nếu máy bật chế độ giảm chuyển động.
