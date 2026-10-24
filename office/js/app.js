@@ -307,8 +307,7 @@
   }
 
   function fxBar() {
-    const b = (k, on, off, title) => `<button class="fxb ${FX.opt[k] ? 'on' : ''}" data-act="fxToggle" data-k="${k}" title="${title}">${FX.opt[k] ? on : off}</button>`;
-    return `<div class="fxbar">${b('sound', '🔔 Âm báo', '🔕 Âm báo', 'Bật/tắt âm báo')}${b('typing', '⌨️ Tiếng gõ', '⌨️ Tắt gõ', 'Tiếng gõ phím khi nhân viên đang làm')}${b('music', '🎵 Nhạc', '🎵 Tắt nhạc', 'Nhạc nền nhẹ')}<button class="fxb" data-act="fullscreen" title="Toàn màn hình">⛶</button></div>`;
+    return '<div class="fxbar"><button class="fxb" data-act="fullscreen" title="Toàn màn hình">⛶ Toàn màn hình</button></div>';
   }
 
   function viewOffice() {
@@ -684,7 +683,7 @@
     await writeRequestDoc(c, `yeu-cau-${c.id}`, bossReqText(c));
     if (files && files.length) c.files = await uploadMany(files, c.folderId, '');
     M.log('Bạn', `Nhận ${c.id} "${c.title}" (${(M.SOURCES[c.source] || {}).label}${M.requester(c) ? ' · ' + M.requester(c) : ''}, ${c.priority})`);
-    FX.sound('notify');
+
     return c;
   }
 
@@ -1135,9 +1134,8 @@
     demo: () => { if (!DEV) return; A.authed = true; hideGate(); M.data = M.normalize(U.store.get('office_demo', null) || sampleData()); render(); },
     openRoot: () => S.folders.root && window.open(S.folderLink(S.folders.root.id), '_blank', 'noopener'),
     syncNow: () => syncNow(false),
-    openStaff: (el) => { A.drawer = el.dataset.id; A.dtab = 'task'; FX.sound('open'); renderDrawer(); },
+    openStaff: (el) => { A.drawer = el.dataset.id; A.dtab = 'task'; renderDrawer(); },
     dtab: (el) => { A.dtab = el.dataset.k; renderDrawer(); },
-    fxToggle: (el) => { FX.toggle(el.dataset.k); render(); },
     fullscreen: () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); },
     newItem: (el) => bossForm(null, { source: el.dataset.src, kind: el.dataset.kind, from: el.dataset.boss, staffRef: el.dataset.staff }),
     bKind: (el) => { $('#bKind').value = el.dataset.k; U.$$('#bKindSeg button').forEach((b) => b.classList.toggle('on', b === el)); bossFormSync(); },
@@ -1343,7 +1341,6 @@
 
   async function init() {
     bindEvents();
-    FX.typingActive = () => A.authed && A.view === 'office' && M.workers().some((s) => M.staffState(s).mood === 'work');
     if (!S.connected()) { showGate(); return; }
     try {
       const v = await S.verifyOwner();

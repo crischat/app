@@ -101,6 +101,6 @@ Trang "Yêu cầu & Issue" gom mọi việc vào một chỗ, chia theo 5 **ngu�
   - Nút "Nhờ Claude phân tích định biên" soạn sẵn câu lệnh kèm số liệu. Kết quả chỉ để tham khảo, không phải kết luận nhân sự.
 - **Xuất bối cảnh:** Cài đặt › Nhân sự › "Xuất bối cảnh nhân sự". Nút này tải file `BOI-CANH-NHAN-SU.md` (không gồm email, số điện thoại) để tải lên Context của project Claude hoặc Knowledge của Gem. Nó cũng lưu một bản Google Doc vào `Hệ thống/`.
 
-## Âm thanh và hiệu ứng
+## Hiệu ứng
 
-Ở góc phải dưới màn hình Văn phòng có các nút: 🔔 âm báo, ⌨️ tiếng gõ phím (khi có nhân viên đang làm việc), 🎵 nhạc nền lo-fi và ⛶ toàn màn hình. Mọi âm thanh đều tạo bằng Web Audio, không dùng file. Pháo giấy bắn khi có điểm mới từ Claude hoặc khi một việc được đánh dấu xong. App tắt hiệu ứng nếu máy bật chế độ giảm chuyển động.
+Không có âm thanh. Pháo giấy chỉ hiện trên máy tính, khi có điểm mới từ Claude hoặc khi một việc được đánh dấu xong. Trên điện thoại, app tắt các hoạt hình chạy liên tục và hiệu ứng làm mờ nền để máy không nóng. Nút ⛶ ở góc phải dưới để bật toàn màn hình.

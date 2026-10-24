@@ -400,4 +400,11 @@ code { font-family: var(--mono); background: #f1f5f9; padding: 1px 5px; border-r
   .fxb { padding: 6px 8px; font-size: 11.5px; }
   .page { padding: 16px 16px 80px; }
 }
+/* Điện thoại: tắt hoạt hình chạy liên tục và hiệu ứng mờ nền để máy không nóng, không hao pin */
+@media (max-width: 760px), (pointer: coarse) {
+  .chibi .bob, .chibi .eyes, .chibi .hands *, .chibi .mug, .chibi .sweat, .robot .antenna,
+  .emote, .banner::before, .m-late, .prio.p1, .savestate.busy::before { animation: none !important; }
+  .top, .logpanel, .scrim, .modal, .loading { backdrop-filter: none !important; }
+  .seat, .btn, .kcard { transition: none; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
