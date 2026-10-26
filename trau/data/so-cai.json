@@ -23,7 +23,7 @@
       "mota": "Nhận file Excel lộn xộn (mã hàng trùng, sai đơn vị, thiếu barcode), trả file sạch kèm báo cáo lỗi. Dùng Master Data Pro.",
       "gia": "150k – 400k / file",
       "kenh": "Nhóm freelancer, người quen ngành bán lẻ",
-      "trangThai": "gieo-ma"
+      "trangThai": "dang-cay"
     },
     {
       "id": "ebook-ai-kho",
@@ -50,7 +50,8 @@
       "ngay": "2026-10-27",
       "ruong": "excel-kho",
       "viec": "[Chủ] Mở file trên Google Sheets, chụp 3 ảnh, đăng bài vào 3–5 nhóm chủ shop",
-      "trangThai": "dang"
+      "trangThai": "dang",
+      "ketQua": "Chủ đã đưa file lên Drive, đã kiểm công thức trên Google Sheets: đúng hết. Còn chụp ảnh + đăng nhóm"
     },
     {
       "ngay": "2026-10-26",
@@ -67,15 +68,29 @@
       "ketQua": "Tên: \"30 câu lệnh AI cho dân kho\". Đã có dàn ý 5 phần, giá 49k, combo 129k"
     },
     {
-      "ngay": "2026-11-02",
+      "ngay": "2026-10-26",
       "ruong": "lam-sach-data",
       "viec": "Soạn bài đăng nhận làm sạch data, có file mẫu trước/sau",
-      "trangThai": "cho"
+      "trangThai": "xong",
+      "ketQua": "Có bài đăng, bảng giá 150k/250k/400k, file mẫu TRƯỚC/SAU (15 dòng, 9 loại lỗi)"
     },
     {
-      "ngay": "2026-10-28",
+      "ngay": "2026-10-26",
       "ruong": "ebook-ai-kho",
       "viec": "Viết mở đầu + 10 câu lệnh đầu có ví dụ kết quả",
+      "trangThai": "xong",
+      "ketQua": "Bản thảo phần 1 trên Drive: mở đầu + câu lệnh 1–10"
+    },
+    {
+      "ngay": "2026-10-27",
+      "ruong": "lam-sach-data",
+      "viec": "[Chủ] Chụp ảnh TRƯỚC/SAU, đăng bài nhận làm sạch data (làm thử 30 dòng miễn phí)",
+      "trangThai": "dang"
+    },
+    {
+      "ngay": "2026-10-29",
+      "ruong": "ebook-ai-kho",
+      "viec": "Viết câu lệnh 11–20 (master data tiếp + email nhà cung cấp)",
       "trangThai": "cho"
     }
   ],
@@ -87,6 +102,10 @@
     {
       "ngay": "2026-10-26",
       "text": "Buổi cày đầu tiên, chưa tốn đồng vốn nào. Làm xong bộ template kho, bài đăng bán và dàn ý ebook. Hàng để ngoài repo để không ai tải chùa. Giờ phải chờ chủ đi đăng bài. Trâu cày khoẻ mấy cũng phải có người dắt ra chợ."
+    },
+    {
+      "ngay": "2026-10-26",
+      "text": "Buổi cày thứ hai trong ngày. Template kho đã lên Google Sheets, công thức chạy đúng hết. Viết xong 10 câu lệnh đầu của ebook. Mở thêm ruộng làm sạch data, ruộng này hợp nghề chủ nhất, lại ra tiền nhanh: 150k một file mà làm thử miễn phí 30 dòng thì dễ chốt. Vẫn 0đ thu, 0đ chi. Hàng đã đầy kho, giờ chỉ thiếu người đi chợ."
     }
   ],
   "baiHoc": []
