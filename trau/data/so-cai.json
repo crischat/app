@@ -46,12 +46,48 @@
   ],
   "so": [],
   "viec": [
-    { "ngay": "2026-11-01", "ruong": "excel-kho", "viec": "Dựng bản 1 template nhập xuất tồn (3 sheet) + ảnh chụp màn hình bán hàng", "trangThai": "cho" },
-    { "ngay": "2026-11-01", "ruong": "ebook-ai-kho", "viec": "Viết dàn ý 30 prompt, chọn tên sách", "trangThai": "cho" },
-    { "ngay": "2026-11-02", "ruong": "lam-sach-data", "viec": "Soạn bài đăng nhận làm sạch data, có file mẫu trước/sau", "trangThai": "cho" }
+    {
+      "ngay": "2026-10-27",
+      "ruong": "excel-kho",
+      "viec": "[Chủ] Mở file trên Google Sheets, chụp 3 ảnh, đăng bài vào 3–5 nhóm chủ shop",
+      "trangThai": "dang"
+    },
+    {
+      "ngay": "2026-10-26",
+      "ruong": "excel-kho",
+      "viec": "Dựng bản 1 template nhập xuất tồn (3 sheet) + ảnh chụp màn hình bán hàng",
+      "trangThai": "xong",
+      "ketQua": "Xong template v1 (4 sheet, 200 mã, cảnh báo màu) và bài đăng bán. Giá 99k, 10 người đầu 69k"
+    },
+    {
+      "ngay": "2026-10-26",
+      "ruong": "ebook-ai-kho",
+      "viec": "Viết dàn ý 30 prompt, chọn tên sách",
+      "trangThai": "xong",
+      "ketQua": "Tên: \"30 câu lệnh AI cho dân kho\". Đã có dàn ý 5 phần, giá 49k, combo 129k"
+    },
+    {
+      "ngay": "2026-11-02",
+      "ruong": "lam-sach-data",
+      "viec": "Soạn bài đăng nhận làm sạch data, có file mẫu trước/sau",
+      "trangThai": "cho"
+    },
+    {
+      "ngay": "2026-10-28",
+      "ruong": "ebook-ai-kho",
+      "viec": "Viết mở đầu + 10 câu lệnh đầu có ví dụ kết quả",
+      "trangThai": "cho"
+    }
   ],
   "nhatKy": [
-    { "ngay": "2026-10-26", "text": "Chủ trâu hứa giao 2 triệu. Mình không đánh bạc, không đòn bẩy. Mình cày: làm ra thứ người ta cần rồi bán. Mục tiêu tháng đầu: lãi 600k để tự trả tiền cơm Claude." }
+    {
+      "ngay": "2026-10-26",
+      "text": "Chủ trâu hứa giao 2 triệu. Mình không đánh bạc, không đòn bẩy. Mình cày: làm ra thứ người ta cần rồi bán. Mục tiêu tháng đầu: lãi 600k để tự trả tiền cơm Claude."
+    },
+    {
+      "ngay": "2026-10-26",
+      "text": "Buổi cày đầu tiên, chưa tốn đồng vốn nào. Làm xong bộ template kho, bài đăng bán và dàn ý ebook. Hàng để ngoài repo để không ai tải chùa. Giờ phải chờ chủ đi đăng bài. Trâu cày khoẻ mấy cũng phải có người dắt ra chợ."
+    }
   ],
   "baiHoc": []
 }

@@ -26,10 +26,22 @@ Claude sẽ làm theo quy trình dưới đây.
 2. **Báo tình hình.** Nói 2–3 câu: đang vượt hay chậm tiến độ, ruộng nào đang ra tiền.
 3. **Nhận tin từ chủ.** Hỏi chủ có khoản thu/chi mới không. Chỉ ghi vào `so` khi chủ đưa đủ số tiền và bằng chứng (mã đơn, ảnh CK, tên khách).
 4. **Chọn 1–3 việc** có khả năng ra tiền sớm nhất. Ưu tiên ruộng đang có khách, rồi tới việc không tốn vốn.
-5. **Làm luôn phần việc của trâu.** Ví dụ: viết template, viết bài đăng bán hàng, soạn ebook, làm sạch file của khách. Lưu sản phẩm vào `trau/kho/<ruong>/`.
+5. **Làm luôn phần việc của trâu.** Ví dụ: viết template, viết bài đăng bán hàng, soạn ebook, làm sạch file của khách. Lưu sản phẩm vào thư mục Google Drive "Trâu Đi Cày" (xem bên dưới), **không lưu trong repo**, để không ai tải chùa từ GitHub.
 6. **Cập nhật sổ.** Sửa `viec` (dang/xong + ketQua), thêm một dòng `nhatKy`. Nếu bỏ một ruộng thì thêm `baiHoc`.
 7. **Giao việc cho chủ.** Liệt kê rõ những việc chỉ người mới làm được: đăng bài, nhắn khách, nhận tiền, chi tiền.
 8. **Không commit, không push** trừ khi chủ bảo.
+
+### Cày khi laptop tắt
+
+Nhà của trâu trên Google Drive là thư mục [Trâu Đi Cày](https://drive.google.com/drive/folders/1wnTnGSaMEk7_4A_ZBBUHj8uKajmS5Tys), gồm 4 thư mục con:
+- `1. Template kho`
+- `2. Ebook AI kho`
+- `3. Làm sạch data`
+- `Nhật ký cày`
+
+Doc "0. Hướng dẫn cày" chứa chỉ dẫn để dán vào một Project trên claude.ai, nhớ bật connector Drive. Từ đó trên điện thoại cũng gõ "Trâu ơi, đi cày" được. Trên claude.ai, Claude không push GitHub được, nên mỗi buổi cày nó sẽ ghi một phiếu `Phieu-YYYY-MM-DD` vào "Nhật ký cày".
+
+**"Trâu ơi, gộp phiếu"** (chạy trong Claude Code): đọc các phiếu mới trong "Nhật ký cày" bằng connector Drive, ghi chúng vào `so-cai.json` (`so`, `viec`, `nhatKy`, `baiHoc`), rồi commit và push. Nhớ đừng gộp trùng phiếu đã gộp: kiểm tra ngày và ghi chú trước khi thêm.
 
 ### Luật cứng (Claude không được phá)
 
