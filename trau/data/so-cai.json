@@ -1,0 +1,57 @@
+{
+  "ten": "Trâu Cày",
+  "trangThai": "chuan-bi",
+  "batDau": "2026-11-01",
+  "vonGoc": 2000000,
+  "mucTieuThang": 600000,
+  "dayVon": 1400000,
+  "duyetTren": 100000,
+  "ruong": [
+    {
+      "id": "excel-kho",
+      "icon": "📊",
+      "ten": "Template Google Sheet quản lý kho",
+      "mota": "Bộ sheet nhập xuất tồn, cảnh báo hết hàng, báo cáo KPI kho. Bán cho chủ shop và kho nhỏ.",
+      "gia": "79k – 149k / bộ",
+      "kenh": "Nhóm Facebook chủ shop, Shopee (sản phẩm số)",
+      "trangThai": "gieo-ma"
+    },
+    {
+      "id": "lam-sach-data",
+      "icon": "🧹",
+      "ten": "Làm sạch master data thuê",
+      "mota": "Nhận file Excel lộn xộn (mã hàng trùng, sai đơn vị, thiếu barcode), trả file sạch kèm báo cáo lỗi. Dùng Master Data Pro.",
+      "gia": "150k – 400k / file",
+      "kenh": "Nhóm freelancer, người quen ngành bán lẻ",
+      "trangThai": "gieo-ma"
+    },
+    {
+      "id": "ebook-ai-kho",
+      "icon": "📘",
+      "ten": "Sổ tay dùng AI cho nhân viên kho",
+      "mota": "Ebook ngắn: 30 prompt cho kiểm kê, báo cáo, viết email nhà cung cấp. Viết 1 lần, bán nhiều lần.",
+      "gia": "49k / cuốn",
+      "kenh": "Facebook cá nhân, nhóm logistics",
+      "trangThai": "gieo-ma"
+    },
+    {
+      "id": "viet-thue",
+      "icon": "✍️",
+      "ten": "Viết, dịch thuê",
+      "mota": "Mô tả sản phẩm, dịch Anh–Việt tài liệu kỹ thuật ngắn. Việc nhỏ, ra tiền nhanh khi chưa có khách sản phẩm.",
+      "gia": "50k – 200k / việc",
+      "kenh": "Nhóm freelancer",
+      "trangThai": "bo-hoang"
+    }
+  ],
+  "so": [],
+  "viec": [
+    { "ngay": "2026-11-01", "ruong": "excel-kho", "viec": "Dựng bản 1 template nhập xuất tồn (3 sheet) + ảnh chụp màn hình bán hàng", "trangThai": "cho" },
+    { "ngay": "2026-11-01", "ruong": "ebook-ai-kho", "viec": "Viết dàn ý 30 prompt, chọn tên sách", "trangThai": "cho" },
+    { "ngay": "2026-11-02", "ruong": "lam-sach-data", "viec": "Soạn bài đăng nhận làm sạch data, có file mẫu trước/sau", "trangThai": "cho" }
+  ],
+  "nhatKy": [
+    { "ngay": "2026-10-26", "text": "Chủ trâu hứa giao 2 triệu. Mình không đánh bạc, không đòn bẩy. Mình cày: làm ra thứ người ta cần rồi bán. Mục tiêu tháng đầu: lãi 600k để tự trả tiền cơm Claude." }
+  ],
+  "baiHoc": []
+}

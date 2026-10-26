@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trâu Đi Cày</title>
+<meta name="description" content="Một con trâu AI cầm 2 triệu vốn thật, tự cày kiếm lãi 600k mỗi tháng để trả phí Claude Pro.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4efe3; --panel:#fffdf7; --line:#e5dcc6; --ink:#2b2416; --mute:#7a6f58; --faint:#a89d84;
+  --rice:#5d9b3a; --rice-d:#3f7425; --mud:#8a6a43; --mud-d:#6b5032; --sky1:#bfe3f2; --sky2:#f7efd9;
+  --gold:#d99a1e; --good:#2f8f4e; --bad:#c2453a; --warn:#d07a14; --accent:#3d6fb8;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15130e; --panel:#1e1b14; --line:#332d21; --ink:#efe8d6; --mute:#a99f86; --faint:#776e5a;
+  --rice:#4f8a33; --rice-d:#36621f; --mud:#6e5535; --mud-d:#4f3c24; --sky1:#22314a; --sky2:#3a3326;
+  --gold:#e8b041; --good:#58c07a; --bad:#e8675c; --warn:#e89a3c; --accent:#7ea5e6;
+}}
+:root[data-theme="dark"]{
+  --bg:#15130e; --panel:#1e1b14; --line:#332d21; --ink:#efe8d6; --mute:#a99f86; --faint:#776e5a;
+  --rice:#4f8a33; --rice-d:#36621f; --mud:#6e5535; --mud-d:#4f3c24; --sky1:#22314a; --sky2:#3a3326;
+  --gold:#e8b041; --good:#58c07a; --bad:#e8675c; --warn:#e89a3c; --accent:#7ea5e6;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Be Vietnam Pro",system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+.mono,.num{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;border-radius:10px;padding:9px 14px;font-weight:700;background:var(--ink);color:var(--bg)}
+button.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:16px}
+
+header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.logo{width:42px;height:42px;border-radius:12px;background:var(--mud);display:grid;place-items:center;font-size:24px;flex:none}
+header h1{font-size:20px;font-weight:800;letter-spacing:-.3px}
+header p{font-size:13px;color:var(--mute)}
+.chip{margin-left:auto;font-size:12px;font-weight:700;border:1px solid var(--line);border-radius:999px;padding:5px 10px;white-space:nowrap}
+.chip.live{color:var(--good);border-color:var(--good)}
+.chip.prep{color:var(--warn);border-color:var(--warn)}
+
+.banner{background:color-mix(in srgb,var(--warn) 12%,var(--panel));border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);border-radius:12px;padding:10px 14px;font-size:13.5px;margin-bottom:12px;line-height:1.5}
+
+/* Cánh đồng: phần đất đã cày = tiến độ lãi tháng so với mục tiêu */
+.field{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--sky1)}
+.field svg{display:block;width:100%;height:auto}
+.bubble{position:absolute;left:50%;top:14px;transform:translateX(-50%);max-width:min(88%,560px);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 14px;font-size:14px;text-align:center;box-shadow:0 6px 18px -10px #0006}
+.mood{position:absolute;right:12px;bottom:12px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+@media(max-width:600px){
+  .bubble{position:static;transform:none;max-width:none;border:0;border-top:1px solid var(--line);border-radius:0;box-shadow:none;font-size:13.5px}
+  .mood{top:10px;bottom:auto;right:10px;font-size:12px;padding:4px 10px}
+  table{font-size:12.5px}td,th{padding:6px 5px}
+}
+.trau .leg{transform-box:fill-box;transform-origin:top center}
+.field[data-walk="1"] .trau .leg.a{animation:step .9s ease-in-out infinite}
+.field[data-walk="1"] .trau .leg.b{animation:step .9s ease-in-out infinite reverse}
+.field[data-walk="1"] .trau .body{animation:bob .9s ease-in-out infinite}
+@keyframes step{0%,100%{transform:rotate(14deg)}50%{transform:rotate(-14deg)}}
+@keyframes bob{50%{transform:translateY(-2px)}}
+.sweat{animation:drip 1.6s ease-in infinite}
+@keyframes drip{0%{opacity:0;transform:translateY(-4px)}30%{opacity:1}100%{opacity:0;transform:translateY(10px)}}
+.zz{animation:zz 2.4s ease-in-out infinite}
+@keyframes zz{0%{opacity:0;transform:translate(0,0)}40%{opacity:1}100%{opacity:0;transform:translate(14px,-22px)}}
+.coin{animation:coin 1.8s ease-in-out infinite}
+@keyframes coin{50%{transform:translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){.trau *,.sweat,.zz,.coin{animation:none!important}}
+
+/* Bảng số */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+@media(max-width:760px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-width:0}
+.stat .k{font-size:12px;color:var(--mute);font-weight:600}
+.stat .v{font-size:clamp(19px,3vw,26px);font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat .s{font-size:12px;color:var(--mute);margin-top:2px}
+.bar{height:7px;border-radius:4px;background:color-mix(in srgb,var(--mud) 22%,transparent);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px;background:var(--rice);transition:width .8s}
+.up{color:var(--good)}.dn{color:var(--bad)}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;margin-top:12px}
+.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);padding:0 8px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{background:none;color:var(--mute);border-radius:0;padding:13px 12px 11px;font-size:14px;border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--gold)}
+.pane{padding:16px}
+.pane[hidden]{display:none}
+.hint{font-size:13px;color:var(--mute);line-height:1.5}
+h3{font-size:13px;color:var(--mute);font-weight:700;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.06em}
+.pane > h3:first-child{margin-top:0}
+
+.task{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.task:first-of-type{border-top:0}
+.task .dot{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:12px;border:2px solid var(--line)}
+.task.dang .dot{border-color:var(--accent);color:var(--accent)}
+.task.xong .dot{background:var(--good);border-color:var(--good);color:#fff}
+.task small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+
+.ruong{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.plot{border:1px solid var(--line);border-radius:12px;padding:12px;position:relative}
+.plot .top{display:flex;gap:8px;align-items:center}
+.plot .ic{font-size:22px}
+.plot b{font-size:14.5px;line-height:1.3}
+.plot p{font-size:13px;color:var(--mute);margin:6px 0 8px;line-height:1.45}
+.plot .meta{display:flex;flex-wrap:wrap;gap:6px;font-size:11.5px}
+.plot .meta span{background:color-mix(in srgb,var(--mud) 14%,transparent);border-radius:6px;padding:2px 7px}
+.plot .lai{margin-top:10px;font-size:13px;display:flex;justify-content:space-between}
+.st{font-size:11px;font-weight:800;border-radius:6px;padding:2px 7px;margin-left:auto;white-space:nowrap}
+.st.dang-cay{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.st.gieo-ma{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.st.bo-hoang{background:color-mix(in srgb,var(--faint) 22%,transparent);color:var(--mute)}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:12px;color:var(--mute);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.r,th.r{text-align:right}
+.tbl{overflow-x:auto}
+.draft{font-size:10.5px;font-weight:800;color:var(--warn);margin-left:6px}
+td a{color:var(--accent)}
+
+.diary p{font-size:14px;line-height:1.6;white-space:pre-wrap}
+.diary .d{font-size:12px;color:var(--mute);margin:14px 0 3px;font-weight:600}
+.diary .d:first-child{margin-top:0}
+
+.rules{display:grid;gap:8px;counter-reset:r}
+.rule{border-left:3px solid var(--gold);padding:4px 0 4px 12px;font-size:14px;line-height:1.5}
+.rule b{display:block}
+.rule span{color:var(--mute);font-size:13px}
+
+form.ghi{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end}
+form.ghi label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mute);font-weight:600;min-width:0}
+form.ghi .w2{grid-column:span 2}form.ghi .w3{grid-column:span 3}form.ghi .w6{grid-column:1/-1}
+form.ghi input,form.ghi select{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:14px;min-width:0;width:100%}
+@media(max-width:700px){form.ghi{grid-template-columns:1fr 1fr}form.ghi .w2,form.ghi .w3{grid-column:span 1}form.ghi .w6,form.ghi .full{grid-column:1/-1}}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,160%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;font-size:14px;transition:transform .35s;z-index:9}
+.toast.show{transform:translate(-50%,0)}
+footer{font-size:12px;color:var(--faint);text-align:center;padding:20px 0 30px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true">🐃</div>
+    <div><h1 id="ten">Trâu Đi Cày</h1><p>2 triệu vốn thật · phải lãi ít nhất <span id="mtHead">600k</span>/tháng để tự trả phí Claude Pro</p></div>
+    <span class="chip" id="chip">…</span>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="field" id="field" data-walk="1">
+    <svg viewBox="0 0 800 300" role="img" aria-labelledby="fieldDesc">
+      <desc id="fieldDesc">Cánh đồng: phần đất đã cày tương ứng tiến độ lãi tháng so với mục tiêu.</desc>
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sky1)"/><stop offset="1" stop-color="var(--sky2)"/></linearGradient>
+        <pattern id="lua" width="22" height="16" patternUnits="userSpaceOnUse"><rect width="22" height="16" fill="var(--rice)"/><path d="M5 14 l2-9 M11 14 l0-10 M17 14 l-2-9" stroke="var(--rice-d)" stroke-width="2" stroke-linecap="round"/></pattern>
+        <pattern id="ray" width="40" height="14" patternUnits="userSpaceOnUse"><rect width="40" height="14" fill="var(--mud)"/><path d="M0 11 H40" stroke="var(--mud-d)" stroke-width="3"/></pattern>
+      </defs>
+      <rect width="800" height="300" fill="url(#sky)"/>
+      <circle id="sun" cx="690" cy="62" r="26" fill="var(--gold)" opacity=".9"/>
+      <path d="M0 170 Q120 120 250 160 T520 150 T800 155 V180 H0Z" fill="var(--rice-d)" opacity=".55"/>
+      <rect y="172" width="800" height="128" fill="url(#lua)"/>
+      <rect id="plowed" y="172" width="0" height="128" fill="url(#ray)"/>
+      <line id="flag" x1="760" y1="150" x2="760" y2="200" stroke="var(--ink)" stroke-width="3"/>
+      <path d="M760 150 l26 8 -26 8z" fill="var(--bad)"/>
+      <text x="773" y="214" font-size="12" text-anchor="middle" fill="var(--ink)" font-weight="700" id="flagTxt">600k</text>
+      <g id="trau" class="trau" transform="translate(40 150)">
+        <!-- cái cày phía sau -->
+        <path d="M-10 60 L30 34" stroke="var(--mud-d)" stroke-width="5" stroke-linecap="round"/>
+        <path d="M-22 74 L-6 56 L2 76z" fill="#55585e"/>
+        <g class="body">
+          <path d="M30 34 L60 32" stroke="var(--mud-d)" stroke-width="3"/>
+          <path class="tail" d="M58 48 q-12 6 -10 24" stroke="#3a3c41" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <ellipse cx="100" cy="52" rx="46" ry="28" fill="#4a4d54"/>
+          <g id="ribs" opacity="0"><path d="M88 46 q8 6 0 14 M100 44 q8 7 0 16 M112 46 q8 6 0 14" stroke="#2c2e33" stroke-width="2.5" fill="none"/></g>
+          <path d="M132 34 q14 -6 22 4 l4 22 q-6 8 -16 6 z" fill="#4a4d54"/>
+          <ellipse cx="158" cy="62" rx="12" ry="9" fill="#6b6e75"/>
+          <circle cx="154" cy="62" r="1.8" fill="#222"/><circle cx="162" cy="62" r="1.8" fill="#222"/>
+          <circle id="eye" cx="148" cy="44" r="3" fill="#111"/>
+          <path id="eyeShut" d="M144 45 q4 3 8 0" stroke="#111" stroke-width="2" fill="none" opacity="0"/>
+          <path d="M138 32 q-22 -22 -4 -30 q-10 12 10 24z" fill="#d9cfb8"/>
+          <path d="M152 32 q22 -20 6 -30 q8 12 -12 24z" fill="#d9cfb8"/>
+          <path d="M136 38 l-8 -4 4 8z" fill="#3a3c41"/>
+        </g>
+        <rect class="leg a" x="66" y="70" width="10" height="34" rx="4" fill="#3a3c41"/>
+        <rect class="leg b" x="82" y="70" width="10" height="34" rx="4" fill="#3a3c41"/>
+        <rect class="leg b" x="112" y="70" width="10" height="34" rx="4" fill="#3a3c41"/>
+        <rect class="leg a" x="128" y="70" width="10" height="34" rx="4" fill="#3a3c41"/>
+        <g id="sweat" opacity="0"><path class="sweat" d="M162 30 q-4 6 0 9 q4 -3 0 -9z" fill="#7ec8f0"/></g>
+        <g id="zz" opacity="0"><text class="zz" x="160" y="20" font-size="18" font-weight="800" fill="var(--ink)">z</text></g>
+        <g id="coins" opacity="0"><text class="coin" x="88" y="10" font-size="22">🪙</text><text class="coin" x="120" y="0" font-size="18" style="animation-delay:.4s">💰</text></g>
+      </g>
+    </svg>
+    <div class="bubble" id="bubble">Đang mở sổ…</div>
+    <div class="mood" id="mood">…</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Lãi tháng <span id="thangTen"></span></div><div class="v num" id="laiThang">0đ</div><div class="s" id="laiSub">mục tiêu 600.000đ</div><div class="bar"><i id="laiBar" style="width:0%"></i></div></div>
+    <div class="stat"><div class="k">Tiền mặt trong ví</div><div class="v num" id="vi">0đ</div><div class="s" id="viSub">vốn gốc 2.000.000đ</div><div class="bar"><i id="viBar" style="width:0%"></i></div></div>
+    <div class="stat"><div class="k">Cần cày mỗi ngày</div><div class="v num" id="canNgay">0đ</div><div class="s" id="ngayCon">còn 0 ngày</div></div>
+    <div class="stat"><div class="k">Tổng lãi từ đầu</div><div class="v num" id="tongLai">0đ</div><div class="s" id="tongSub">0 tháng đạt / 0</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="tabs" role="tablist" aria-label="Các mục">
+      <button role="tab" data-tab="viec">🌾 Việc cày</button>
+      <button role="tab" data-tab="ruong">🗺️ Ruộng</button>
+      <button role="tab" data-tab="so">📒 Sổ cái</button>
+      <button role="tab" data-tab="nk">📔 Nhật ký</button>
+      <button role="tab" data-tab="luat">⚖️ Luật làng</button>
+    </div>
+
+    <div class="pane" data-pane="viec" role="tabpanel">
+      <h3>Việc đang và sắp làm</h3>
+      <div id="viecList"></div>
+      <h3>Đã xong</h3>
+      <div id="viecXong"></div>
+    </div>
+
+    <div class="pane" data-pane="ruong" role="tabpanel" hidden>
+      <p class="hint" style="margin-bottom:12px">Mỗi thửa ruộng là một cách kiếm tiền bằng sức lao động. Thửa nào 2 tháng không ra lãi thì bỏ hoang, chuyển sức sang thửa khác.</p>
+      <div class="ruong" id="ruongList"></div>
+    </div>
+
+    <div class="pane" data-pane="so" role="tabpanel" hidden>
+      <h3>Theo tháng</h3>
+      <div class="tbl"><table><thead><tr><th>Tháng</th><th class="r">Thu</th><th class="r">Chi</th><th class="r">Lãi</th><th class="r">Đạt?</th></tr></thead><tbody id="thangBody"></tbody></table></div>
+      <h3>Từng khoản</h3>
+      <div class="tbl"><table><thead><tr><th>Ngày</th><th>Khoản</th><th>Ruộng</th><th class="r">Số tiền</th></tr></thead><tbody id="soBody"></tbody></table></div>
+
+      <h3>Chủ trâu ghi sổ</h3>
+      <p class="hint" style="margin-bottom:10px">Khoản ghi ở đây chỉ lưu trên máy này (đánh dấu NHÁP). Bấm "Tải sổ mới" rồi thay file <code>data/so-cai.json</code>, hoặc nhắn Claude ghi giúp.</p>
+      <form class="ghi" id="ghi" autocomplete="off">
+        <label class="w2">Ngày<input type="date" id="gNgay" required></label>
+        <label class="w2">Loại<select id="gLoai"><option value="thu">Thu (khách trả)</option><option value="chi">Chi (vốn bỏ ra)</option><option value="rut">Rút trả phí Claude</option></select></label>
+        <label class="w2">Số tiền (đ)<input type="number" id="gTien" min="1000" step="1000" inputmode="numeric" required></label>
+        <label class="w3">Ruộng<select id="gRuong"></select></label>
+        <label class="w3">Bằng chứng (link, mã GD)<input id="gBc" maxlength="200" placeholder="VD: mã đơn Shopee 2411..."></label>
+        <label class="w6">Ghi chú<input id="gNote" maxlength="200" required placeholder="Bán 1 bộ template kho cho anh Tuấn"></label>
+        <div class="btns full w6"><button type="submit">Ghi nháp</button><button type="button" class="ghost" id="tai">Tải sổ mới (.json)</button><button type="button" class="ghost" id="xoaNhap">Xoá nháp</button></div>
+      </form>
+    </div>
+
+    <div class="pane" data-pane="nk" role="tabpanel" hidden>
+      <div class="diary" id="diary"></div>
+      <h3>Bài học</h3>
+      <div id="baiHoc"></div>
+    </div>
+
+    <div class="pane" data-pane="luat" role="tabpanel" hidden>
+      <div class="rules" id="rules"></div>
+    </div>
+  </div>
+
+  <footer>Sổ sách công khai trong <code>data/so-cai.json</code>. Không phải lời khuyên đầu tư. Mọi khoản tiền thật do chủ trâu tự chuyển.</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const vnd = (n) => Math.round(n).toLocaleString('vi-VN') + 'đ';
+const sgn = (n) => (n > 0 ? '+' : n < 0 ? '−' : '') + vnd(Math.abs(n));
+const kk = (n) => (n >= 1e6 ? +(n / 1e6).toFixed(1) + 'tr' : Math.round(n / 1000) + 'k');
+const dmy = (s) => s.split('-').reverse().join('/');
+const ym = (s) => s.slice(0, 7);
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const KEY = 'trau_nhap';
+function loadDrafts(){ try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; } }
+function saveDrafts(a){ try { localStorage.setItem(KEY, JSON.stringify(a)); } catch {} }
+function toast(t){ $('toast').textContent = t; $('toast').classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => $('toast').classList.remove('show'), 2400); }
+
+let D = null;
+
+// Luật cứng: con trâu chỉ được kiếm tiền bằng sức cày, không được đánh bạc với vốn
+function rules(d){
+  return [
+    ['Chỉ cày, không đánh bạc', 'Không future, không đòn bẩy, không vé số, không crypto, không cá cược. Lãi 600k trên 2 triệu là 30%/tháng: muốn đạt bằng trading thì gần như chắc chắn cháy vốn.'],
+    ['Tiền thật do chủ trâu bấm', 'Trâu (Claude) chỉ đề xuất và làm ra sản phẩm. Mọi lần chuyển, nhận, rút tiền đều do chủ tự làm rồi ghi sổ.'],
+    [`Chi trên ${vnd(d.duyetTren)} phải xin phép`, 'Mỗi khoản chi vốn ghi rõ dùng vào ruộng nào và kỳ vọng thu lại bao nhiêu.'],
+    [`Đáy vốn ${vnd(d.dayVon)}`, 'Ví xuống dưới mức này thì ngừng chi hẳn, chỉ làm các việc không tốn tiền cho tới khi ví hồi lại.'],
+    ['Không có bằng chứng thì không tính', 'Khoản thu phải có mã đơn, ảnh chuyển khoản hoặc tên khách. Không tự bịa doanh thu cho đẹp sổ.'],
+    ['Lãi tháng = thu − chi', `Rút tiền trả phí Claude không tính là chi. Mục tiêu: lãi ≥ ${vnd(d.mucTieuThang)} thì tháng đó trâu tự nuôi được mình.`],
+    ['Ruộng 2 tháng không ra lãi thì bỏ', 'Dồn sức sang ruộng đang ra tiền. Mỗi lần bỏ một thửa phải ghi lại bài học.'],
+  ];
+}
+
+function compute(d){
+  const so = d.so.slice().sort((a, b) => a.ngay.localeCompare(b.ngay));
+  const sum = (arr, l) => arr.filter((e) => e.loai === l).reduce((s, e) => s + e.soTien, 0);
+  const vi = d.vonGoc + sum(so, 'thu') - sum(so, 'chi') - sum(so, 'rut');
+  const t = today(), m = ym(t < d.batDau ? d.batDau : t);
+  const inM = so.filter((e) => ym(e.ngay) === m);
+  const thu = sum(inM, 'thu'), chi = sum(inM, 'chi');
+  const [Y, M] = m.split('-').map(Number), dim = new Date(Y, M, 0).getDate();
+  const started = t >= d.batDau;
+  const day = started && ym(t) === m ? +t.slice(8) : 0;
+  const left = dim - day + (started ? 1 : 0);
+  const months = {};
+  so.forEach((e) => { const k = ym(e.ngay); months[k] ??= { thu: 0, chi: 0 }; if (e.loai !== 'rut') months[k][e.loai] += e.soTien; });
+  const done = Object.entries(months).filter(([k]) => k < ym(t));
+  return { so, vi, m, thu, chi, lai: thu - chi, dim, day, left, started, months,
+    tongLai: sum(so, 'thu') - sum(so, 'chi'), dat: done.filter(([, v]) => v.thu - v.chi >= d.mucTieuThang).length, xong: done.length };
+}
+
+// Tâm trạng theo tiến độ lãi so với số ngày đã trôi qua trong tháng
+function moodOf(d, c){
+  const h = new Date().getHours();
+  const p = c.lai / d.mucTieuThang, tr = c.day / c.dim;
+  if (!c.started) return { k: 'cho', label: '🌱 Chờ xuống đồng', say: 'Chủ ơi, giao vốn đi rồi mình xuống đồng. Mình hứa không đem đi đánh bạc đâu.' };
+  if (c.vi < d.dayVon) return { k: 'doi', label: '🥀 Đói cỏ', say: `Ví còn ${vnd(c.vi)}, dưới đáy rồi. Từ giờ mình không tiêu đồng nào, chỉ cày tay không.` };
+  if (h >= 22 || h < 6) return { k: 'ngu', label: '😴 Đang ngủ', say: 'Trâu ngủ. Mai cày tiếp.' };
+  if (p >= 1) return { k: 'dich', label: '🏆 Về đích', say: `Tháng này lãi ${vnd(c.lai)}! Đủ tiền cơm Claude rồi, phần dư mình để dành làm vốn.` };
+  if (p >= tr) return { k: 'khoe', label: '💪 Khoẻ', say: `Đang vượt tiến độ. Còn ${vnd(d.mucTieuThang - c.lai)} nữa là đủ.` };
+  if (p >= tr - 0.25) return { k: 'cay', label: '🐃 Đang cày', say: `Hơi chậm. Mỗi ngày phải kiếm thêm ${vnd(Math.max(0, d.mucTieuThang - c.lai) / Math.max(1, c.left))}.` };
+  return { k: 'duoi', label: '😓 Đuối sức', say: `Chậm quá rồi. Còn ${c.left} ngày mà thiếu ${vnd(d.mucTieuThang - c.lai)}. Phải chốt khách nhanh.` };
+}
+
+function render(){
+  const drafts = loadDrafts().map((e) => ({ ...e, nhap: true }));
+  const d = { ...D, so: [...D.so, ...drafts] };
+  const c = compute(d), mo = moodOf(d, c);
+
+  $('ten').textContent = d.ten;
+  $('mtHead').textContent = kk(d.mucTieuThang); $('flagTxt').textContent = kk(d.mucTieuThang);
+  const live = d.trangThai !== 'chuan-bi' && c.started;
+  $('chip').textContent = live ? '● Đang cày' : '○ Chuẩn bị'; $('chip').className = 'chip ' + (live ? 'live' : 'prep');
+  $('banner').hidden = live;
+  if (!live) $('banner').innerHTML = `Chưa xuống đồng. Kế hoạch bắt đầu <b>${dmy(d.batDau)}</b>. Khi chủ trâu đã thật sự để riêng ${vnd(d.vonGoc)}, đổi <code>trangThai</code> thành <code>"dang-cay"</code> trong sổ.`;
+
+  // Cánh đồng
+  const p = Math.max(0, Math.min(1, c.lai / d.mucTieuThang));
+  const x = 40 + p * 560;
+  $('plowed').setAttribute('width', Math.max(0, x + 20));
+  $('trau').setAttribute('transform', `translate(${x} 150)`);
+  $('field').dataset.walk = ['cay', 'khoe', 'duoi'].includes(mo.k) ? '1' : '0';
+  $('sweat').setAttribute('opacity', mo.k === 'duoi' ? 1 : 0);
+  $('zz').setAttribute('opacity', mo.k === 'ngu' ? 1 : 0);
+  $('coins').setAttribute('opacity', mo.k === 'dich' ? 1 : 0);
+  $('ribs').setAttribute('opacity', mo.k === 'doi' ? 1 : 0);
+  $('eye').setAttribute('opacity', mo.k === 'ngu' ? 0 : 1); $('eyeShut').setAttribute('opacity', mo.k === 'ngu' ? 1 : 0);
+  $('sun').setAttribute('fill', mo.k === 'ngu' ? '#e8e4d8' : 'var(--gold)');
+  $('bubble').textContent = mo.say; $('mood').textContent = mo.label;
+
+  // Số liệu
+  $('thangTen').textContent = c.m.slice(5) + '/' + c.m.slice(0, 4);
+  $('laiThang').textContent = sgn(c.lai); $('laiThang').className = 'v num ' + (c.lai > 0 ? 'up' : c.lai < 0 ? 'dn' : '');
+  $('laiSub').textContent = `thu ${vnd(c.thu)} · chi ${vnd(c.chi)} · mục tiêu ${vnd(d.mucTieuThang)}`;
+  $('laiBar').style.width = p * 100 + '%'; $('laiBar').style.background = p >= 1 ? 'var(--gold)' : 'var(--rice)';
+  $('vi').textContent = vnd(c.vi);
+  $('viSub').textContent = `vốn gốc ${vnd(d.vonGoc)} · đáy ${vnd(d.dayVon)}`;
+  $('viBar').style.width = Math.min(100, c.vi / d.vonGoc * 100) + '%';
+  $('viBar').style.background = c.vi < d.dayVon ? 'var(--bad)' : c.vi < d.vonGoc ? 'var(--warn)' : 'var(--rice)';
+  const need = Math.max(0, d.mucTieuThang - c.lai);
+  $('canNgay').textContent = need ? vnd(need / Math.max(1, c.left)) : 'Đủ rồi 🎉';
+  $('ngayCon').textContent = c.started ? `còn ${c.left} ngày trong tháng` : `bắt đầu ${dmy(d.batDau)}`;
+  $('tongLai').textContent = sgn(c.tongLai); $('tongLai').className = 'v num ' + (c.tongLai > 0 ? 'up' : c.tongLai < 0 ? 'dn' : '');
+  $('tongSub').textContent = `${c.dat} tháng đạt / ${c.xong} tháng đã qua`;
+
+  // Việc
+  const R = Object.fromEntries(d.ruong.map((r) => [r.id, r]));
+  const task = (v) => `<div class="task ${v.trangThai}"><span class="dot">${v.trangThai === 'xong' ? '✓' : v.trangThai === 'dang' ? '…' : ''}</span><div>${esc(v.viec)}<small>${dmy(v.ngay)} · ${esc(R[v.ruong]?.icon || '')} ${esc(R[v.ruong]?.ten || v.ruong)}${v.ketQua ? ' · ' + esc(v.ketQua) : ''}</small></div></div>`;
+  const open = d.viec.filter((v) => v.trangThai !== 'xong').sort((a, b) => (a.trangThai === 'dang' ? -1 : 0) - (b.trangThai === 'dang' ? -1 : 0) || a.ngay.localeCompare(b.ngay));
+  const xong = d.viec.filter((v) => v.trangThai === 'xong').sort((a, b) => b.ngay.localeCompare(a.ngay));
+  $('viecList').innerHTML = open.length ? open.map(task).join('') : '<p class="hint">Hết việc. Nhắn Claude "Trâu ơi, đi cày" để lên việc mới.</p>';
+  $('viecXong').innerHTML = xong.length ? xong.slice(0, 20).map(task).join('') : '<p class="hint">Chưa xong việc nào.</p>';
+
+  // Ruộng
+  const ST = { 'dang-cay': 'đang cày', 'gieo-ma': 'gieo mạ', 'bo-hoang': 'bỏ hoang' };
+  $('ruongList').innerHTML = d.ruong.map((r) => {
+    const es = c.so.filter((e) => e.ruong === r.id), t = es.filter((e) => e.loai === 'thu').reduce((s, e) => s + e.soTien, 0), ch = es.filter((e) => e.loai === 'chi').reduce((s, e) => s + e.soTien, 0);
+    return `<div class="plot"><div class="top"><span class="ic">${esc(r.icon)}</span><b>${esc(r.ten)}</b><span class="st ${r.trangThai}">${ST[r.trangThai] || r.trangThai}</span></div>
+      <p>${esc(r.mota)}</p><div class="meta"><span>💵 ${esc(r.gia)}</span><span>📍 ${esc(r.kenh)}</span></div>
+      <div class="lai"><span class="hint">thu ${vnd(t)} · chi ${vnd(ch)}</span><b class="${t - ch > 0 ? 'up' : t - ch < 0 ? 'dn' : ''}">${sgn(t - ch)}</b></div></div>`;
+  }).join('');
+  $('gRuong').innerHTML = d.ruong.map((r) => `<option value="${esc(r.id)}">${esc(r.icon)} ${esc(r.ten)}</option>`).join('') + '<option value="">Khác</option>';
+
+  // Sổ cái
+  const ms = Object.entries(c.months).sort((a, b) => b[0].localeCompare(a[0]));
+  $('thangBody').innerHTML = ms.length ? ms.map(([k, v]) => { const l = v.thu - v.chi; return `<tr><td>${k.slice(5)}/${k.slice(0, 4)}</td><td class="r num">${vnd(v.thu)}</td><td class="r num">${vnd(v.chi)}</td><td class="r num ${l >= 0 ? 'up' : 'dn'}">${sgn(l)}</td><td class="r">${l >= d.mucTieuThang ? '✅' : k === ym(today()) ? '⏳' : '❌'}</td></tr>`; }).join('')
+    : '<tr><td colspan="5" class="hint">Chưa có khoản nào.</td></tr>';
+  const LB = { thu: 'Thu', chi: 'Chi', rut: 'Rút trả Claude' };
+  $('soBody').innerHTML = c.so.length ? c.so.slice().reverse().map((e) => `<tr><td class="num">${dmy(e.ngay)}</td><td>${LB[e.loai]}: ${esc(e.ghiChu)}${e.nhap ? '<span class="draft">NHÁP</span>' : ''}${e.bangChung ? `<br><small class="hint">${/^https?:\/\//.test(e.bangChung) ? `<a href="${esc(e.bangChung)}" target="_blank" rel="noopener">bằng chứng</a>` : esc(e.bangChung)}</small>` : ''}</td><td>${esc(R[e.ruong]?.icon || '')}</td><td class="r num ${e.loai === 'thu' ? 'up' : 'dn'}">${e.loai === 'thu' ? '+' : '−'}${vnd(e.soTien)}</td></tr>`).join('')
+    : '<tr><td colspan="4" class="hint">Sổ còn trắng. Khoản thu đầu tiên sẽ hiện ở đây.</td></tr>';
+
+  // Nhật ký, luật
+  const nk = d.nhatKy.slice().sort((a, b) => b.ngay.localeCompare(a.ngay));
+  $('diary').innerHTML = nk.length ? nk.map((n) => `<div class="d">📔 ${dmy(n.ngay)}</div><p>${esc(n.text)}</p>`).join('') : '<p class="hint">Chưa viết nhật ký.</p>';
+  $('baiHoc').innerHTML = d.baiHoc.length ? d.baiHoc.map((b) => `<div class="rule"><b>${esc(b.text)}</b><span>${dmy(b.ngay)}</span></div>`).join('') : '<p class="hint">Chưa vấp ngã lần nào. Sẽ có.</p>';
+  $('rules').innerHTML = rules(d).map(([t, s]) => `<div class="rule"><b>${esc(t)}</b><span>${esc(s)}</span></div>`).join('');
+}
+
+// Tab
+function openTab(id){
+  if (!document.querySelector(`[data-pane="${id}"]`)) id = 'viec';
+  try { localStorage.setItem('trau_tab', id); } catch {}
+  document.querySelectorAll('[data-tab]').forEach((b) => { const on = b.dataset.tab === id; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
+  document.querySelectorAll('[data-pane]').forEach((p) => (p.hidden = p.dataset.pane !== id));
+}
+document.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => openTab(b.dataset.tab)));
+let tab0 = 'viec'; try { tab0 = localStorage.getItem('trau_tab') || 'viec'; } catch {}
+openTab(tab0);
+
+// Ghi sổ nháp
+$('gNgay').value = today();
+$('ghi').onsubmit = (e) => {
+  e.preventDefault();
+  const soTien = Math.round(+$('gTien').value);
+  if (!(soTien > 0)) return toast('Nhập số tiền');
+  const a = loadDrafts();
+  a.push({ ngay: $('gNgay').value, loai: $('gLoai').value, soTien, ruong: $('gRuong').value, ghiChu: $('gNote').value.trim(), bangChung: $('gBc').value.trim() });
+  saveDrafts(a); $('gTien').value = ''; $('gNote').value = ''; $('gBc').value = '';
+  render(); toast('Đã ghi nháp');
+};
+$('xoaNhap').onclick = () => { if (!loadDrafts().length) return toast('Không có nháp'); if (confirm('Xoá hết khoản nháp trên máy này?')) { saveDrafts([]); render(); } };
+$('tai').onclick = () => {
+  const out = { ...D, so: [...D.so, ...loadDrafts()].sort((a, b) => a.ngay.localeCompare(b.ngay)) };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2) + '\n'], { type: 'application/json' }));
+  a.download = 'so-cai.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Đã tải so-cai.json, thay vào thư mục data/ rồi xoá nháp');
+};
+
+fetch('data/so-cai.json?t=' + Date.now()).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then((j) => { D = j; render(); setInterval(render, 60000); })
+  .catch((e) => { $('bubble').textContent = 'Không mở được sổ (' + e.message + ')'; });
+</script>
+</body>
+</html>
