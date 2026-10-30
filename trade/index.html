@@ -151,9 +151,6 @@
         <span>✈️</span> Cảnh Báo Biến Động Telegram Bot
         <span id="alertCounterBadge" class="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/40 mono">0</span>
       </button>
-      <button type="button" data-tab="tab-github" class="nav-tab-btn px-3.5 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1.5 transition">
-        <span>🚀</span> Push GitHub Pages &amp; Bot 24/7
-      </button>
     </div>
     <div class="max-w-[1600px] mx-auto px-3 sm:px-5 py-1.5 text-[11px] text-amber-300/90 border-t border-slate-900/80">⚠️ Giá thế giới lấy từ PAXG/USDT (Binance), giá BTMC là ước tính. Tín hiệu kỹ thuật và bot $20 chỉ là mô phỏng, không phải lời khuyên đầu tư.</div>
   </header>
@@ -1192,88 +1189,6 @@
 
           <div id="alertLogContainer" class="flex-1 space-y-2 max-h-[460px] overflow-y-auto pr-1">
             <!-- Populated by JS -->
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- TAB 4: GITHUB PAGES & 24/7 ACTIONS DEPLOY  -->
-    <!-- ========================================== -->
-    <section id="tab-github" class="tab-panel hidden space-y-4">
-      <div class="glass-card rounded-xl p-4 sm:p-5 space-y-4">
-        <div class="border-b border-slate-800 pb-3">
-          <h2 class="text-base sm:text-lg font-extrabold text-yellow-400">🚀 HƯỚNG DẪN PUSH LÊN GITHUB PAGES &amp; CHẠY BOT TELEGRAM 24/7</h2>
-          <p class="text-xs text-slate-300 mt-1">
-            Ứng dụng này được thiết kế chuẩn <strong>Single-File Zero-Dependency</strong>: bạn chỉ cần lưu file HTML này thành <code class="mono text-yellow-300">index.html</code> và đẩy lên GitHub repository là có ngay trang web theo dõi giá vàng real-time miễn phí 100%.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <!-- Step 1: GitHub Pages Commands -->
-          <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm font-bold text-emerald-400">1. Lệnh Git Push Lên GitHub Pages (Chạy Web Real-Time)</h3>
-              <button id="btnCopyGitCmds" type="button" class="px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-semibold hover:bg-emerald-500/30 transition">
-                📋 Copy Lệnh Git
-              </button>
-            </div>
-            <p class="text-xs text-slate-400">Tải file HTML của ứng dụng về máy, đổi tên thành <code class="mono text-slate-200">index.html</code> và chạy các lệnh sau:</p>
-            <pre id="gitCmdBlock" class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-[11px] mono text-emerald-300 overflow-x-auto leading-relaxed">mkdir gold-trader-terminal &amp;&amp; cd gold-trader-terminal
-# Copy file gold_trader_terminal.html vào thư mục này và đổi tên thành index.html
-mv ../gold_trader_terminal.html ./index.html
-
-git init
-git branch -M main
-git add index.html
-git commit -m "Deploy Real-Time Gold Trader Terminal &amp; BTMC Monitor"
-git remote add origin https://github.com/&lt;TEN_USER_CUA_BAN&gt;/gold-trader-terminal.git
-git push -u origin main
-# Sau đó vào Settings -&gt; Pages -&gt; Chọn Branch: main / (root) -&gt; Save!</pre>
-          </div>
-
-          <!-- Step 2: GitHub Actions 24/7 Serverless Telegram Alert -->
-          <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm font-bold text-sky-400">2. Cấu Hình GitHub Actions Chạy Ngầm Bắn Telegram 24/7</h3>
-              <button id="btnCopyGhAction" type="button" class="px-2.5 py-1 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-semibold hover:bg-sky-500/30 transition">
-                📋 Copy Workflow YAML
-              </button>
-            </div>
-            <p class="text-xs text-slate-400">Nếu muốn nhận báo cáo giá vàng &amp; tín hiệu RSI/MACD qua Telegram ngay cả khi tắt trình duyệt, tạo file <code class="mono text-slate-200">.github/workflows/gold_alert.yml</code>:</p>
-            <pre id="ghActionBlock" class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-[11px] mono text-sky-300 overflow-x-auto max-h-56 leading-relaxed">name: Gold Trader Telegram Alert
-on:
-  schedule:
-    - cron: '*/5 * * * *' # Quét tự động định kỳ trên GitHub Cloud
-  workflow_dispatch:
-
-jobs:
-  check_gold:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fetch XAU/USD Kliness &amp; Send Telegram Alert
-        env:
-          TG_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-        run: |
-          node -e '
-          (async () => {
-            const res = await fetch("https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&amp;interval=5m&amp;limit=30");
-            const klines = await res.json();
-            const closes = klines.map(k => parseFloat(k[4]));
-            const last = closes[closes.length - 1];
-            const prev = closes[closes.length - 2];
-            const diff = last - prev;
-            const msg = `🏆 *GOLD 5M UPDATE*\nGiá XAU/USD: *${last.toFixed(2)} USD/oz* (${diff >= 0 ? "+" : ""}${diff.toFixed(2)}$)\nBTMC 9999: *137.40 - 141.40 triệu/lượng*`;
-            if (process.env.TG_TOKEN &amp;&amp; process.env.TG_CHAT_ID) {
-              await fetch(`https://api.telegram.org/bot${process.env.TG_TOKEN}/sendMessage`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ chat_id: process.env.TG_CHAT_ID, text: msg, parse_mode: "Markdown" })
-              });
-            }
-          })();
-          '</pre>
           </div>
         </div>
       </div>
@@ -2364,8 +2279,8 @@ jobs:
         const bidEl = document.getElementById('xauBid');
         const askEl = document.getElementById('xauAsk');
         const hlEl = document.getElementById('xauHighLow');
-        if (bidEl) bidEl.textContent = formatUsd(state.currentXau - 0.15);
-        if (askEl) askEl.textContent = formatUsd(state.currentXau + 0.15);
+        if (bidEl) bidEl.textContent = formatUsd(state.bid || state.currentXau - 0.15);
+        if (askEl) askEl.textContent = formatUsd(state.ask || state.currentXau + 0.15);
         if (hlEl) hlEl.textContent = `${Math.round(state.high24hXau)} / ${Math.round(state.low24hXau)}`;
 
         // Order flow pressure
@@ -3247,11 +3162,25 @@ jobs:
         }
       }
 
+      // Gom tick: tính lại chỉ báo + vẽ biểu đồ tối đa 4 lần/giây để không giật
+      let pendingPx = null, tickTimer = null, lastTickAt = 0;
+      function queueTick(px) {
+        pendingPx = px;
+        if (tickTimer) return;
+        tickTimer = setTimeout(() => {
+          tickTimer = null;
+          const now = Date.now(), lbl = document.getElementById('tickSpeedLabel');
+          if (lbl && lastTickAt) lbl.textContent = `Tick: ${((now - lastTickAt) / 1000).toFixed(2)}s`;
+          lastTickAt = now;
+          if (Math.abs(pendingPx - state.currentXau) >= 0.005) applyNewPriceTick(pendingPx, false);
+        }, 250);
+      }
+
       function connectLiveWebSocket() {
         const badge = document.getElementById('wsStatusBadge');
         const text = document.getElementById('wsStatusText');
         try {
-          const ws = new WebSocket('wss://data-stream.binance.vision/ws/paxgusdt@trade');
+          const ws = new WebSocket('wss://data-stream.binance.vision/stream?streams=paxgusdt@trade/paxgusdt@bookTicker');
           ws.onopen = () => {
             state.wsConnected = true;
             if (text) text.textContent = 'LIVE WEBSOCKET (XAU/PAXG)';
@@ -3261,14 +3190,20 @@ jobs:
           };
           ws.onmessage = (event) => {
             try {
-              const data = JSON.parse(event.data);
-              const rawPaxg = parseFloat(data.p);
+              const msg = JSON.parse(event.data), data = msg.data || msg;
+              let rawPaxg;
+              if (data.b && data.a) {
+                // bookTicker: lấy giá giữa của giá chào mua và chào bán tốt nhất
+                state.bid = +data.b; state.ask = +data.a;
+                rawPaxg = (state.bid + state.ask) / 2;
+              } else {
+                rawPaxg = parseFloat(data.p);
+              }
               if (isFinite(rawPaxg) && rawPaxg > 1000) {
                 if (!state.realHistory && state.wsBasisOffset === 0) {
                   state.wsBasisOffset = state.currentXau - rawPaxg;
                 }
-                const calibratedXau = rawPaxg + state.wsBasisOffset;
-                applyNewPriceTick(calibratedXau, false);
+                queueTick(rawPaxg + state.wsBasisOffset);
               }
             } catch (e) {
               // Ignore parse error
@@ -3678,15 +3613,6 @@ jobs:
           state.simAccount.trailingEnabled = e.target.value === 'on';
         });
 
-        // GitHub Copy Buttons
-        document.getElementById('btnCopyGitCmds')?.addEventListener('click', () => {
-          const txt = document.getElementById('gitCmdBlock')?.textContent || '';
-          copyTextWithFallback(txt, 'Đã copy bộ lệnh đẩy GitHub Pages!');
-        });
-        document.getElementById('btnCopyGhAction')?.addEventListener('click', () => {
-          const txt = document.getElementById('ghActionBlock')?.textContent || '';
-          copyTextWithFallback(txt, 'Đã copy cấu hình GitHub Actions 24/7!');
-        });
       }
 
       // =========================================================================
