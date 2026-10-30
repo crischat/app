@@ -105,7 +105,7 @@
       <div class="flex flex-wrap items-center gap-2 sm:gap-4">
         <div id="topPriceBox" class="px-3 py-1 rounded-lg bg-slate-900/90 border border-slate-800 flex items-center gap-3 transition-colors">
           <div>
-            <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">XAU/USD (Spot)</div>
+            <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Vàng (PAXG <span id="hdrOffLbl">chưa hiệu chỉnh</span>)</div>
             <div class="flex items-baseline gap-1.5">
               <span id="headerXauPrice" class="mono text-lg sm:text-xl font-bold text-yellow-400">4,023.80</span>
               <span id="headerXauChange" class="mono text-xs font-semibold text-emerald-400">+0.00 (+0.00%)</span>
@@ -171,8 +171,15 @@
         <!-- Card 1: Live XAU/USD Feed -->
         <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Giá Vàng Thế Giới (XAU/USD)</span>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Giá Vàng (PAXG/Binance)</span>
             <span id="tickSpeedLabel" class="mono text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">Tick: 1.0s</span>
+          </div>
+          <div class="flex items-center gap-1.5 mt-2 text-[11px]">
+            <label for="brokerPxInput" class="text-slate-400 whitespace-nowrap">Giá GOLD trên MT5:</label>
+            <input id="brokerPxInput" type="number" step="0.01" inputmode="decimal" placeholder="4003.43" class="w-20 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 mono text-slate-200 focus:outline-none focus:border-yellow-500" />
+            <button id="btnBrokerSync" type="button" class="px-2 py-0.5 rounded bg-yellow-500 text-slate-950 font-bold">Khớp</button>
+            <button id="btnBrokerReset" type="button" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">Bỏ</button>
+            <span id="brokerOffLbl" class="mono text-slate-400 ml-auto whitespace-nowrap">lệch 0.00$</span>
           </div>
           <div class="my-2 flex items-baseline justify-between">
             <div>
@@ -1231,6 +1238,8 @@
         prevTickXau: BASE_ANCHOR_XAU,
         wsConnected: false,
         wsBasisOffset: 0,
+        brokerOffset: 0, // giá sàn MT5 − giá PAXG, người dùng tự khớp
+        rawPx: 0,
         activeTf: '5m',
         showEma: true,
         showBb: true,
@@ -1304,6 +1313,7 @@
             if (parsed.telegram) {
               Object.assign(state.telegram, parsed.telegram);
             }
+            if (isFinite(parsed.brokerOffset)) state.brokerOffset = Number(parsed.brokerOffset);
             if (parsed.usdVndRate) {
               state.usdVndRate = Number(parsed.usdVndRate) || 25850;
             }
@@ -1317,7 +1327,8 @@
         try {
           localStorage.setItem('gold_trader_pro_config_v1', JSON.stringify({
             telegram: state.telegram,
-            usdVndRate: state.usdVndRate
+            usdVndRate: state.usdVndRate,
+            brokerOffset: state.brokerOffset
           }));
         } catch (err) {
           // Ignore storage error
@@ -1402,7 +1413,8 @@
           const interval = tf.id === '3h' ? '1h' : tf.binanceInterval;
           const r = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=PAXGUSDT&interval=${interval}&limit=${90 * agg}`);
           if (!r.ok) throw new Error('HTTP ' + r.status);
-          const raw = (await r.json()).map((k) => ({ time: k[0], open: +k[1], high: +k[2], low: +k[3], close: +k[4], volume: Math.round(+k[5]) }));
+          const o = state.brokerOffset;
+          const raw = (await r.json()).map((k) => ({ time: k[0], open: +k[1] + o, high: +k[2] + o, low: +k[3] + o, close: +k[4] + o, volume: Math.round(+k[5]) }));
           const out = [];
           for (let i = raw.length % agg; i < raw.length; i += agg) {
             const g = raw.slice(i, i + agg);
@@ -1413,6 +1425,7 @@
         results.forEach(([id, c]) => { state.candlesByTf[id] = c; });
         const last = state.candlesByTf['1m'];
         state.currentXau = state.prevTickXau = last[last.length - 1].close;
+        state.rawPx = state.currentXau - state.brokerOffset;
         const day = state.candlesByTf['1d'];
         const d = day[day.length - 1];
         state.open24hXau = d.open; state.high24hXau = d.high; state.low24hXau = d.low;
@@ -2279,8 +2292,8 @@
         const bidEl = document.getElementById('xauBid');
         const askEl = document.getElementById('xauAsk');
         const hlEl = document.getElementById('xauHighLow');
-        if (bidEl) bidEl.textContent = formatUsd(state.bid || state.currentXau - 0.15);
-        if (askEl) askEl.textContent = formatUsd(state.ask || state.currentXau + 0.15);
+        if (bidEl) bidEl.textContent = formatUsd(state.bid ? state.bid + state.brokerOffset : state.currentXau - 0.15);
+        if (askEl) askEl.textContent = formatUsd(state.ask ? state.ask + state.brokerOffset : state.currentXau + 0.15);
         if (hlEl) hlEl.textContent = `${Math.round(state.high24hXau)} / ${Math.round(state.low24hXau)}`;
 
         // Order flow pressure
@@ -3162,6 +3175,22 @@
         }
       }
 
+      function setBrokerOffset(off) {
+        const d = off - state.brokerOffset;
+        state.brokerOffset = off;
+        Object.values(state.candlesByTf).forEach((arr) => arr.forEach((c) => { c.open += d; c.high += d; c.low += d; c.close += d; }));
+        ['currentXau', 'prevTickXau', 'open24hXau', 'high24hXau', 'low24hXau'].forEach((k) => { state[k] += d; });
+        saveConfig();
+        paintBrokerOffset();
+        applyNewPriceTick(state.currentXau, false);
+      }
+      function paintBrokerOffset() {
+        const o = state.brokerOffset, txt = `lệch ${o >= 0 ? '+' : ''}${o.toFixed(2)}$`;
+        const a = document.getElementById('brokerOffLbl'), b = document.getElementById('hdrOffLbl');
+        if (a) a.textContent = txt;
+        if (b) b.textContent = o ? `đã khớp MT5, ${txt}` : 'chưa hiệu chỉnh';
+      }
+
       // Gom tick: tính lại chỉ báo + vẽ biểu đồ tối đa 4 lần/giây để không giật
       let pendingPx = null, tickTimer = null, lastTickAt = 0;
       function queueTick(px) {
@@ -3200,10 +3229,11 @@
                 rawPaxg = parseFloat(data.p);
               }
               if (isFinite(rawPaxg) && rawPaxg > 1000) {
+                state.rawPx = rawPaxg;
                 if (!state.realHistory && state.wsBasisOffset === 0) {
                   state.wsBasisOffset = state.currentXau - rawPaxg;
                 }
-                queueTick(rawPaxg + state.wsBasisOffset);
+                queueTick(rawPaxg + state.wsBasisOffset + (state.realHistory ? state.brokerOffset : 0));
               }
             } catch (e) {
               // Ignore parse error
@@ -3618,6 +3648,19 @@
       // =========================================================================
       // 11. BOOTSTRAP
       // =========================================================================
+      function bindBrokerSync() {
+        document.getElementById('btnBrokerSync')?.addEventListener('click', () => {
+          const px = parseFloat(document.getElementById('brokerPxInput').value);
+          if (!isFinite(px) || !state.rawPx || Math.abs(px - state.rawPx) > 100) {
+            showToast('Khớp giá MT5', 'Nhập giá GOLD đang hiện trên MT5 (ví dụ 4003.43).', 'warning');
+            return;
+          }
+          setBrokerOffset(Number((px - state.rawPx).toFixed(2)));
+          showToast('Đã khớp giá MT5', `Mọi giá, Entry, SL, TP giờ theo giá sàn (lệch ${state.brokerOffset.toFixed(2)}$). Chênh lệch PAXG thay đổi theo thời gian, nên khớp lại vài giờ một lần.`, 'success');
+        });
+        document.getElementById('btnBrokerReset')?.addEventListener('click', () => setBrokerOffset(0));
+      }
+
       async function init() {
         loadSavedConfig();
         try {
@@ -3635,6 +3678,8 @@
         renderAlertLogs();
         checkVolatilityAlerts(null);
         drawTradingChart();
+        bindBrokerSync();
+        paintBrokerOffset();
         connectLiveWebSocket();
       }
 
