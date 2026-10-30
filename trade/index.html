@@ -477,6 +477,35 @@
         </div>
       </div>
 
+      <!-- GEMINI AI: PHÂN TÍCH LỆNH THEO YÊU CẦU (MỖI LẦN BẤM = 1 LẦN GỌI API) -->
+      <div class="glass-card rounded-xl p-4 border border-sky-500/40 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+          <div>
+            <h2 class="text-sm sm:text-base font-extrabold text-slate-100">🤖 Gemini phân tích lệnh</h2>
+            <p class="text-[11px] text-slate-400">Mỗi lần bấm gọi Gemini API 1 lần (tính tiền theo key của bạn). Gemini đọc nến 5m/15m/1h/1d và chỉ báo trên trang, không đọc được tin tức.</p>
+          </div>
+          <span id="aiModelLbl" class="mono text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">model: tự chọn</span>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs">
+          <label class="flex flex-col gap-1 text-slate-400">Giá GOLD trên MT5 *<input id="aiMt5Px" type="number" step="0.01" inputmode="decimal" placeholder="4003.43" class="bg-slate-950 border border-slate-700 rounded px-2 py-1.5 mono text-slate-100 focus:outline-none focus:border-sky-500" /></label>
+          <label class="flex flex-col gap-1 text-slate-400">Vốn tài khoản (USD)<input id="aiBalance" type="number" step="0.01" value="10" class="bg-slate-950 border border-slate-700 rounded px-2 py-1.5 mono text-slate-100 focus:outline-none focus:border-sky-500" /></label>
+          <label class="flex flex-col gap-1 text-slate-400">Lot<input id="aiLot" type="number" step="0.01" min="0.01" value="0.01" class="bg-slate-950 border border-slate-700 rounded px-2 py-1.5 mono text-slate-100 focus:outline-none focus:border-sky-500" /></label>
+          <label class="flex flex-col gap-1 text-slate-400">Rủi ro tối đa / lệnh<select id="aiRiskPct" class="bg-slate-950 border border-slate-700 rounded px-2 py-1.5 text-slate-100"><option value="5">5% vốn</option><option value="10" selected>10% vốn</option><option value="20">20% vốn</option><option value="30">30% vốn</option></select></label>
+          <label class="col-span-2 flex flex-col gap-1 text-slate-400">Lệnh đang mở (nếu có)<input id="aiOpenPos" maxlength="120" placeholder="SELL 0.01 @ 4003.31, chưa có SL" class="bg-slate-950 border border-slate-700 rounded px-2 py-1.5 text-slate-100 focus:outline-none focus:border-sky-500" /></label>
+        </div>
+        <div id="aiKeyRow" class="hidden flex flex-wrap items-center gap-2 text-xs">
+          <label for="aiKeyInput" class="text-amber-300">Chưa có Gemini API key:</label>
+          <input id="aiKeyInput" type="password" autocomplete="off" placeholder="AIza..." class="flex-1 min-w-[180px] bg-slate-950 border border-slate-700 rounded px-2 py-1.5 mono text-slate-100" />
+          <button id="aiKeySave" type="button" class="px-3 py-1.5 rounded bg-slate-700 text-slate-100 font-semibold">Lưu key</button>
+          <span class="text-slate-500">Lưu trên trình duyệt này, dùng chung với Master Data Pro.</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="aiAnalyzeBtn" type="button" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-sm">🔍 Phân tích ngay</button>
+          <span id="aiStatus" class="text-xs text-slate-400"></span>
+        </div>
+        <div id="aiResult" class="hidden"></div>
+      </div>
+
       <!-- MT5 CANDLE SIGNAL & ORDER TICKET ANALYZER (ENTRY / TP / SL / LOT / R:R) -->
       <div class="glass-card rounded-xl p-4 border border-yellow-500/40 shadow-lg shadow-yellow-500/5 space-y-3.5">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
@@ -3651,7 +3680,11 @@
       function bindBrokerSync() {
         document.getElementById('btnBrokerSync')?.addEventListener('click', () => {
           const px = parseFloat(document.getElementById('brokerPxInput').value);
-          if (!isFinite(px) || !state.rawPx || Math.abs(px - state.rawPx) > 100) {
+          if (!state.realHistory || !state.rawPx) {
+            showToast('Khớp giá MT5', 'Chưa lấy được giá thật từ Binance nên chưa khớp được. Tải lại trang.', 'danger');
+            return;
+          }
+          if (!isFinite(px) || Math.abs(px - state.rawPx) > 100) {
             showToast('Khớp giá MT5', 'Nhập giá GOLD đang hiện trên MT5 (ví dụ 4003.43).', 'warning');
             return;
           }
@@ -3659,6 +3692,172 @@
           showToast('Đã khớp giá MT5', `Mọi giá, Entry, SL, TP giờ theo giá sàn (lệch ${state.brokerOffset.toFixed(2)}$). Chênh lệch PAXG thay đổi theo thời gian, nên khớp lại vài giờ một lần.`, 'success');
         });
         document.getElementById('btnBrokerReset')?.addEventListener('click', () => setBrokerOffset(0));
+      }
+
+      // =========================================================================
+      // GEMINI: phân tích theo yêu cầu. Key dùng chung với Master Data Pro (localStorage md_settings).
+      // =========================================================================
+      const GEM_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+      const mdSettings = () => { try { return JSON.parse(localStorage.getItem('md_settings') || '{}'); } catch (e) { return {}; } };
+      const geminiKey = () => mdSettings().geminiKey || '';
+      const escHtml = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+      // Chọn mô hình mạnh nhất: Pro bản mới nhất (không preview), không có thì Flash
+      async function pickTradeModel(key) {
+        try { const m = localStorage.getItem('trade_gemini_model'); if (m) return m; } catch (e) {}
+        const r = await fetch(`${GEM_BASE}/models?pageSize=200`, { headers: { 'x-goog-api-key': key } });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error((j.error && j.error.message) || ('HTTP ' + r.status));
+        const ids = (j.models || []).filter((m) => (m.supportedGenerationMethods || []).includes('generateContent'))
+          .map((m) => m.name.replace(/^models\//, '')).filter((id) => /^gemini-/.test(id) && !/embedding|image|tts|audio|live|lite|robotics|computer|nano/.test(id));
+        const ver = (id) => { const m = id.match(/gemini-(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1]) : 0; };
+        const score = (id) => (/pro/.test(id) ? 100 : /flash/.test(id) ? 50 : 0) + ver(id) * 10 - (/preview|exp|\d{2}-\d{2}/.test(id) ? 5 : 0);
+        const best = ids.sort((a, b) => score(b) - score(a))[0];
+        if (!best) throw new Error('Key không có mô hình Gemini nào dùng được.');
+        try { localStorage.setItem('trade_gemini_model', best); } catch (e) {}
+        return best;
+      }
+
+      const AI_SCHEMA = {
+        type: 'OBJECT',
+        properties: {
+          huong: { type: 'STRING', enum: ['BUY', 'SELL', 'DUNG_NGOAI'] },
+          kieu_lenh: { type: 'STRING', enum: ['MARKET', 'LIMIT', 'STOP'] },
+          entry: { type: 'NUMBER' }, sl: { type: 'NUMBER' }, tp1: { type: 'NUMBER' }, tp2: { type: 'NUMBER' },
+          do_tin_cay: { type: 'STRING', enum: ['thap', 'trung_binh', 'cao'] },
+          xu_huong: { type: 'STRING' },
+          ly_do: { type: 'ARRAY', items: { type: 'STRING' } },
+          vo_hieu_khi: { type: 'STRING' },
+          lenh_dang_mo: { type: 'STRING' },
+          canh_bao: { type: 'STRING' }
+        },
+        required: ['huong', 'do_tin_cay', 'xu_huong', 'ly_do', 'canh_bao']
+      };
+
+      const AI_SYSTEM = `Bạn là nhà phân tích kỹ thuật vàng (XAU/USD) thận trọng, chuyên giao dịch ngắn hạn trên MT5.
+Bạn nhận: giá hiện tại của sàn, nến OHLC các khung 5m/15m/1h/1d (đã quy đổi về giá sàn), chỉ báo đã tính sẵn, vốn, lot, mức rủi ro tối đa cho phép và lệnh đang mở (nếu có).
+Quy tắc bắt buộc:
+- Chỉ dựa trên dữ liệu được đưa. Bạn không có tin tức hay lịch kinh tế, phải nói rõ điều đó trong canh_bao.
+- Xu hướng khung lớn (1h, 1d) quan trọng hơn khung nhỏ. Không đuổi theo giá sau chuỗi nến dài, cân nhắc lệnh LIMIT chờ hồi về hỗ trợ/kháng cự.
+- SL đặt theo cấu trúc (sau đỉnh/đáy gần nhất) và ATR, không đặt quá sát. Với 1 lot = 100 oz, tiền lỗ khi chạm SL = |entry − sl| × lot × 100 USD, và PHẢI nhỏ hơn hoặc bằng mức rủi ro tối đa cho phép. Nếu không đặt được SL hợp lý trong giới hạn đó thì trả DUNG_NGOAI.
+- TP1 tối thiểu bằng 1 lần khoảng cách SL, TP2 ở vùng cản tiếp theo.
+- Tín hiệu mâu thuẫn hoặc không rõ thì trả DUNG_NGOAI. Đứng ngoài là kết quả tốt, không phải thất bại.
+- Có lệnh đang mở thì nhận xét riêng trong lenh_dang_mo: nên đặt SL/TP ở đâu, hay đóng sớm.
+- Không hứa hẹn tỷ lệ thắng. Giá trị entry/sl/tp là số giá, làm tròn 2 chữ số.
+Trả về JSON đúng schema. Viết tiếng Việt, mỗi lý do 1 câu ngắn có số liệu.`;
+
+      function buildAiContext() {
+        const pick = (tf, n) => (state.candlesByTf[tf] || []).slice(-n).map((c) => [new Date(c.time).toISOString().slice(5, 16).replace('T', ' '), +c.open.toFixed(2), +c.high.toFixed(2), +c.low.toFixed(2), +c.close.toFixed(2)]);
+        const ind = (tf) => {
+          const a = state.analysisByTf[tf]; if (!a) return null;
+          const r = (x) => (isFinite(x) ? +Number(x).toFixed(2) : null);
+          return { diem_tong_hop: a.score, rsi14: r(a.rsi), ema9: r(a.ema9), ema21: r(a.ema21), ema50: r(a.ema50), macd_hist: r(a.macdHist), bb_tren: r(a.bbUpper), bb_giua: r(a.bbMid), bb_duoi: r(a.bbLower), atr14: r(a.atr), pivot: r(a.pivotP), r1: r(a.r1), r2: r(a.r2), s1: r(a.s1), s2: r(a.s2), mo_hinh_nen: a.candlePattern };
+        };
+        const bal = +document.getElementById('aiBalance').value || 10, lot = +document.getElementById('aiLot').value || 0.01, riskPct = +document.getElementById('aiRiskPct').value || 10;
+        return {
+          bal, lot, riskPct,
+          ctx: {
+            thoi_gian_vn: new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
+            gia_san_hien_tai: +state.currentXau.toFixed(2),
+            bid: state.bid ? +(state.bid + state.brokerOffset).toFixed(2) : null,
+            ask: state.ask ? +(state.ask + state.brokerOffset).toFixed(2) : null,
+            von_usd: bal, lot, rui_ro_toi_da_usd: +(bal * riskPct / 100).toFixed(2),
+            lenh_dang_mo: document.getElementById('aiOpenPos').value.trim() || 'không có',
+            chi_bao: { '5m': ind('5m'), '15m': ind('15m'), '1h': ind('1h'), '1d': ind('1d') },
+            nen_ohlc: { '5m (48 nến)': pick('5m', 48), '15m (32 nến)': pick('15m', 32), '1h (48 nến)': pick('1h', 48), '1d (20 nến)': pick('1d', 20) }
+          }
+        };
+      }
+
+      function renderAiResult(o, meta) {
+        const box = document.getElementById('aiResult');
+        const fx = (v) => (isFinite(v) ? formatUsd(v) : '--');
+        const dirCls = o.huong === 'BUY' ? 'text-emerald-400' : o.huong === 'SELL' ? 'text-rose-400' : 'text-slate-300';
+        const dirTxt = o.huong === 'DUNG_NGOAI' ? 'ĐỨNG NGOÀI' : `${o.huong} ${o.kieu_lenh || ''}`;
+        let riskHtml = '', bad = '';
+        if (o.huong !== 'DUNG_NGOAI' && isFinite(o.entry) && isFinite(o.sl)) {
+          const ok = o.huong === 'BUY' ? o.sl < o.entry && (!isFinite(o.tp1) || o.tp1 > o.entry) : o.sl > o.entry && (!isFinite(o.tp1) || o.tp1 < o.entry);
+          if (!ok) bad = '<div class="text-rose-400 font-bold">⚠️ SL/TP nằm sai phía so với Entry. Đừng dùng kết quả này, bấm phân tích lại.</div>';
+          const loss = Math.abs(o.entry - o.sl) * meta.lot * 100, win1 = isFinite(o.tp1) ? Math.abs(o.tp1 - o.entry) * meta.lot * 100 : 0;
+          const pct = loss / meta.bal * 100;
+          riskHtml = `<div class="mono text-xs ${pct > meta.riskPct + 0.5 ? 'text-rose-400 font-bold' : 'text-slate-300'}">Chạm SL: −${loss.toFixed(2)}$ (${pct.toFixed(0)}% vốn) · Chạm TP1: +${win1.toFixed(2)}$${pct > meta.riskPct + 0.5 ? ' · VƯỢT mức rủi ro bạn chọn' : ''}</div>`;
+        }
+        box.innerHTML = `
+          <div class="rounded-xl bg-slate-900/90 border border-slate-800 p-3 space-y-2">
+            <div class="flex flex-wrap items-baseline gap-3">
+              <span class="text-xl font-black ${dirCls}">${escHtml(dirTxt)}</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300">Độ tin cậy: ${escHtml({ thap: 'thấp', trung_binh: 'trung bình', cao: 'cao' }[o.do_tin_cay] || o.do_tin_cay)}</span>
+              <span class="text-xs text-slate-400">${escHtml(o.xu_huong)}</span>
+            </div>
+            ${o.huong !== 'DUNG_NGOAI' ? `<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mono text-sm">
+              <div class="p-2 rounded bg-slate-950 border border-slate-800"><div class="text-[10px] text-slate-400">ENTRY</div><b class="text-white">${fx(o.entry)}</b></div>
+              <div class="p-2 rounded bg-rose-500/10 border border-rose-500/30"><div class="text-[10px] text-rose-300">SL</div><b class="text-rose-400">${fx(o.sl)}</b></div>
+              <div class="p-2 rounded bg-emerald-500/10 border border-emerald-500/30"><div class="text-[10px] text-emerald-300">TP1</div><b class="text-emerald-400">${fx(o.tp1)}</b></div>
+              <div class="p-2 rounded bg-emerald-500/10 border border-emerald-500/30"><div class="text-[10px] text-emerald-300">TP2</div><b class="text-emerald-300">${fx(o.tp2)}</b></div>
+            </div>${riskHtml}` : ''}
+            ${bad}
+            <ul class="list-disc pl-5 text-xs text-slate-300 space-y-0.5">${(o.ly_do || []).map((l) => `<li>${escHtml(l)}</li>`).join('')}</ul>
+            ${o.vo_hieu_khi ? `<div class="text-xs text-amber-300">❌ Sai khi: ${escHtml(o.vo_hieu_khi)}</div>` : ''}
+            ${o.lenh_dang_mo ? `<div class="text-xs text-sky-300">📌 Lệnh đang mở: ${escHtml(o.lenh_dang_mo)}</div>` : ''}
+            <div class="text-[11px] text-slate-500">⚠️ ${escHtml(o.canh_bao)}</div>
+            <div class="text-[10px] text-slate-500 mono">${escHtml(meta.model)} · ${escHtml(meta.at)} · giá sàn lúc gọi ${formatUsd(meta.px)} · không phải lời khuyên đầu tư</div>
+          </div>`;
+        box.classList.remove('hidden');
+      }
+
+      async function runAiAnalysis() {
+        const btn = document.getElementById('aiAnalyzeBtn'), st = document.getElementById('aiStatus');
+        const key = geminiKey();
+        if (!key) { document.getElementById('aiKeyRow').classList.remove('hidden'); st.textContent = 'Nhập Gemini API key trước.'; return; }
+        if (!state.realHistory) { st.textContent = 'Chưa có nến thật từ Binance, không phân tích trên dữ liệu giả lập.'; return; }
+        const px = parseFloat(document.getElementById('aiMt5Px').value);
+        if (!isFinite(px) || Math.abs(px - state.rawPx) > 100) { st.textContent = 'Nhập giá GOLD đang hiện trên MT5 để SL/TP theo đúng giá sàn.'; document.getElementById('aiMt5Px').focus(); return; }
+        setBrokerOffset(Number((px - state.rawPx).toFixed(2)));
+        btn.disabled = true; btn.classList.add('opacity-60');
+        const t0 = Date.now(), tick = setInterval(() => { st.textContent = `Gemini đang phân tích... ${Math.round((Date.now() - t0) / 1000)}s`; }, 500);
+        try {
+          const model = await pickTradeModel(key);
+          document.getElementById('aiModelLbl').textContent = 'model: ' + model;
+          const { bal, lot, riskPct, ctx } = buildAiContext();
+          const body = {
+            systemInstruction: { parts: [{ text: AI_SYSTEM }] },
+            contents: [{ role: 'user', parts: [{ text: 'Dữ liệu (JSON):\n' + JSON.stringify(ctx) }] }],
+            generationConfig: { maxOutputTokens: 12000, responseMimeType: 'application/json', responseSchema: AI_SCHEMA }
+          };
+          const r = await fetch(`${GEM_BASE}/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(body) });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) {
+            if (r.status === 404) { try { localStorage.removeItem('trade_gemini_model'); } catch (e) {} }
+            throw new Error(r.status === 429 ? 'Vượt hạn mức Gemini API (429), thử lại sau.' : ((j.error && j.error.message) || ('HTTP ' + r.status)));
+          }
+          const cand = (j.candidates || [])[0] || {};
+          const text = ((cand.content && cand.content.parts) || []).filter((x) => x.text && !x.thought).map((x) => x.text).join('');
+          if (!text) throw new Error('Gemini trả về rỗng' + (cand.finishReason ? ' (' + cand.finishReason + ')' : ''));
+          renderAiResult(JSON.parse(text), { model: j.modelVersion || model, at: new Date().toLocaleTimeString('vi-VN'), px: ctx.gia_san_hien_tai, bal, lot, riskPct });
+          const u = j.usageMetadata || {};
+          st.textContent = `Xong sau ${((Date.now() - t0) / 1000).toFixed(1)}s · ${u.totalTokenCount || '?'} token`;
+        } catch (err) {
+          st.textContent = 'Lỗi: ' + err.message;
+        } finally {
+          clearInterval(tick); btn.disabled = false; btn.classList.remove('opacity-60');
+        }
+      }
+
+      function bindAiPanel() {
+        if (!geminiKey()) document.getElementById('aiKeyRow').classList.remove('hidden');
+        document.getElementById('aiKeySave')?.addEventListener('click', () => {
+          const k = document.getElementById('aiKeyInput').value.trim();
+          if (k.length < 20) return showToast('Gemini key', 'Key không hợp lệ.', 'warning');
+          const cur = mdSettings(); cur.geminiKey = k; delete cur.geminiModels;
+          try { localStorage.setItem('md_settings', JSON.stringify(cur)); localStorage.removeItem('trade_gemini_model'); } catch (e) {}
+          document.getElementById('aiKeyInput').value = '';
+          document.getElementById('aiKeyRow').classList.add('hidden');
+          showToast('Gemini key', 'Đã lưu key trên trình duyệt này.', 'success');
+        });
+        document.getElementById('aiAnalyzeBtn')?.addEventListener('click', runAiAnalysis);
+        const bp = document.getElementById('brokerPxInput'), ap = document.getElementById('aiMt5Px');
+        ap?.addEventListener('input', () => { if (bp) bp.value = ap.value; });
+        bp?.addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('btnBrokerSync').click(); });
       }
 
       async function init() {
@@ -3679,6 +3878,7 @@
         checkVolatilityAlerts(null);
         drawTradingChart();
         bindBrokerSync();
+        bindAiPanel();
         paintBrokerOffset();
         connectLiveWebSocket();
       }
