@@ -1,0 +1,1724 @@
+<!doctype html>
+<html lang="vi" class="l-vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Nguyễn Hoài Luận · Portfolio</title>
+<meta name="description" content="Nguyễn Hoài Luận (Cris), hơn 5 năm làm kho tại TTI Việt Nam. Báo cáo Power BI, công cụ Excel VBA, Power Automate và web app cho công việc kho.">
+<meta property="og:title" content="Nguyễn Hoài Luận · Warehouse Data & Process">
+<meta property="og:description" content="Power BI reports, Excel VBA tools and web apps built for warehouse work, with demos you can try.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://crischat.github.io/app/portfolio/">
+<meta property="og:image" content="https://crischat.github.io/app/portfolio/avatar.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23111B3A'/%3E%3Crect x='7' y='17' width='4' height='8' fill='%23DDE31C'/%3E%3Crect x='14' y='11' width='4' height='14' fill='%23DDE31C'/%3E%3Crect x='21' y='6' width='4' height='19' fill='%23DDE31C'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<script>
+(function(){
+  var r=document.documentElement,lang=null,theme=null;
+  try{lang=new URLSearchParams(location.search).get('lang')||localStorage.getItem('pf_lang');theme=localStorage.getItem('pf_theme')}catch(e){}
+  if(lang!=='vi'&&lang!=='en'){lang=(navigator.language||'').toLowerCase().indexOf('vi')===0?'vi':'en'}
+  r.className='l-'+lang;r.lang=lang;
+  if(theme==='dark'||theme==='light'){r.setAttribute('data-theme',theme)}
+})();
+</script>
+<style>
+/* Layout: navy suit and report lime. Full-bleed navy hero with portrait, a live report viewer as the centerpiece, light working sections between. */
+:root{
+  --bg:#F3F4EE;--surface:#FFFFFF;--surface2:#E8EAE0;--line:#D4D7CA;
+  --fg:#121B36;--fg2:#4C5469;--accent:#1D4FB2;--accent-soft:#DFE8F9;
+  --navy:#111B3A;--navy2:#1A2650;--navy-line:#33406B;--on-navy:#F2F4FA;--on-navy2:#B4BDD4;
+  --lime:#DDE31C;--lime-ink:#111B3A;
+  --bad:#B72C1B;--bad-soft:#FBE4E0;--warn:#8F5A00;--warn-soft:#FFF0C7;--ok:#0F6E48;--ok-soft:#D9F2E5;
+  --f-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --f-body:'Be Vietnam Pro','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono',Consolas,'Courier New',monospace;
+  --h0:#D9E5F7;--h1:#A3C2EC;--h2:#6197DF;--h3:#2467C5;--h4:#0C3F8E;
+  --i0:#121B36;--i1:#121B36;--i2:#121B36;--i3:#FFFFFF;--i4:#FFFFFF;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B1226;--surface:#141D39;--surface2:#1D2949;--line:#2E3B60;
+  --fg:#EDF0F7;--fg2:#AEB7CC;--accent:#DDE31C;--accent-soft:#2A3350;
+  --navy:#0F1834;--navy2:#1A2650;
+  --bad:#FF9383;--bad-soft:#47201B;--warn:#FFD265;--warn-soft:#3F3010;--ok:#66D8A5;--ok-soft:#113A2A;
+  --h0:#1B3355;--h1:#23508F;--h2:#2F71C9;--h3:#6AA2F1;--h4:#B9D4FB;
+  --i0:#EDF0F7;--i1:#EDF0F7;--i2:#FFFFFF;--i3:#0B1226;--i4:#0B1226;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1226;--surface:#141D39;--surface2:#1D2949;--line:#2E3B60;
+  --fg:#EDF0F7;--fg2:#AEB7CC;--accent:#DDE31C;--accent-soft:#2A3350;
+  --navy:#0F1834;--navy2:#1A2650;
+  --bad:#FF9383;--bad-soft:#47201B;--warn:#FFD265;--warn-soft:#3F3010;--ok:#66D8A5;--ok-soft:#113A2A;
+  --h0:#1B3355;--h1:#23508F;--h2:#2F71C9;--h3:#6AA2F1;--h4:#B9D4FB;
+  --i0:#EDF0F7;--i1:#EDF0F7;--i2:#FFFFFF;--i3:#0B1226;--i4:#0B1226;
+  color-scheme:dark}
+:root[data-theme="light"]{color-scheme:light}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 16px/1.7 var(--f-body);overflow-x:hidden}
+html.l-vi .en,html.l-en .vi{display:none!important}
+a{color:var(--accent);text-underline-offset:3px}
+h1,h2,h3,h4,p,ul,ol,dl,dd,figure{margin:0;padding:0}
+ul,ol{list-style:none}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:3px}
+.wrap{max-width:1200px;margin-inline:auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.label{font:500 12px/1.4 var(--f-mono);letter-spacing:.04em;color:var(--fg2)}
+#progress{position:fixed;left:0;top:0;height:3px;width:100%;background:var(--lime);transform:scaleX(0);transform-origin:0 50%;z-index:50}
+
+/* Top bar */
+.top{position:sticky;top:0;z-index:30;background:var(--navy);color:var(--on-navy);border-bottom:1px solid var(--navy-line)}
+.top .wrap{display:flex;align-items:center;gap:18px;min-height:60px;padding-block:8px}
+.brand{display:flex;align-items:center;gap:10px;font:800 19px/1 var(--f-display);color:var(--on-navy);text-decoration:none;white-space:nowrap}
+.brand img{width:34px;height:34px;border-radius:50%;object-fit:cover;object-position:50% 12%;border:2px solid var(--lime)}
+.nav{display:flex;gap:20px;margin-left:auto}
+.nav a{font-size:14px;font-weight:500;color:var(--on-navy2);text-decoration:none;white-space:nowrap;position:relative;padding-block:4px}
+.nav a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--lime);transform:scaleX(0);transform-origin:0 50%;transition:transform .25s}
+.nav a:hover{color:var(--on-navy)}
+.nav a:hover::after{transform:scaleX(1)}
+.ctl{display:flex;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--navy-line);border-radius:999px;padding:2px}
+.seg button{border:0;background:transparent;color:var(--on-navy2);padding:5px 12px;font:700 12.5px/1.2 var(--f-mono);border-radius:999px;transition:background .2s,color .2s}
+.seg button[aria-pressed="true"]{background:var(--lime);color:var(--lime-ink)}
+.theme-btn{width:34px;height:34px;border:1px solid var(--navy-line);border-radius:50%;background:transparent;display:grid;place-items:center;padding:0}
+.theme-btn svg{width:15px;height:15px;fill:var(--on-navy)}
+
+/* Hero */
+.hero{position:relative;background:var(--navy);color:var(--on-navy);overflow:hidden}
+.hero .wrap{position:relative;z-index:2}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.85fr);gap:clamp(30px,5vw,70px);align-items:center;padding-block:clamp(44px,6vw,80px) clamp(70px,8vw,110px)}
+.hero h1{font:800 clamp(42px,6.2vw,80px)/1.1 var(--f-display);letter-spacing:-.015em;text-wrap:balance}
+.hero h1 mark{background:none;color:var(--lime)}
+.hero h1 .w{display:inline-block}
+.role{display:inline-flex;align-items:center;gap:9px;font:500 13.5px/1.4 var(--f-mono);color:var(--on-navy2);margin-bottom:20px}
+.role i{flex:none;width:9px;height:9px;border-radius:50%;background:var(--lime);animation:pulse 2.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(221,227,28,.55)}80%,100%{box-shadow:0 0 0 11px rgba(221,227,28,0)}}
+.lead{margin-top:22px;font-size:clamp(16.5px,1.5vw,19px);line-height:1.7;max-width:58ch;color:var(--on-navy2)}
+.lead strong{color:var(--on-navy);font-weight:600}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:13px 21px;border-radius:999px;font-weight:600;font-size:15px;line-height:1.3;text-decoration:none;border:2px solid var(--lime);background:var(--lime);color:var(--lime-ink);transition:transform .2s,background .2s,color .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn.alt{background:transparent;color:var(--on-navy)}
+.btn.alt:hover{background:var(--lime);color:var(--lime-ink)}
+
+.pic{position:relative;max-width:440px;width:100%;margin-inline:auto;justify-self:center}
+.pic::before{content:"";position:absolute;inset:26px -18px -18px 24px;background:var(--lime);border-radius:220px 220px 24px 24px}
+.pic img{position:relative;width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 0;border-radius:220px 220px 24px 24px}
+.float{position:absolute;background:#FFFFFF;color:#121B36;border-radius:12px;padding:9px 13px;box-shadow:0 12px 30px rgba(6,12,32,.34);animation:bob 5s ease-in-out infinite;min-width:128px;will-change:transform}
+.float b,.float b span{display:block;font:800 23px/1.15 var(--f-display);color:#121B36}
+.float span{display:block;font-size:11.5px;line-height:1.35;color:#4C5469}
+.float.a{left:-44px;top:21%}
+.float.b{right:-38px;top:44%;animation-delay:-1.6s}
+.float.c{left:-30px;bottom:8%;animation-delay:-3.2s}
+@keyframes bob{50%{translate:0 -9px}}
+.bars{position:absolute;left:0;right:0;bottom:0;height:min(150px,20vw);display:flex;align-items:flex-end;gap:.55%;z-index:1;opacity:.34;pointer-events:none}
+.bars i{flex:1;background:linear-gradient(to top,var(--navy2),#42558F);border-radius:3px 3px 0 0;transform-origin:50% 100%}
+
+/* Marquee */
+.ticker{background:var(--lime);color:var(--lime-ink);overflow:hidden;white-space:nowrap;padding-block:11px;font:700 14px/1.2 var(--f-mono)}
+.ticker div{display:inline-block;animation:slide 34s linear infinite}
+.ticker:hover div{animation-play-state:paused}
+.ticker span{margin-right:38px}
+.ticker span::after{content:"/";margin-left:38px;opacity:.4}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* Sections */
+section{padding-block:clamp(54px,7.5vw,96px)}
+.sec-head{max-width:760px;margin-bottom:clamp(26px,4vw,42px)}
+.sec-head h2{font:800 clamp(34px,4.6vw,56px)/1.14 var(--f-display);letter-spacing:-.01em;text-wrap:balance}
+.sec-head p{margin-top:12px;color:var(--fg2);font-size:17px;max-width:64ch}
+
+/* Before and after */
+.ruler-box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px clamp(14px,3vw,28px) 16px;margin-bottom:26px}
+.ruler-head{display:flex;justify-content:space-between;gap:4px 20px;flex-wrap:wrap;align-items:baseline;margin-bottom:4px}
+.ruler-head h3{font:700 20px/1.3 var(--f-display)}
+.ruler-head p{font-size:14px;color:var(--fg2)}
+.ruler-scroll{overflow-x:auto;padding-inline:24px}
+.ruler{position:relative;height:112px;min-width:520px}
+.ruler .base{position:absolute;left:0;right:0;top:64px;height:8px;border-radius:9px;background:var(--surface2)}
+.ruler .gain{position:absolute;top:64px;height:8px;left:37.5%;width:50%;background:var(--lime);box-shadow:inset 0 0 0 1px rgba(17,27,58,.3);transform-origin:100% 50%}
+.tick{position:absolute;top:75px;transform:translateX(-50%);font:500 12.5px/1.2 var(--f-mono);color:var(--fg2);text-align:center}
+.tick::before{content:"";display:block;width:1px;height:8px;background:var(--fg2);margin:0 auto 4px}
+.mark{position:absolute;top:2px;transform:translateX(-50%);font:700 12px/1.3 var(--f-mono);text-align:center;width:126px}
+.mark::after{content:"";display:block;width:2px;height:20px;margin:3px auto 0;background:currentColor}
+.mark.old{color:var(--bad)}.mark.cut{color:var(--fg2)}.mark.new{color:var(--ok)}
+.ledger{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.lc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:19px 21px;transition:transform .25s,border-color .25s}
+.lc:hover{transform:translateY(-3px);border-color:var(--fg2)}
+.lc:first-child{grid-column:1/-1}
+.lc h3{font-size:16.5px;font-weight:600;line-height:1.4}
+.ba{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center;margin-top:12px}
+.ba .b4{font:500 14px/1.45 var(--f-mono);color:var(--fg2)}
+.ba .af{font:700 15px/1.45 var(--f-mono);color:var(--ok)}
+.ba svg{width:26px;height:12px;stroke:var(--fg2);fill:none;stroke-width:1.6}
+.lc p{font-size:14px;color:var(--fg2);margin-top:10px;line-height:1.55}
+.dots-compare{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,4fr);gap:22px;margin-top:14px;align-items:end}
+.dots-compare .label{display:block;margin-bottom:6px}
+.dots{display:grid;gap:2px}
+.dots.few{grid-template-columns:repeat(10,minmax(0,1fr))}
+.dots.many{grid-template-columns:repeat(50,minmax(0,1fr))}
+.dots i{aspect-ratio:1;background:var(--fg2);border-radius:50%;opacity:.8}
+.dots.many i{background:var(--ok);opacity:1}
+
+/* BI viewer */
+.bi{background:var(--navy);color:var(--on-navy)}
+.bi .sec-head p{color:var(--on-navy2)}
+.bi a{color:var(--lime)}
+/* Report viewer keeps one light look, like a Power BI file, in both themes */
+.canvas{--c-bg:#F3F4EE;--c-card:#FFFFFF;--c-line:#E2E4D8;--c-ink:#1C2333;--c-mute:#667086;
+  display:grid;grid-template-columns:186px minmax(0,1fr);background:var(--c-bg);color:var(--c-ink);border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(4,8,24,.45)}
+.rail{background:#0A1230;padding:12px 8px;max-height:780px;overflow-y:auto;scrollbar-width:none;position:relative}
+.rail::-webkit-scrollbar{display:none}
+.rg+.rg{margin-top:10px}
+.rg h4{font:700 10.5px/1.3 var(--f-mono);color:#8E99B8;padding:4px 8px;letter-spacing:.02em}
+.rbtn{display:block;width:100%;text-align:left;border:0;background:transparent;color:#C8D0E4;font-size:13px;line-height:1.3;padding:6px 8px;border-radius:5px;transition:background .2s,color .2s}
+.rbtn:hover{background:#1A2650;color:#fff}
+.rbtn[aria-selected="true"]{background:var(--ac);color:var(--ink);font-weight:600}
+.rep{min-width:0;min-height:720px;display:flex;flex-direction:column}
+.c-head{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:flex-end;justify-content:space-between;padding:12px 16px}
+.c-head small{display:block;font:500 11.5px/1.3 var(--f-mono);opacity:.85}
+.c-head h3{font:800 25px/1.2 var(--f-display)}
+.c-head>span{font:500 11.5px/1.4 var(--f-mono)}
+.c-body{padding:14px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;align-content:start}
+.c-w{background:var(--c-card);border:1px solid var(--c-line);border-radius:9px;padding:11px 13px;min-width:0}
+.s3{grid-column:span 3}.s4{grid-column:span 4}.s5{grid-column:span 5}.s6{grid-column:span 6}.s7{grid-column:span 7}.s8{grid-column:span 8}.s12{grid-column:span 12}
+.c-w h4{font-size:13.5px;font-weight:600;line-height:1.35;margin-bottom:7px}
+.c-w svg{display:block;width:100%;height:auto;overflow:visible}
+.c-w text{font-family:var(--f-mono);fill:var(--c-mute)}
+.c-k b{display:block;font:800 clamp(25px,2.8vw,36px)/1.12 var(--f-display);font-variant-numeric:tabular-nums}
+.c-k>span{display:block;font-size:12.5px;line-height:1.35;color:var(--c-mute)}
+.c-k em{font:700 11.5px/1.3 var(--f-mono);font-style:normal;display:block;margin-top:3px}
+.c-k em.up{color:#0F6E48}.c-k em.dn{color:#C62828}
+.c-k .spark{margin-top:7px;max-height:42px}
+.c-k.dark{background:#111B3A;border-color:#111B3A;color:#F2F4FA}
+.c-k.dark>span{color:#B4BDD4}.c-k.dark em.up{color:#DDE31C}
+.c-legend{display:flex;flex-wrap:wrap;gap:3px 12px;font-size:11.5px;color:var(--c-mute);margin-top:6px}
+.c-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.c-why{background:#111B3A;border-color:#111B3A;color:#F2F4FA;font-size:13.5px;line-height:1.55}
+.c-why b{color:#DDE31C;font-weight:600}
+.c-tw{overflow-x:auto}
+.c-t{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.c-t th{font:700 11px/1.3 var(--f-mono);color:var(--c-mute);text-align:left;padding:6px 7px;border-bottom:2px solid var(--c-line);white-space:nowrap}
+.c-t td{padding:7px;border-bottom:1px solid var(--c-line);white-space:nowrap}
+.c-t .r{text-align:right}
+.c-t .tot td{font-weight:700;background:var(--c-bg);border-bottom:0}
+.cb{display:inline-block;width:64px;height:8px;background:#EEF0E7;border-radius:4px;overflow:hidden;margin-right:7px;vertical-align:0}
+.cb i{display:block;height:100%}
+.pill{font:700 11px/1 var(--f-mono);padding:4px 7px;border-radius:4px;white-space:nowrap}
+.pill.ok{background:#D9F2E5;color:#0F6E48}.pill.warn{background:#FFF0C7;color:#8F5A00}.pill.bad{background:#FBE4E0;color:#B72C1B}
+.pbs{display:grid;gap:10px}
+.pbl{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;margin-bottom:4px}
+.pbl b{font-weight:600}
+.pbl span{font:700 12px/1.5 var(--f-mono)}
+.pbt{position:relative;height:10px;border-radius:5px;background:#EEF0E7}
+.pbt.tall{height:15px}
+.pbt i{display:block;height:100%;border-radius:5px}
+.pbt u{position:absolute;top:-3px;bottom:-3px;width:3px;background:#1C2333;border-radius:2px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.cal em{font:700 10.5px/1 var(--f-mono);font-style:normal;color:var(--c-mute);text-align:center;padding:3px 0 5px}
+.cal b{display:grid;place-items:center;aspect-ratio:1.35;font:500 11.5px/1 var(--f-mono);background:#EEF0E7;border-radius:4px}
+.cal b.ok{background:#128F76;color:#fff}.cal b.warn{background:#D98E04;color:#fff}.cal b.bad{background:#C62828;color:#fff}
+.rings{display:flex;flex-wrap:wrap;gap:12px 6px;justify-content:space-around}
+.rings>div{flex:1 1 78px;max-width:118px;text-align:center}
+.rings svg{max-width:92px;margin:auto}
+.rings span{display:block;font-size:12px;line-height:1.3;color:var(--c-mute);margin-top:4px}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px}
+.board>div{background:var(--c-bg);border-radius:7px;padding:9px 10px;min-width:0}
+.board h5{margin:0;font-size:12.5px;font-weight:600;color:var(--c-mute)}
+.board b{display:block;font:800 25px/1.2 var(--f-display)}
+.board p{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+.board i{width:9px;height:9px;border-radius:2px;display:block}
+.bi-index{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 32px;margin-top:40px;border-top:1px solid var(--navy-line);padding-top:26px}
+.bi-index h3{font:700 19px/1.3 var(--f-display)}
+.bi-index small{display:block;font:500 12px/1.4 var(--f-mono);color:var(--on-navy2);margin:2px 0 9px}
+.pgs{display:flex;flex-wrap:wrap;gap:5px}
+.pgs li{font-size:12.5px;line-height:1.3;padding:5px 9px;border:1px solid var(--navy-line);border-radius:5px;color:var(--on-navy2)}
+
+/* Power Automate */
+.bi-note{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 14px;align-items:start;background:var(--lime);color:var(--lime-ink);border-radius:12px;padding:13px 16px;margin-bottom:18px;font-size:14.5px;line-height:1.55}
+.bi-note b{font:700 12px/1.3 var(--f-mono);border:1.5px solid var(--lime-ink);border-radius:999px;padding:4px 9px;white-space:nowrap;margin-top:1px}
+.fl-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.fl-tab{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:999px;font-size:14px;font-weight:500}
+.fl-tab[aria-selected="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:600}
+.fl-box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(14px,2.4vw,24px)}
+.fl-top{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.fl-top h3{font:800 clamp(23px,2.7vw,32px)/1.2 var(--f-display)}
+.fl-top p{color:var(--fg2);font-size:15px;margin-top:5px;max-width:66ch}
+.fl-run{display:flex;gap:7px;flex-wrap:wrap}
+.fl-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.stages{display:grid;grid-template-columns:repeat(var(--n,6),minmax(0,1fr));gap:9px;position:relative}
+.stage{position:relative;text-align:left;background:var(--surface2);border:1.5px solid transparent;border-radius:10px;padding:11px 12px 12px;min-width:0;transition:background .25s,border-color .25s,transform .25s}
+.stage:hover{border-color:var(--fg2)}
+.stage[aria-pressed="true"]{border-color:var(--fg)}
+.stage b{display:block;font-size:14px;font-weight:600;line-height:1.35}
+.stage small{display:block;font:500 11.5px/1.35 var(--f-mono);color:var(--fg2);margin-top:5px}
+.stage i{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:var(--navy);color:#DDE31C;font:700 12.5px/1 var(--f-mono);font-style:normal;margin-bottom:8px}
+.stage.on{background:var(--lime);color:var(--lime-ink);transform:translateY(-3px)}
+.stage.on small{color:var(--lime-ink)}
+.stage.past i{background:var(--ok);color:#fff}
+.branches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:9px}
+.branch{text-align:left;border:1.5px solid var(--line);background:transparent;border-radius:10px;padding:11px 13px;min-width:0;transition:background .25s,border-color .25s}
+.branch b{display:block;font-size:14px;font-weight:600;line-height:1.35}
+.branch small{display:block;font-size:13px;line-height:1.45;color:var(--fg2);margin-top:3px}
+.branch[aria-pressed="true"]{border-color:var(--fg)}
+.branch.yes.on{background:var(--ok-soft);border-color:var(--ok)}
+.branch.no.on{background:var(--bad-soft);border-color:var(--bad)}
+.fl-detail{margin-top:14px;border-top:1px solid var(--line);padding-top:13px;min-height:82px}
+.fl-detail h4{font-size:14.5px;font-weight:600;line-height:1.4}
+.fl-detail p{font-size:14px;color:var(--fg2);margin-top:3px}
+.steps{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.steps code{font:500 12px/1.2 var(--f-mono);background:var(--surface2);border-radius:4px;padding:5px 7px;overflow-wrap:anywhere}
+.fl-shot{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.fl-shot summary{cursor:pointer;font-weight:600;font-size:14px;width:max-content;max-width:100%}
+.fl-shot img{margin-top:10px;border:1px solid var(--line);border-radius:8px;max-height:480px;width:auto;background:#fff}
+@media (max-width:1000px){.stages{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:560px){.stages{grid-template-columns:repeat(2,minmax(0,1fr))}.branches{grid-template-columns:minmax(0,1fr)}.bi-note{grid-template-columns:minmax(0,1fr)}.bi-note b{justify-self:start}}
+
+/* Tools */
+.project{display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.3fr);gap:clamp(22px,4vw,46px);padding-block:clamp(26px,4vw,42px);border-top:1px solid var(--line)}
+.project:first-of-type{border-top:0;padding-top:0}
+.project h3{font:800 clamp(28px,3.2vw,40px)/1.18 var(--f-display);letter-spacing:-.01em}
+.project .kicker{margin-bottom:7px;display:block}
+.project p{margin-top:12px;color:var(--fg2)}
+.pts{margin-top:14px;display:grid;gap:8px;font-size:15px}
+.pts li{padding-left:18px;position:relative;line-height:1.55}
+.pts li::before{content:"";position:absolute;left:0;top:.52em;width:9px;height:9px;border-radius:50%;background:var(--lime);box-shadow:inset 0 0 0 1px rgba(17,27,58,.4)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}
+.chip{font:500 12px/1 var(--f-mono);padding:6px 9px;background:var(--surface2);border-radius:5px;white-space:nowrap}
+.tagline{font-size:13.5px;color:var(--fg2);margin-top:11px}
+.demo{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0;display:flex;flex-direction:column}
+.demo-bar{display:flex;justify-content:space-between;gap:8px 14px;align-items:center;flex-wrap:wrap;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--surface2)}
+.demo-body{padding:14px}
+.demo-note{padding:9px 14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--fg2);line-height:1.55;margin-top:auto}
+.mini{border:1px solid var(--fg);background:transparent;padding:6px 13px;font-size:13px;font-weight:600;border-radius:999px;transition:background .2s,color .2s}
+.mini:hover{background:var(--fg);color:var(--bg)}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:7px}
+.dt{border-collapse:collapse;width:100%;min-width:600px;font:400 12.5px/1.35 var(--f-mono);font-variant-numeric:tabular-nums}
+.dt th{font-weight:700;text-align:left;font-size:11.5px;padding:7px 8px;background:var(--surface2);border-bottom:1px solid var(--line);white-space:nowrap}
+.dt td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap;transition:background .25s}
+.dt tr:last-child td{border-bottom:0}
+.dt td[contenteditable]:hover{background:var(--accent-soft)}
+.dt td[contenteditable]:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface)}
+.dt td.num,.dt th.num{text-align:right}
+.dt td.err{background:var(--bad-soft);color:var(--bad);font-weight:700}
+.dt td.wrn{background:var(--warn-soft);color:var(--warn);font-weight:700}
+.score{display:flex;align-items:center;gap:9px;font:500 12.5px/1.2 var(--f-mono)}
+.score b{font:800 25px/1 var(--f-display)}
+.issues{display:grid;gap:6px;margin-top:12px;font-size:13.5px;line-height:1.45}
+.issues li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px;align-items:baseline}
+.sev{font:700 10.5px/1 var(--f-mono);padding:4px 6px;border-radius:4px;min-width:50px;text-align:center}
+.sev.err{background:var(--bad-soft);color:var(--bad)}
+.sev.wrn{background:var(--warn-soft);color:var(--warn)}
+.sev.ok{background:var(--ok-soft);color:var(--ok)}
+.slips{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:3px}
+.slip{aspect-ratio:3/4;background:var(--surface2);border-radius:2px;transition:background .14s,transform .14s}
+.slip.done{background:var(--accent)}
+.slip.miss{background:var(--warn)}
+.asn-stats{display:flex;flex-wrap:wrap;gap:8px 24px;margin:12px 0}
+.asn-stats>div{font:500 12px/1.35 var(--f-mono);color:var(--fg2)}
+.asn-stats b{display:block;font:800 29px/1.05 var(--f-display);color:var(--fg)}
+.log{font:400 12.5px/1.65 var(--f-mono);background:var(--surface2);border-radius:7px;padding:9px 11px;overflow-x:auto;white-space:nowrap;min-height:112px}
+.log .a{color:var(--fg2)}.log .b{color:var(--ok);font-weight:700}.log .m{color:var(--warn);font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--fg2);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:13px;margin-right:5px;vertical-align:-2px;border-radius:2px}
+.filters{display:flex;gap:5px;flex-wrap:wrap}
+.fbtn{border:1px solid var(--line);background:var(--surface);font-size:12.5px;padding:5px 10px;border-radius:999px}
+.fbtn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.kpis>div{background:var(--surface2);border-radius:8px;padding:9px 11px;min-width:0}
+.kpis b{display:block;font:800 clamp(21px,2.6vw,27px)/1.15 var(--f-display)}
+.kpis span{font-size:12px;color:var(--fg2);line-height:1.35;display:block}
+.heat-scroll{overflow-x:auto}
+.heat{display:grid;grid-template-columns:72px repeat(14,minmax(21px,1fr));gap:2px;min-width:420px;font:500 11px/1 var(--f-mono)}
+.heat .rl{display:flex;align-items:center;color:var(--fg2);font-size:11.5px}
+.heat .cl{text-align:center;color:var(--fg2);padding-bottom:3px}
+.hc{height:25px;display:grid;place-items:center;font-size:10px;border-radius:2px}
+.scale{display:flex;align-items:center;gap:3px;font:500 11px/1 var(--f-mono);color:var(--fg2);margin-top:10px;flex-wrap:wrap}
+.scale i{width:22px;height:10px;display:block}
+.scale span{margin-inline:4px}
+
+/* How */
+.how{background:var(--surface2)}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;position:relative;counter-reset:s}
+.flow::before{content:"";position:absolute;left:0;right:0;top:27px;height:2px;background:var(--line)}
+.flow::after{content:"";position:absolute;top:22px;left:0;width:12px;height:12px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 2px var(--fg);animation:run 7s linear infinite}
+@keyframes run{to{left:calc(100% - 12px)}}
+.flow li{counter-increment:s;position:relative;min-width:0;padding-top:0}
+.flow li::before{content:counter(s);position:relative;z-index:1;display:grid;place-items:center;width:44px;height:44px;margin:5px 0 12px;border-radius:50%;background:var(--navy);color:#DDE31C;font:800 20px/1 var(--f-display)}
+.flow h3{font-size:15.5px;font-weight:600;line-height:1.35}
+.flow p{font-size:14px;color:var(--fg2);margin-top:5px;line-height:1.55}
+.flow time{font:700 12.5px/1 var(--f-mono);color:var(--ok);display:block;margin-top:8px}
+.others{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px 32px;margin-top:44px}
+.others h3{font-size:16px;font-weight:600;line-height:1.4}
+.others p{font-size:14.5px;color:var(--fg2);margin-top:5px;line-height:1.6}
+.story{margin-top:46px;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.5fr);gap:14px 44px;background:var(--navy);color:var(--on-navy);padding:clamp(24px,4vw,40px);border-radius:16px}
+.story h3{font:800 clamp(28px,3.4vw,42px)/1.15 var(--f-display)}
+.story h3 mark{background:none;color:var(--lime)}
+.story p{font-size:16.5px;line-height:1.7;color:var(--on-navy2)}
+.story p+p{margin-top:11px}
+
+/* Experience */
+.job{display:grid;grid-template-columns:150px minmax(0,1fr);gap:6px 26px;padding:20px 0;border-top:1px solid var(--line)}
+.job:first-child{border-top:0;padding-top:0}
+.job .when{font:500 13px/1.6 var(--f-mono);color:var(--fg2)}
+.job h3{font-size:18px;font-weight:600;line-height:1.4}
+.job .org{color:var(--fg2);font-size:15px}
+.job ul{margin-top:8px;display:grid;gap:5px;font-size:15px;color:var(--fg2)}
+.job li{padding-left:15px;position:relative;line-height:1.6}
+.job li::before{content:"";position:absolute;left:0;top:.72em;width:7px;height:2px;background:var(--fg2)}
+.skills{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin-top:44px}
+.skills h3{font:700 13px/1.3 var(--f-mono);color:var(--fg2);padding-bottom:7px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.skills li{font-size:14.5px;padding-block:3px;line-height:1.5}
+
+/* Contact */
+.contact{background:var(--lime);color:var(--lime-ink);position:relative;overflow:hidden}
+.contact-grid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(22px,4vw,48px);align-items:center}
+.contact img{width:clamp(110px,16vw,190px);height:auto;aspect-ratio:1;border-radius:50%;object-fit:cover;object-position:50% 8%;border:4px solid var(--lime-ink)}
+.contact h2{font:800 clamp(36px,6vw,72px)/1.12 var(--f-display);letter-spacing:-.015em;text-wrap:balance}
+.contact p{max-width:58ch;margin-top:12px;font-size:17px}
+.mail{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:20px}
+.mail a{font:700 clamp(16px,2.3vw,23px)/1.3 var(--f-mono);color:var(--lime-ink);overflow-wrap:anywhere}
+.copy{border:2px solid var(--lime-ink);background:transparent;color:var(--lime-ink);padding:5px 14px;font-size:14px;font-weight:600;border-radius:999px}
+.copy:hover{background:var(--lime-ink);color:var(--lime)}
+.place{margin-top:8px!important;font:500 14px/1.4 var(--f-mono)!important}
+footer{background:var(--navy);color:var(--on-navy2);padding-block:18px;font-size:13px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-between}
+
+@media (max-width:1000px){
+  .nav{display:none}.ctl{margin-left:auto}
+  .project{grid-template-columns:minmax(0,1fr)}
+  .flow{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  .flow::before,.flow::after{display:none}
+  .others,.bi-index{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .skills{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .float.a{left:-14px}.float.b{right:-10px}.float.c{left:-10px}
+}
+@media (max-width:760px){
+  .hero-grid{grid-template-columns:minmax(0,1fr)}
+  .pic{max-width:330px;margin-top:10px}
+  .pic::before{inset:20px -11px -11px 15px}
+  .story{grid-template-columns:minmax(0,1fr)}
+  .job{grid-template-columns:minmax(0,1fr)}
+  .others,.bi-index{grid-template-columns:minmax(0,1fr)}
+  .ledger{grid-template-columns:minmax(0,1fr)}
+  .slips{grid-template-columns:repeat(10,minmax(0,1fr))}
+  .canvas{grid-template-columns:minmax(0,1fr)}
+  .rail{display:flex;gap:4px;max-height:none;overflow-x:auto;overflow-y:hidden;padding:9px}
+  .rg{display:flex;gap:4px}.rg+.rg{margin-top:0}.rg h4{display:none}
+  .rbtn{width:auto;white-space:nowrap;padding:7px 11px}
+  .rep{min-height:0}
+  .dots.many{grid-template-columns:repeat(35,minmax(0,1fr))}
+  .dots-compare{grid-template-columns:minmax(0,1fr);gap:12px}
+  .dots.few{max-width:30%}
+  .float{min-width:0;padding:7px 10px}.float b{font-size:19px}
+  .contact-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:460px){
+  .flow,.skills{grid-template-columns:minmax(0,1fr)}
+  .ba{grid-template-columns:minmax(0,1fr)}
+  .ba svg{transform:rotate(90deg)}
+  .kpis span{font-size:11px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div id="progress" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="avatar.jpg" alt="" width="34" height="34"><span class="vi">Hoài Luận</span><span class="en">Hoai Luan</span></a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#results"><span class="vi">Kết quả</span><span class="en">Results</span></a>
+      <a href="#bi"><span class="vi">Báo cáo BI</span><span class="en">BI reports</span></a>
+      <a href="#flows">Power Automate</a>
+      <a href="#projects"><span class="vi">Công cụ</span><span class="en">Tools</span></a>
+      <a href="#method"><span class="vi">Cách làm</span><span class="en">How I work</span></a>
+      <a href="#experience"><span class="vi">Kinh nghiệm</span><span class="en">Experience</span></a>
+      <a href="#contact"><span class="vi">Liên hệ</span><span class="en">Contact</span></a>
+    </nav>
+    <div class="ctl">
+      <div class="seg" role="group" aria-label="Ngôn ngữ / Language">
+        <button type="button" id="btn-vi" data-lang="vi" aria-pressed="false">VI</button>
+        <button type="button" id="btn-en" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+      <button type="button" class="theme-btn" id="themeBtn" aria-label="Light or dark theme" title="Light / Dark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20V2z"/><path d="M12 2a10 10 0 0 1 0 20v-2a8 8 0 0 0 0-16z"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="bars" id="heroBars" aria-hidden="true"></div>
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <p class="role" data-rise><i aria-hidden="true"></i><span>Senior Warehouse Clerk · TTI <span class="vi">Việt Nam</span><span class="en">Vietnam</span></span></p>
+          <h1 id="heroTitle">
+            <span class="vi">Hơn 5 năm làm kho. Việc nào cứ lặp lại, <mark>tôi viết công cụ</mark> cho nó.</span>
+            <span class="en">Over 5 years in the warehouse. If a job keeps repeating, <mark>I build a tool</mark> for it.</span>
+          </h1>
+          <p class="lead vi" data-rise><strong>Tôi là Nguyễn Hoài Luận (Cris).</strong> Hằng ngày tôi lo số liệu nhân sự, ca, OT và báo cáo cho kho hơn 600 người, rồi dùng Excel VBA, Power BI, Power Automate và web app để bớt phần làm tay.</p>
+          <p class="lead en" data-rise><strong>I'm Nguyen Hoai Luan (Cris).</strong> Every day I handle workforce, shift, overtime and reporting data for a warehouse of 600+ people, and I use Excel VBA, Power BI, Power Automate and web apps to cut the manual work.</p>
+          <div class="cta" data-rise>
+            <a class="btn" href="#bi"><span class="vi">Xem báo cáo BI</span><span class="en">See the BI reports</span></a>
+            <a class="btn alt" href="#projects"><span class="vi">Thử công cụ</span><span class="en">Try the tools</span></a>
+          </div>
+        </div>
+        <div class="pic" id="pic">
+          <img src="avatar.jpg" width="880" height="1100" alt="Nguyễn Hoài Luận">
+          <div class="float a" data-depth="16"><b><span data-count="700" data-prefix="~">~700</span></b><span class="vi">bản ghi hiệu suất/ngày</span><span class="en">efficiency records/day</span></div>
+          <div class="float b" data-depth="-20"><b>09:30</b><span class="vi">báo cáo tới tay quản lý</span><span class="en">report reaches managers</span></div>
+          <div class="float c" data-depth="10"><b data-count="20">20</b><span class="vi">trang báo cáo Power BI</span><span class="en">Power BI report pages</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ticker" aria-hidden="true"><div id="tick"></div></div>
+
+  <section id="results">
+    <div class="wrap">
+      <div class="sec-head" data-reveal>
+        <h2><span class="vi">Trước và sau khi làm</span><span class="en">Before and after</span></h2>
+        <p class="vi">Vài việc tôi đã làm ở kho. Số liệu lấy từ báo cáo công việc của tôi.</p>
+        <p class="en">Some of the work I've done in the warehouse. The figures come from my own work reports.</p>
+      </div>
+
+      <div class="ruler-box" data-reveal>
+        <div class="ruler-head">
+          <h3><span class="vi">Báo cáo hằng ngày ra sớm hơn 2 tiếng</span><span class="en">The daily report now lands 2 hours earlier</span></h3>
+          <p><span class="vi">Quản lý có số sớm nên còn kịp xử lý trong ca.</span><span class="en">Managers get the numbers early enough to act within the shift.</span></p>
+        </div>
+        <div class="ruler-scroll">
+          <div class="ruler" id="ruler">
+            <div class="base"></div><div class="gain" id="gain"></div>
+            <div class="mark cut" style="left:25%"><span class="vi">Chốt dữ liệu</span><span class="en">Data cut-off</span><br>09:00</div>
+            <div class="mark new" id="markNew" style="left:37.5%"><span class="vi">Giờ: trước</span><span class="en">Now: before</span><br>09:30</div>
+            <div class="mark old" style="left:87.5%"><span class="vi">Trước đây</span><span class="en">Before</span><br>~11:30</div>
+            <div class="tick" style="left:0">08:00</div><div class="tick" style="left:25%">09:00</div><div class="tick" style="left:50%">10:00</div><div class="tick" style="left:75%">11:00</div><div class="tick" style="left:100%">12:00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ledger">
+        <div class="lc" data-reveal>
+          <h3><span class="vi">Theo dõi hiệu suất: từ cấp tổ xuống từng người</span><span class="en">Efficiency tracking: from team level down to each person</span></h3>
+          <div class="dots-compare" aria-hidden="true">
+            <div><span class="label"><span class="vi">Trước: ~80 bản ghi/ngày</span><span class="en">Before: ~80 records/day</span></span><div class="dots few" id="dotsFew"></div></div>
+            <div><span class="label" style="color:var(--ok);font-weight:700"><span class="vi">Sau: ~700 bản ghi/ngày</span><span class="en">After: ~700 records/day</span></span><div class="dots many" id="dotsMany"></div></div>
+          </div>
+          <p class="vi">Chi tiết gấp khoảng 9 lần mà không thêm người nhập liệu. Công cụ kiểm tra lỗi ngay lúc Leader nộp. Mỗi chấm là 2 bản ghi.</p>
+          <p class="en">About 9× the detail with no extra data-entry staff. The tool checks for errors the moment a Leader submits. Each dot is 2 records.</p>
+        </div>
+        <div class="lc" data-reveal>
+          <h3><span class="vi">Chứng từ ASN nhà cung cấp</span><span class="en">Supplier ASN documents</span></h3>
+          <div class="ba"><div class="b4"><span class="vi">Đổi tên ảnh bằng tay</span><span class="en">Photos renamed by hand</span></div><svg viewBox="0 0 26 12" aria-hidden="true"><path d="M0 6h24M19 1l5 5-5 5"/></svg><div class="af"><span class="vi">100 ảnh trong ~30 giây</span><span class="en">100 images in ~30 sec</span></div></div>
+          <p class="vi">Mỗi ca có 800–1.000 phiếu. Làm xong công cụ, kho bớt được một vị trí clerk để làm việc khác.</p>
+          <p class="en">800–1,000 slips per shift. The tool freed up one clerk position for other work.</p>
+        </div>
+        <div class="lc" data-reveal>
+          <h3><span class="vi">Chargeback DNR / scrap</span><span class="en">DNR / scrap chargeback</span></h3>
+          <div class="ba"><div class="b4"><span class="vi">~10 phút/case, ~50 case/ngày</span><span class="en">~10 min/case, ~50 cases/day</span></div><svg viewBox="0 0 26 12" aria-hidden="true"><path d="M0 6h24M19 1l5 5-5 5"/></svg><div class="af"><span class="vi">Tự động cả quy trình</span><span class="en">Automated end to end</span></div></div>
+          <p class="vi">Lọc báo cáo, tra giá, sinh số DNR, xuất PDF và gửi email nhà cung cấp, có lưu log để kiểm tra lại.</p>
+          <p class="en">Filters the report, looks up prices, creates DNR numbers, exports PDFs and emails suppliers, with a log for audits.</p>
+        </div>
+        <div class="lc" data-reveal>
+          <h3><span class="vi">Đơn Missing IN/OUT và nghỉ phép</span><span class="en">Missing IN/OUT and leave forms</span></h3>
+          <div class="ba"><div class="b4"><span class="vi">Chuyền giấy đi ký</span><span class="en">Paper passed around to sign</span></div><svg viewBox="0 0 26 12" aria-hidden="true"><path d="M0 6h24M19 1l5 5-5 5"/></svg><div class="af"><span class="vi">Duyệt online</span><span class="en">Approved online</span></div></div>
+          <p class="vi">Dùng Microsoft Forms, Power Automate, SharePoint và Teams. Phần tiết kiệm chi phí và nhân lực đã báo cáo lên lãnh đạo.</p>
+          <p class="en">Built with Microsoft Forms, Power Automate, SharePoint and Teams. I reported the cost and manpower savings to senior management.</p>
+        </div>
+        <div class="lc" data-reveal>
+          <h3><span class="vi">Quy định OT</span><span class="en">Overtime rules</span></h3>
+          <div class="ba"><div class="b4"><span class="vi">Quy định từ lãnh đạo</span><span class="en">Rules from management</span></div><svg viewBox="0 0 26 12" aria-hidden="true"><path d="M0 6h24M19 1l5 5-5 5"/></svg><div class="af"><span class="vi">Báo cáo OT 3 ngày cuốn chiếu</span><span class="en">3-day rolling OT report</span></div></div>
+          <p class="vi">Trên 2 giờ phải có duyệt, đăng ký trước 2 ngày. Các quy định này được đưa thẳng vào báo cáo.</p>
+          <p class="en">Approval above 2 hours, planning 2 days ahead. Both rules are built right into the report.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bi" id="bi">
+    <div class="wrap">
+      <div class="sec-head" data-reveal>
+        <h2><span class="vi">Báo cáo Power BI</span><span class="en">Power BI reports</span></h2>
+        <p class="vi">File Warehouse BI gồm 20 trang, từ KPI, nhân sự, OT đến tồn kho, kiểm kê và sự cố. Cả 20 trang đều có ở đây để bạn bấm xem, mỗi trang một kiểu trình bày. Tên trang là tên thật, bố cục tôi dựng lại. Số liệu thật là của công ty nên ở đây tôi dùng số mẫu.</p>
+        <p class="en">The Warehouse BI file has 20 pages, from KPIs, headcount and overtime to inventory, stock counts and incidents. All 20 are here to click through, each with its own layout. The page names are real and the layouts are rebuilt. The real numbers belong to the company, so these are sample figures.</p>
+      </div>
+      <div class="bi-note" data-reveal>
+        <b><span class="vi">Số liệu mẫu</span><span class="en">Sample data</span></b>
+        <span class="vi">Tên trang lấy từ báo cáo thật. Tên người là tên thật và đã được họ đồng ý. Mọi con số là số mẫu tôi tự tạo để minh hoạ, không phản ánh kết quả của TTI hay của bất kỳ ai. Biểu đồ theo người dùng chung một số mẫu nên không phải bảng xếp hạng. Nhà cung cấp được ghi là NCC A, NCC B.</span>
+        <span class="en">Page names come from the real report. People's names are real and shared with their consent. Every number is a sample I made up for illustration and doesn't reflect the results of TTI or anyone there. Charts by person use one shared sample value, so they aren't rankings. Suppliers appear as NCC A, NCC B.</span>
+      </div>
+      <div class="canvas" id="biCanvas">
+        <nav class="rail" id="biTabs" role="tablist" aria-label="Report pages"></nav>
+        <div class="rep" id="biRep" role="tabpanel"></div>
+      </div>
+      <div class="bi-index">
+        <div data-reveal>
+          <h3>Efficiency &amp; Downtime</h3>
+          <small><span class="vi">Báo cáo vận hành hằng ngày</span><span class="en">Daily operations reports</span></small>
+          <ul class="pgs"><li>Overview daily</li><li>Downtime review detail</li><li>Efficiency detail</li><li>Accuracy</li><li>Detail negative</li><li>Local shortage</li><li><span class="vi">Giao hàng của nhà cung cấp</span><span class="en">Supplier delivery performance</span></li></ul>
+        </div>
+        <div data-reveal>
+          <h3><span class="vi">Tồn kho thành phẩm</span><span class="en">Finished goods inventory</span></h3>
+          <small><span class="vi">Củ Chi và Dầu Giây</span><span class="en">Cu Chi and Dau Giay</span></small>
+          <ul class="pgs"><li>Summary</li><li>Shipment</li><li>Space projection</li><li>Inventory</li><li>FG Aging</li><li><span class="vi">Đối soát WMS và ERP</span><span class="en">WMS vs ERP reconciliation</span></li></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="flows">
+    <div class="wrap">
+      <div class="sec-head" data-reveal>
+        <h2>Power Automate</h2>
+        <p class="vi">Mấy flow tôi làm để bỏ giấy tờ và việc chạy đi xin chữ ký. Sơ đồ bên dưới dựng từ đúng các bước trong flow thật, bạn bấm vào từng chặng để xem.</p>
+        <p class="en">Flows I built to replace paperwork and chasing signatures. The diagrams below use the actual steps from the real flows. Click a stage to see what's inside.</p>
+      </div>
+      <div class="fl-tabs" id="flTabs" role="tablist" aria-label="Flows"></div>
+      <div class="fl-box" id="flBox" data-reveal></div>
+    </div>
+  </section>
+
+  <section id="projects">
+    <div class="wrap">
+      <div class="sec-head" data-reveal>
+        <h2><span class="vi">Công cụ bấm thử được</span><span class="en">Tools you can try</span></h2>
+        <p class="vi">Các demo chạy ngay trên trang này. Dữ liệu là mẫu do tôi tạo, không phải số của công ty.</p>
+        <p class="en">These demos run right on this page. The data is sample data I made up, not company figures.</p>
+      </div>
+
+      <article class="project" id="masterdata">
+        <div data-reveal>
+          <span class="label kicker">Web app · <span class="vi">Chất lượng dữ liệu</span><span class="en">Data quality</span></span>
+          <h3>Master Data Pro</h3>
+          <p class="vi">Cùng một mã hàng mà mỗi nơi ghi một kiểu thì báo cáo nào cũng lệch. App này tìm các lỗi đó trong file rồi giúp làm sạch, chạy luôn trên trình duyệt.</p>
+          <p class="en">When each site writes the same item differently, every report ends up off. This app finds those errors in your file and helps clean them up, right in the browser.</p>
+          <ul class="pts">
+            <li><span class="vi">Chấm điểm chất lượng 0–100 theo 5 tiêu chí, kiểm tra 11 nhóm lỗi.</span><span class="en">Scores quality 0–100 on 5 criteria and checks 11 error groups.</span></li>
+            <li><span class="vi">Đọc được Excel, CSV, JSON, Google Sheets, PDF, Word và PowerPoint.</span><span class="en">Reads Excel, CSV, JSON, Google Sheets, PDF, Word and PowerPoint.</span></li>
+            <li><span class="vi">Có sẵn quy tắc tồn kho: Tồn cuối = Đầu + Nhập − Xuất, xuất vượt tồn, hàng hết hạn.</span><span class="en">Has inventory rules built in: Closing = Opening + In − Out, over-issue and expiry.</span></li>
+            <li><span class="vi">So khớp hai bảng theo mã, xuất ra Excel, HTML hoặc lưu lên Google Drive.</span><span class="en">Matches two tables by key and exports to Excel, HTML or Google Drive.</span></li>
+          </ul>
+          <div class="chips"><span class="chip">JavaScript</span><span class="chip">Google Drive API</span><span class="chip">SheetJS</span><span class="chip">GitHub Pages</span></div>
+          <p class="tagline vi">Tôi đặt quy tắc nghiệp vụ và kiểm thử, phần code có AI hỗ trợ.</p>
+          <p class="tagline en">I set the business rules and tested it. AI helped with the code.</p>
+        </div>
+        <div class="demo" data-reveal>
+          <div class="demo-bar">
+            <span class="label"><span class="vi">Demo: sửa một ô, kết quả đổi ngay</span><span class="en">Demo: edit a cell and watch it re-check</span></span>
+            <div class="score"><b id="mdScore">0%</b><span><span class="vi">dòng đạt</span><span class="en">rows pass</span></span><button type="button" class="mini" id="mdReset"><span class="vi">Đặt lại</span><span class="en">Reset</span></button></div>
+          </div>
+          <div class="demo-body">
+            <div class="tbl-wrap"><table class="dt" id="mdTable"><thead></thead><tbody></tbody></table></div>
+            <ul class="issues" id="mdIssues" aria-live="polite"></ul>
+          </div>
+          <p class="demo-note"><span class="vi">Đây là bản rút gọn vài quy tắc của app. Thử đổi Tồn cuối của GT-0102 thành 95.</span><span class="en">A short version with a few of the app's rules. Try changing the Close value of GT-0102 to 95.</span></p>
+        </div>
+      </article>
+
+      <article class="project" id="asn">
+        <div data-reveal>
+          <span class="label kicker"><span class="vi">Công cụ · Chứng từ</span><span class="en">Tool · Documents</span></span>
+          <h3>Rename ASN from PDF</h3>
+          <p class="vi">Thả file PDF scan vào, công cụ tách thành ảnh, đọc mã QR trên từng phiếu rồi tự đặt tên theo mã. Có thêm tab gộp ảnh thành PDF.</p>
+          <p class="en">Drop in a scanned PDF. The tool splits it into images, reads the QR code on each slip and names each file from it. A second tab merges images into a PDF.</p>
+          <ul class="pts">
+            <li><span class="vi">Có 4 chế độ, trong đó có chế độ riêng cho giấy than mờ và mực lem.</span><span class="en">4 modes, including one for faint carbon copies and smudged ink.</span></li>
+            <li><span class="vi">Tự tăng tương phản, làm đậm nét vùng QR trước khi quét.</span><span class="en">Boosts contrast and darkens the QR area before scanning.</span></li>
+            <li><span class="vi">Trang nào không đọc được thì giữ tên theo số trang, để người dùng dễ tìm lại.</span><span class="en">Pages it can't read keep their page number, so they're easy to find.</span></li>
+          </ul>
+          <div class="chips"><span class="chip">pdf.js</span><span class="chip">jsQR</span><span class="chip">ZXing</span><span class="chip">JSZip</span><span class="chip">jsPDF</span></div>
+        </div>
+        <div class="demo" data-reveal>
+          <div class="demo-bar">
+            <span class="label"><span class="vi">Mô phỏng: một lô 100 ảnh</span><span class="en">Simulation: a batch of 100 images</span></span>
+            <button type="button" class="mini" id="asnRun"><span class="vi">▶ Chạy (nhanh gấp 10)</span><span class="en">▶ Run (10× speed)</span></button>
+          </div>
+          <div class="demo-body">
+            <div class="slips" id="slips" aria-hidden="true"></div>
+            <div class="legend">
+              <span><i style="background:var(--surface2);box-shadow:inset 0 0 0 1px var(--line)"></i><span class="vi">Chờ xử lý</span><span class="en">Waiting</span></span>
+              <span><i style="background:var(--accent)"></i><span class="vi">Đã đổi tên</span><span class="en">Renamed</span></span>
+              <span><i style="background:var(--warn)"></i><span class="vi">Không đọc được QR</span><span class="en">QR unreadable</span></span>
+            </div>
+            <div class="asn-stats">
+              <div><b id="asnTime">0.0s</b><span class="vi">thời gian thực</span><span class="en">real time</span></div>
+              <div><b id="asnDone">0</b><span class="vi">đã đổi tên</span><span class="en">renamed</span></div>
+              <div><b id="asnMiss">0</b><span class="vi">giữ số trang</span><span class="en">kept page number</span></div>
+            </div>
+            <div class="log" id="asnLog"></div>
+          </div>
+          <p class="demo-note"><span class="vi">Mô phỏng với mã phiếu tự tạo, tính theo mốc 100 ảnh trong khoảng 30 giây. Số phiếu không đọc được chỉ để minh hoạ.</span><span class="en">A simulation with invented slip codes, timed at 100 images in about 30 seconds. The unreadable count is just for illustration.</span></p>
+        </div>
+      </article>
+
+      <article class="project" id="attendance">
+        <div data-reveal>
+          <span class="label kicker"><span class="vi">Hệ thống nội bộ · Nhân sự</span><span class="en">Internal systems · Workforce</span></span>
+          <h3><span class="vi">Chấm công &amp; dashboard nhân sự</span><span class="en">Attendance &amp; workforce dashboards</span></h3>
+          <p class="vi">Dữ liệu ca, chấm công và OT của cả kho đi qua các hệ thống này, từ file thô tới báo cáo quản lý xem mỗi ngày.</p>
+          <p class="en">Shift, attendance and overtime data for the whole warehouse runs through these systems, from raw files to the reports managers read each day.</p>
+          <ul class="pts">
+            <li><span class="vi">Chấm công và đặt suất ăn bằng Excel VBA + Power Query.</span><span class="en">Attendance and canteen booking in Excel VBA + Power Query.</span></li>
+            <li><span class="vi">Web app HTML/Firebase theo dõi 642 nhân sự: tuyển mới, nghỉ việc, headcount theo chức danh.</span><span class="en">HTML/Firebase web app tracking 642 staff: new hires, resignations and headcount by title.</span></li>
+            <li><span class="vi">Power BI theo dõi OT theo Manager, Supervisor và Leader: HC OT, giờ OT, %OT 4H/2H.</span><span class="en">Power BI overtime tracking by Manager, Supervisor and Leader: HC OT, OT hours, %OT 4H/2H.</span></li>
+          </ul>
+          <div class="chips"><span class="chip">Excel VBA</span><span class="chip">Power Query</span><span class="chip">Power BI · DAX</span><span class="chip">Firebase</span><span class="chip">PWA</span></div>
+          <p class="tagline vi">Đây là hệ thống nội bộ nên không có link công khai. Gặp nhau tôi có thể kể kỹ hơn.</p>
+          <p class="tagline en">These are internal systems, so there's no public link. I'm happy to go through them when we talk.</p>
+        </div>
+        <div class="demo" data-reveal>
+          <div class="demo-bar">
+            <span class="label"><span class="vi">Minh hoạ: tỉ lệ đi làm 14 ngày</span><span class="en">Illustration: attendance over 14 days</span></span>
+            <div class="filters" id="shiftFilter" role="group" aria-label="Shift">
+              <button type="button" class="fbtn" data-shift="all" aria-pressed="true"><span class="vi">Cả ngày</span><span class="en">All day</span></button>
+              <button type="button" class="fbtn" data-shift="day" aria-pressed="false"><span class="vi">Ca ngày</span><span class="en">Day</span></button>
+              <button type="button" class="fbtn" data-shift="night" aria-pressed="false"><span class="vi">Ca đêm</span><span class="en">Night</span></button>
+            </div>
+          </div>
+          <div class="demo-body">
+            <div class="kpis" id="attKpis"></div>
+            <div class="heat-scroll"><div class="heat" id="heat" role="img"></div></div>
+            <div class="scale" aria-hidden="true"><span>&lt; 92%</span><i style="background:var(--h0)"></i><i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i><i style="background:var(--h4)"></i><span>≥ 98%</span></div>
+          </div>
+          <p class="demo-note"><strong><span class="vi">Số mẫu tự tạo, không phải số liệu công ty.</span><span class="en">Made-up sample data, not company figures.</span></strong> <span class="vi">Đây là hình minh hoạ, không phải ảnh chụp hệ thống thật.</span><span class="en">This is an illustration, not a screenshot of the real system.</span></p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="how" id="method">
+    <div class="wrap">
+      <div class="sec-head" data-reveal>
+        <h2><span class="vi">Sửa lỗi ngay lúc nhập liệu</span><span class="en">Catch errors when the data goes in</span></h2>
+        <p class="vi">Đây là cách hệ thống Efficiency chạy mỗi sáng. Nhập sai là công cụ báo ngay, đỡ phải đi hỏi lại từng người.</p>
+        <p class="en">This is how the Efficiency system runs each morning. Enter something wrong and the tool flags it right away, so I don't have to chase people afterwards.</p>
+      </div>
+      <ol class="flow" data-reveal>
+        <li><h3><span class="vi">Leader nộp số</span><span class="en">Leaders submit</span></h3><p><span class="vi">Cả 45 Leader dùng chung một công cụ Excel/VBA.</span><span class="en">All 45 Leaders use the same Excel/VBA tool.</span></p><time>09:00</time></li>
+        <li><h3><span class="vi">Tự kiểm tra</span><span class="en">Automatic checks</span></h3><p><span class="vi">Headcount, giờ làm, job code và UPH phải khớp mới nộp được.</span><span class="en">Headcount, hours, job codes and UPH must match before it goes through.</span></p></li>
+        <li><h3><span class="vi">Gom về một nơi</span><span class="en">Consolidate</span></h3><p><span class="vi">Tự tính hiệu suất, gửi mail và gộp vào file tổng.</span><span class="en">Calculates efficiency, sends it by email and merges it into the master file.</span></p></li>
+        <li><h3><span class="vi">Lên Power BI</span><span class="en">Into Power BI</span></h3><p><span class="vi">Bảng xếp hạng hiệu suất, xếp hạng Supervisor.</span><span class="en">Efficiency rankings and Supervisor leaderboards.</span></p><time><span class="vi">trước</span><span class="en">before</span> 09:30</time></li>
+        <li><h3><span class="vi">Xử lý trong ca</span><span class="en">Act within the shift</span></h3><p><span class="vi">Quản lý thấy vấn đề khi vẫn còn kịp làm gì đó.</span><span class="en">Managers see problems while they can still do something about them.</span></p></li>
+      </ol>
+
+      <div class="others">
+        <div data-reveal><h3><span class="vi">Thống nhất quy trình Củ Chi và Dầu Giây</span><span class="en">One process for Cu Chi and Dau Giay</span></h3><p><span class="vi">Vẽ lại quy trình đang chạy ổn, xem hai bên khác nhau chỗ nào rồi đề xuất một chuẩn chung.</span><span class="en">Mapped the processes that work, compared both sites and proposed one common standard.</span></p></div>
+        <div data-reveal><h3><span class="vi">Đối soát WMS và ERP</span><span class="en">WMS and ERP reconciliation</span></h3><p><span class="vi">Mô hình Power BI cho Dầu Giây để thấy chênh lệch sớm, khỏi đợi tới lúc kiểm kê.</span><span class="en">A Power BI model for Dau Giay that shows variances early, before the stock count.</span></p></div>
+        <div data-reveal><h3><span class="vi">Tìm hiểu vì sao nhân viên nghỉ</span><span class="en">Why people resign</span></h3><p><span class="vi">Làm cùng các team Supervisor, phân nhóm lý do nghỉ việc rồi đưa đề xuất lên lãnh đạo.</span><span class="en">Worked with the Supervisor teams, grouped the reasons and took proposals to senior management.</span></p></div>
+        <div data-reveal><h3><span class="vi">Truy lỗi 4 luồng DNR</span><span class="en">Tracing 4 DNR streams</span></h3><p><span class="vi">Scrap, Rework, Wrong Part và Local. Nhờ có log nên thấy rõ lỗi hay lặp ở nhà cung cấp và mã hàng nào.</span><span class="en">Scrap, Rework, Wrong Part and Local. The log shows which suppliers and parts keep repeating.</span></p></div>
+        <div data-reveal><h3><span class="vi">Kế hoạch 60% lao động chính thức</span><span class="en">60% permanent workforce plan</span></h3><p><span class="vi">Tính số người cần chuyển và chuẩn bị đề xuất trình lãnh đạo.</span><span class="en">Worked out the transfers and prepared the proposal for senior management.</span></p></div>
+        <div data-reveal><h3><span class="vi">Mẫu nhận yêu cầu SOP</span><span class="en">SOP request form</span></h3><p><span class="vi">Trước đây yêu cầu hay đến bằng miệng và thiếu thông tin. Giờ có một form điền đủ từ đầu.</span><span class="en">Requests used to arrive verbally and incomplete. Now one form collects everything up front.</span></p></div>
+      </div>
+
+      <div class="story" data-reveal>
+        <h3><span class="vi">Mọi thứ bắt đầu từ <mark>năm 2023</mark></span><span class="en">It all started in <mark>2023</mark></span></h3>
+        <div>
+          <p class="vi">Năm đó công ty dồn các chi nhánh về nhà máy Củ Chi. Dữ liệu và quy trình rối tung, mà cũng không có ai chỉ cho. Tôi tự học, gỡ từng quy trình một, việc nào làm tay được thì chuyển dần lên hệ thống.</p>
+          <p class="en">That year the company moved its branches into the Cu Chi plant. Data and processes were a mess, and nobody was around to show me how to fix them. I taught myself, sorted out one process at a time and moved manual work onto systems.</p>
+          <p class="vi">Từ đó tôi biết mình muốn theo hướng dữ liệu và quy trình.</p>
+          <p class="en">That's when I knew I wanted to work in data and process.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="experience">
+    <div class="wrap">
+      <div class="sec-head" data-reveal><h2><span class="vi">Kinh nghiệm</span><span class="en">Experience</span></h2></div>
+      <div>
+        <div class="job" data-reveal>
+          <div class="when">01/2025 – <span class="vi">nay</span><span class="en">now</span></div>
+          <div>
+            <h3>Senior Warehouse Clerk · Workforce Analytics &amp; Process Improvement</h3>
+            <p class="org">Techtronic Industries Vietnam (TTI)</p>
+            <ul>
+              <li><span class="vi">Phụ trách team Support Warehouse Operation: 3 clerk báo cáo trực tiếp, tôi giao việc và đánh giá KPI, thử việc.</span><span class="en">Lead the Support Warehouse Operation team: 3 clerks report to me, and I assign work and run KPI and probation reviews.</span></li>
+              <li><span class="vi">Đầu mối giữa Leader, Supervisor và quản lý về nhân sự, ca và OT. Làm thay quản lý việc hành chính khi cần.</span><span class="en">Main contact between Leaders, Supervisors and managers on manpower, shifts and OT. I cover admin matters for the manager when needed.</span></li>
+              <li><span class="vi">Quản lý dữ liệu chấm công, ca và OT của hơn 600 người để tính lương cho đúng.</span><span class="en">Manage attendance, shift and OT data for 600+ people so payroll comes out right.</span></li>
+              <li><span class="vi">Làm hệ thống Efficiency, các báo cáo Power BI và những công cụ ở trên.</span><span class="en">Built the Efficiency system, the Power BI reports and the tools above.</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="job" data-reveal>
+          <div class="when">01/2022 – 12/2024</div>
+          <div>
+            <h3>Warehouse Clerk</h3>
+            <p class="org">Techtronic Industries Vietnam (TTI)</p>
+            <ul>
+              <li><span class="vi">Xử lý giao dịch scrap MRCD/MRCE và quản lý vật tư scrap trên ERP.</span><span class="en">Processed MRCD/MRCE scrap transactions and managed scrap materials in ERP.</span></li>
+              <li><span class="vi">Quản lý headcount, bảng công toàn kho, làm PR/PO và làm việc với nhà cung cấp.</span><span class="en">Managed warehouse headcount and timesheets, handled PR/PO and worked with suppliers.</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="job" data-reveal>
+          <div class="when">09/2021 – 12/2021</div>
+          <div>
+            <h3>Administration Support</h3>
+            <p class="org">Techtronic Industries Vietnam (TTI)</p>
+            <ul><li><span class="vi">Hành chính nhà máy, nhà cung cấp, PR, ký túc xá, đi lại và 5S.</span><span class="en">Factory admin, suppliers, PR, dormitory, staff travel and 5S.</span></li></ul>
+          </div>
+        </div>
+        <div class="job" data-reveal>
+          <div class="when">03/2021 – 09/2021</div>
+          <div>
+            <h3>Assistant, Sales &amp; Marketing</h3>
+            <p class="org">HUNGDER Industrial Co., Ltd.</p>
+            <ul><li><span class="vi">Xử lý đơn hàng, theo dõi nguyên vật liệu, lịch sản xuất và tiến độ đơn.</span><span class="en">Processed orders and tracked materials, production schedules and order progress.</span></li></ul>
+          </div>
+        </div>
+        <div class="job" data-reveal>
+          <div class="when">04/2019 – 03/2021</div>
+          <div>
+            <h3>Data Staff</h3>
+            <p class="org">ST Johns Packaging Vietnam Co., Ltd.</p>
+            <ul><li><span class="vi">Cập nhật đơn hàng, dữ liệu sản phẩm, tồn kho và chứng từ trên PSA, AS400 và Radius. Làm báo cáo tuần, tháng.</span><span class="en">Kept orders, product data, inventory records and documents up to date on PSA, AS400 and Radius. Prepared weekly and monthly reports.</span></li></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="skills" data-reveal>
+        <div><h3><span class="vi">Dữ liệu &amp; báo cáo</span><span class="en">Data &amp; reporting</span></h3><ul><li>Excel, Power Query</li><li>Power BI, DAX</li><li><span class="vi">Mô hình dữ liệu</span><span class="en">Data modeling</span></li><li><span class="vi">Quy tắc master data</span><span class="en">Master data rules</span></li></ul></div>
+        <div><h3><span class="vi">Tự động hoá &amp; web</span><span class="en">Automation &amp; web</span></h3><ul><li>Excel VBA, UserForms, ETL</li><li>Power Automate, Microsoft Forms</li><li>SharePoint, Teams</li><li>HTML/JavaScript, Firebase, PWA</li><li>AppSheet, Apps Script</li></ul></div>
+        <div><h3><span class="vi">Vận hành kho</span><span class="en">Warehouse operations</span></h3><ul><li><span class="vi">Nhân lực, ca và OT</span><span class="en">Manpower, shifts and OT</span></li><li><span class="vi">Giao dịch ERP, đối soát WMS</span><span class="en">ERP transactions, WMS checks</span></li><li>PR/PO, scrap, chargeback</li><li><span class="vi">Chuẩn hoá quy trình nhiều site</span><span class="en">Multi-site standards</span></li></ul></div>
+        <div><h3><span class="vi">Ngôn ngữ</span><span class="en">Languages</span></h3><ul><li><span class="vi">Tiếng Việt: bản ngữ</span><span class="en">Vietnamese: native</span></li><li><span class="vi">Tiếng Anh: dùng trong công việc</span><span class="en">English: working proficiency</span></li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="wrap contact-grid">
+      <img src="avatar.jpg" alt="" width="190" height="190" data-reveal>
+      <div data-reveal>
+        <h2><span class="vi">Cùng nói chuyện nhé</span><span class="en">Let's talk</span></h2>
+        <p class="vi">Muốn trao đổi về kho, số liệu hay tự động hoá thì email cho tôi. Cần CV đầy đủ tôi cũng gửi qua email.</p>
+        <p class="en">If you'd like to talk about warehouses, data or automation, send me an email. I can send my full CV that way too.</p>
+        <div class="mail">
+          <a id="mailLink" href="mailto:hoailuan0311@gmail.com">hoailuan0311@gmail.com</a>
+          <button type="button" class="copy" id="copyMail"><span id="copyLabel"></span></button>
+        </div>
+        <p class="place"><span class="vi">TP. Hồ Chí Minh, Việt Nam</span><span class="en">Ho Chi Minh City, Vietnam</span></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 <span class="vi">Nguyễn Hoài Luận</span><span class="en">Nguyen Hoai Luan</span> (Cris)</span>
+    <span><span class="vi">Các demo và báo cáo trên trang đều dùng số mẫu.</span><span class="en">All demos and reports on this page use sample data.</span></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  var root=document.documentElement;
+  var CALM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function lang(){return root.classList.contains('l-en')?'en':'vi'}
+  function t(vi,en){return lang()==='en'?en:vi}
+  function store(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  function $(id){return document.getElementById(id)}
+  /* Every animation plays over the element's final state, so nothing stays hidden if it never runs. */
+  function play(el,frames,opt){
+    if(CALM||!el.animate){return}
+    var o=opt||{};
+    var a=el.animate(frames,{duration:o.duration||700,delay:o.delay||0,easing:o.easing||'cubic-bezier(.2,.75,.2,1)',fill:'backwards'});
+    setTimeout(function(){try{a.cancel()}catch(e){}},(o.delay||0)+(o.duration||700)+500);
+  }
+  function rise(el,delay){play(el,[{opacity:0,transform:'translateY(22px)'},{opacity:1,transform:'none'}],{delay:delay||0})}
+  function whenSeen(el,fn,threshold){
+    if(!window.IntersectionObserver){return}
+    var io=new IntersectionObserver(function(es){
+      if(es[0].isIntersecting){io.disconnect();fn()}
+    },{threshold:threshold||.15});
+    io.observe(el);
+  }
+
+  var META={
+    vi:{title:'Nguyễn Hoài Luận · Portfolio',desc:'Nguyễn Hoài Luận (Cris), hơn 5 năm làm kho tại TTI Việt Nam. Báo cáo Power BI, công cụ Excel VBA, Power Automate và web app cho công việc kho.'},
+    en:{title:'Nguyen Hoai Luan · Portfolio',desc:'Nguyen Hoai Luan (Cris), over 5 years in warehouse work at TTI Vietnam. Power BI reports, Excel VBA tools, Power Automate and web apps for warehouse work.'}
+  };
+  var redraws=[];
+  function setLang(l){
+    root.classList.remove('l-vi','l-en');root.classList.add('l-'+l);root.lang=l;
+    document.title=META[l].title;
+    document.querySelector('meta[name="description"]').setAttribute('content',META[l].desc);
+    ['vi','en'].forEach(function(x){$('btn-'+x).setAttribute('aria-pressed',String(x===l))});
+    store('pf_lang',l);
+    redraws.forEach(function(f){f()});
+  }
+  document.querySelectorAll('.seg button').forEach(function(b){b.addEventListener('click',function(){setLang(b.dataset.lang)})});
+  $('themeBtn').addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+    var next=cur==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);store('pf_theme',next);
+  });
+
+  /* Scroll progress */
+  var bar=$('progress');
+  function onScroll(){
+    var h=root.scrollHeight-innerHeight;
+    bar.style.transform='scaleX('+(h>0?Math.min(1,scrollY/h):0)+')';
+  }
+  addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+  /* Ticker */
+  var TOOLS=['Excel VBA','Power Query','Power BI','DAX','Power Automate','SharePoint','Microsoft Forms','HTML/JavaScript','Firebase','AppSheet','Apps Script','ERP','WMS','AS400'];
+  $('tick').innerHTML=TOOLS.concat(TOOLS,TOOLS,TOOLS).map(function(x){return '<span>'+x+'</span>'}).join('');
+
+  /* Hero */
+  (function(){
+    var bars=$('heroBars'),n=46,html='';
+    for(var i=0;i<n;i++){
+      var h=18+Math.abs(Math.sin(i*.55)*38)+i*1.05;
+      html+='<i style="height:'+Math.min(100,h).toFixed(1)+'%"></i>';
+    }
+    bars.innerHTML=html;
+    [].forEach.call(bars.children,function(b,i){
+      play(b,[{transform:'scaleY(0)'},{transform:'scaleY(1)'}],{duration:900,delay:200+i*18});
+    });
+    /* Headline words rise one at a time */
+    document.querySelectorAll('#heroTitle > span').forEach(function(line){
+      var walk=function(node){
+        [].slice.call(node.childNodes).forEach(function(c){
+          if(c.nodeType===3){
+            var frag=document.createDocumentFragment();
+            c.textContent.split(/(\s+)/).forEach(function(w){
+              if(!w){return}
+              if(/^\s+$/.test(w)){frag.appendChild(document.createTextNode(' '));return}
+              var s=document.createElement('span');s.className='w';s.textContent=w;frag.appendChild(s);
+            });
+            node.replaceChild(frag,c);
+          }else if(c.nodeType===1){walk(c)}
+        });
+      };
+      walk(line);
+      [].forEach.call(line.querySelectorAll('.w'),function(w,i){
+        play(w,[{opacity:0,transform:'translateY(.5em)'},{opacity:1,transform:'none'}],{duration:620,delay:90+i*52});
+      });
+    });
+    document.querySelectorAll('[data-rise]').forEach(function(el){rise(el,800)});
+    var pic=$('pic');
+    play(pic,[{opacity:0,transform:'translateX(38px) scale(.97)'},{opacity:1,transform:'none'}],{duration:950,delay:150});
+    document.querySelectorAll('.float').forEach(function(f,i){
+      play(f,[{opacity:0,transform:'scale(.7)'},{opacity:1,transform:'none'}],{duration:520,delay:900+i*170,easing:'cubic-bezier(.3,1.5,.5,1)'});
+    });
+    /* Cards follow the pointer a little */
+    if(!CALM&&matchMedia('(hover:hover)').matches){
+      var hero=document.querySelector('.hero'),cards=[].slice.call(document.querySelectorAll('.float[data-depth]'));
+      hero.addEventListener('pointermove',function(e){
+        var r=hero.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+        cards.forEach(function(c){var d=+c.dataset.depth;c.style.transform='translate('+(x*d).toFixed(1)+'px,'+(y*d).toFixed(1)+'px)'});
+      });
+    }
+  })();
+
+  /* Count up */
+  document.querySelectorAll('[data-count]').forEach(function(el){
+    var end=+el.dataset.count,pre=el.dataset.prefix||'';
+    if(CALM){return}
+    var t0=performance.now()+700,dur=1300;
+    (function step(now){
+      var p=Math.max(0,Math.min(1,(now-t0)/dur)),e=1-Math.pow(1-p,3);
+      el.textContent=pre+Math.round(end*e);
+      if(p<1){requestAnimationFrame(step)}else{el.textContent=pre+end}
+    })(performance.now());
+    setTimeout(function(){el.textContent=pre+end},2600);
+  });
+
+  /* Reveal on scroll */
+  document.querySelectorAll('[data-reveal]').forEach(function(el){
+    whenSeen(el,function(){rise(el,0)},.08);
+  });
+
+  /* Ruler */
+  whenSeen($('ruler'),function(){
+    play($('markNew'),[{left:'87.5%'},{left:'37.5%'}],{duration:1700,delay:200});
+    play($('gain'),[{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:1700,delay:200});
+  },.5);
+
+  /* 80 and 700 records: each dot is 2 records */
+  (function(){
+    var few=$('dotsFew'),many=$('dotsMany');
+    few.innerHTML=new Array(41).join('<i></i>');
+    many.innerHTML=new Array(351).join('<i></i>');
+    whenSeen(many,function(){
+      [].forEach.call(many.children,function(d,i){
+        if(i%3===0){play(d,[{opacity:0,transform:'scale(.2)'},{opacity:1,transform:'none'}],{duration:320,delay:i*2.4})}
+      });
+    },.2);
+  })();
+
+  /* ---------- BI viewer: all 20 report pages rebuilt with sample numbers ---------- */
+  var C={navy:'#1F4E79',olive:'#A9B000',teal:'#128F76',red:'#C62828',amber:'#D98E04',sky:'#6FA8DC',purple:'#5B3FA8',orange:'#C2500F',mute:'#667086',grid:'#E7E9DF',track:'#EEF0E7'};
+  var AC=C.navy,AC2=C.olive;
+  var MONTHS=['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'];
+  var MONTHS_EN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function mo(n){return (lang()==='en'?MONTHS_EN:MONTHS).slice(0,n)}
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}
+  function legend(items){return '<div class="c-legend">'+items.map(function(i){return '<span><i style="background:'+i[1]+'"></i>'+esc(i[0])+'</span>'}).join('')+'</div>'}
+  function nice(max){var p=Math.pow(10,Math.floor(Math.log10(max))),m=max/p,st=[1,1.2,1.6,2,2.4,3.2,4,4.8,6,8,10];for(var i=0;i<st.length;i++){if(m<=st[i]){return st[i]*p}}return 10*p}
+  function num1(v){return Math.abs(v)<10&&v%1?v.toFixed(1):String(Math.round(v))}
+  var uid=0;
+
+  /* Bars, with an optional line on a second axis */
+  function combo(c){
+    var W=Math.max(280,c._w),H=c.h||210,L=34,R=c.line?38:8,T=12,B=24,iw=W-L-R,ih=H-T-B,n=c.x.length;
+    var ym=c.ymax||nice(Math.max.apply(0,c.bar)),lmin=c.lmin||0,lmax=c.line?(c.lmax||Math.max.apply(0,c.line)*1.1):1;
+    var bw=iw/n,s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(c.title)+'">';
+    for(var g=0;g<=4;g++){
+      var gy=T+ih-ih*g/4;
+      s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+gy+'" y2="'+gy+'" stroke="'+C.grid+'"/>';
+      s+='<text x="'+(L-6)+'" y="'+(gy+3.5)+'" text-anchor="end" font-size="10">'+num1(ym*g/4)+'</text>';
+      if(c.line){s+='<text x="'+(W-R+6)+'" y="'+(gy+3.5)+'" font-size="10">'+num1(lmin+(lmax-lmin)*g/4)+(c.unit||'')+'</text>'}
+    }
+    var skip=bw<24?2:1;
+    c.bar.forEach(function(v,i){
+      var h=ih*v/ym,x=L+bw*i+bw*.16;
+      s+='<rect class="gb" data-i="'+i+'" x="'+x.toFixed(1)+'" y="'+(T+ih-h).toFixed(1)+'" width="'+(bw*.68).toFixed(1)+'" height="'+h.toFixed(1)+'" rx="2" fill="'+AC+'"/>';
+      if(i%skip===0){s+='<text x="'+(x+bw*.34).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10">'+esc(c.x[i])+'</text>'}
+    });
+    if(c.line){
+      var pts=c.line.map(function(v,i){return [L+bw*i+bw/2,T+ih-ih*(v-lmin)/(lmax-lmin)]});
+      s+='<path class="gl" pathLength="1" fill="none" stroke="'+AC2+'" stroke-width="2.6" stroke-linejoin="round" d="M'+pts.map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1)}).join('L')+'"/>';
+      pts.forEach(function(p){s+='<circle class="gp" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3" fill="#fff" stroke="'+AC2+'" stroke-width="2"/>'});
+    }
+    if(c.target!==undefined){
+      var ty=T+ih-ih*(c.target-lmin)/(lmax-lmin);
+      s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+ty+'" y2="'+ty+'" stroke="'+C.red+'" stroke-dasharray="5 4"/>';
+    }
+    var lg=[[c.barName,AC]];if(c.line){lg.push([c.lineName,AC2])}
+    if(c.target!==undefined){lg.push([t('Mục tiêu','Target')+' '+c.target+(c.unit||''),C.red])}
+    return s+'</svg>'+legend(lg);
+  }
+  /* Filled line */
+  function area(c){
+    var W=Math.max(280,c._w),H=c.h||190,L=34,R=8,T=12,B=24,iw=W-L-R,ih=H-T-B,n=c.x.length,lo=c.min||0,hi=c.max||nice(Math.max.apply(0,c.y));
+    var X=function(i){return L+iw*i/(n-1)},Y=function(v){return T+ih-ih*(v-lo)/(hi-lo)},id='ag'+(++uid);
+    var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(c.title)+'"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+AC+'" stop-opacity=".42"/><stop offset="1" stop-color="'+AC+'" stop-opacity=".04"/></linearGradient></defs>';
+    for(var g=0;g<=4;g++){var gy=T+ih-ih*g/4;s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+gy+'" y2="'+gy+'" stroke="'+C.grid+'"/><text x="'+(L-6)+'" y="'+(gy+3.5)+'" text-anchor="end" font-size="10">'+num1(lo+(hi-lo)*g/4)+(c.unit||'')+'</text>'}
+    var d=c.y.map(function(v,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)}).join('');
+    s+='<path class="gf" d="'+d+'L'+X(n-1).toFixed(1)+' '+(T+ih)+'L'+L+' '+(T+ih)+'Z" fill="url(#'+id+')"/><path class="gl" pathLength="1" d="'+d+'" fill="none" stroke="'+AC+'" stroke-width="2.6" stroke-linejoin="round"/>';
+    var skip=Math.ceil(n/8);
+    c.x.forEach(function(x,i){if(i%skip===0){s+='<text x="'+X(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10">'+esc(x)+'</text>'}});
+    s+='<circle class="gp" cx="'+X(n-1).toFixed(1)+'" cy="'+Y(c.y[n-1]).toFixed(1)+'" r="4.5" fill="'+AC+'" stroke="#fff" stroke-width="2"/>';
+    return s+'</svg>';
+  }
+  /* Horizontal bars */
+  function hbar(c){
+    var W=Math.max(250,c._w),row=c.row||27,H=c.items.length*row+4,L=c.lw||88,max=c.max||nice(Math.max.apply(0,c.items.map(function(i){return i[1]})));
+    var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(c.title)+'">';
+    c.items.forEach(function(it,i){
+      var y=i*row+3,tw=W-L-44,w=tw*it[1]/max,col=it[2]||AC,bh=row-8;
+      s+='<text x="'+(L-7)+'" y="'+(y+bh-5)+'" text-anchor="end" font-size="11">'+esc(it[0])+'</text>';
+      s+='<rect x="'+L+'" y="'+y+'" width="'+tw+'" height="'+bh+'" rx="3" fill="'+C.track+'"/>';
+      s+='<rect class="gh" x="'+L+'" y="'+y+'" width="'+w.toFixed(1)+'" height="'+bh+'" rx="3" fill="'+col+'"/>';
+      s+='<text x="'+(L+tw+6)+'" y="'+(y+bh-5)+'" font-size="11" font-weight="700" style="fill:#1C2333">'+it[1]+(c.unit||'')+'</text>';
+    });
+    return s+'</svg>';
+  }
+  /* Donut, or a pie when c.pie is set */
+  function donut(c){
+    var total=c.items.reduce(function(a,i){return a+i[1]},0),r=c.pie?38:60,sw=c.pie?76:24,circ=2*Math.PI*r,off=0;
+    var s='<svg viewBox="0 0 180 180" style="max-width:190px;margin:auto" role="img" aria-label="'+esc(c.title)+'"><g transform="rotate(-90 90 90)">';
+    c.items.forEach(function(it){
+      var len=circ*it[1]/total;
+      s+='<circle class="gd" data-len="'+len.toFixed(2)+'" data-c="'+circ.toFixed(2)+'" cx="90" cy="90" r="'+r+'" fill="none" stroke="'+it[2]+'" stroke-width="'+sw+'" stroke-dasharray="'+len.toFixed(2)+' '+(circ-len).toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'"/>';
+      off+=len;
+    });
+    s+='</g>';
+    if(!c.pie){s+='<text x="90" y="90" text-anchor="middle" font-size="25" font-weight="700" style="fill:#1C2333;font-family:var(--f-display)">'+(c.big||total)+'</text><text x="90" y="106" text-anchor="middle" font-size="10">'+esc(c.center||'')+'</text>'}
+    return s+'</svg>'+legend(c.items.map(function(i){return [i[0]+' '+Math.round(i[1]/total*100)+'%',i[2]]}));
+  }
+  /* Gauge with a needle */
+  function gauge(c){
+    var cx=170,cy=128,r=104,lo=c.min,hi=c.max;
+    function pt(v,rad){var a=Math.PI*(1-(v-lo)/(hi-lo));return [cx+rad*Math.cos(a),cy-rad*Math.sin(a)]}
+    function arc(a,b,col){var p=pt(a,r),q=pt(b,r);return '<path d="M'+p[0].toFixed(1)+' '+p[1].toFixed(1)+'A'+r+' '+r+' 0 0 1 '+q[0].toFixed(1)+' '+q[1].toFixed(1)+'" fill="none" stroke="'+col+'" stroke-width="22"/>'}
+    var ang=-90+180*(c.value-lo)/(hi-lo),tp=pt(c.target,r+20);
+    var s='<svg viewBox="0 0 340 168" style="max-width:340px;margin:auto" role="img" aria-label="'+esc(c.title)+'">'+arc(lo,c.target,'#F4C9C5')+arc(c.target,hi,'#BFE5C6');
+    s+='<text x="'+tp[0].toFixed(1)+'" y="'+tp[1].toFixed(1)+'" text-anchor="middle" font-size="10.5" font-weight="700">'+c.target+(c.unit||'')+'</text>';
+    s+='<text x="'+(cx-r)+'" y="'+(cy+18)+'" text-anchor="middle" font-size="10">'+lo+(c.unit||'')+'</text><text x="'+(cx+r)+'" y="'+(cy+18)+'" text-anchor="middle" font-size="10">'+hi+(c.unit||'')+'</text>';
+    s+='<g class="gn" data-ang="'+ang.toFixed(1)+'" style="transform-origin:'+cx+'px '+cy+'px;transform:rotate('+ang.toFixed(1)+'deg)"><line x1="'+cx+'" y1="'+cy+'" x2="'+cx+'" y2="'+(cy-r+6)+'" stroke="#1C2333" stroke-width="4.5" stroke-linecap="round"/></g><circle cx="'+cx+'" cy="'+cy+'" r="8" fill="#1C2333"/><circle cx="'+cx+'" cy="'+cy+'" r="3" fill="#DDE31C"/>';
+    s+='<text x="'+cx+'" y="'+(cy+33)+'" text-anchor="middle" font-size="23" font-weight="700" style="fill:#1C2333;font-family:var(--f-display)">'+c.value+(c.unit||'')+'</text>';
+    return s+'</svg>';
+  }
+  /* Tanks that fill up */
+  function tanks(c){
+    var W=Math.max(270,c._w),H=c.h||200,n=c.items.length,g=14,tw=(W-g*(n-1))/n,top=20,ch=H-top-24,s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(c.title)+'">';
+    c.items.forEach(function(it,i){
+      var x=i*(tw+g),h=ch*it[1]/100,y=top+ch-h,id='tk'+(++uid);
+      s+='<defs><clipPath id="'+id+'"><rect x="'+x.toFixed(1)+'" y="'+top+'" width="'+tw.toFixed(1)+'" height="'+ch+'" rx="7"/></clipPath></defs>';
+      s+='<rect x="'+x.toFixed(1)+'" y="'+top+'" width="'+tw.toFixed(1)+'" height="'+ch+'" rx="7" fill="'+C.track+'"/>';
+      s+='<g clip-path="url(#'+id+')"><rect class="gw" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+tw.toFixed(1)+'" height="'+h.toFixed(1)+'" fill="'+it[2]+'"/></g>';
+      s+='<rect x="'+x.toFixed(1)+'" y="'+top+'" width="'+tw.toFixed(1)+'" height="'+ch+'" rx="7" fill="none" stroke="#C9CCBE"/>';
+      s+='<text x="'+(x+tw/2).toFixed(1)+'" y="13" text-anchor="middle" font-size="13" font-weight="700" style="fill:#1C2333">'+it[1]+'%</text>';
+      s+='<text x="'+(x+tw/2).toFixed(1)+'" y="'+(top+ch+17)+'" text-anchor="middle" font-size="10.5">'+esc(it[0])+'</text>';
+    });
+    return s+'</svg>';
+  }
+  /* 100% stacked columns */
+  function stack(c){
+    var W=Math.max(270,c._w),H=c.h||200,L=30,T=12,B=24,ih=H-T-B,iw=W-L-4,bw=iw/c.x.length;
+    var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(c.title)+'">';
+    [0,50,100].forEach(function(g){var y=T+ih-ih*g/100;s+='<text x="'+(L-5)+'" y="'+(y+3)+'" text-anchor="end" font-size="10">'+g+'%</text><line x1="'+L+'" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="'+C.grid+'"/>'});
+    c.x.forEach(function(x,i){
+      var v=c.vals[i],h=ih*v/100,bx=L+bw*i+bw*.17,bwid=bw*.66;
+      s+='<rect x="'+bx.toFixed(1)+'" y="'+T+'" width="'+bwid.toFixed(1)+'" height="'+ih+'" rx="2" fill="#E8EADF"/>';
+      s+='<rect class="gb" data-i="'+i+'" x="'+bx.toFixed(1)+'" y="'+(T+ih-h).toFixed(1)+'" width="'+bwid.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="2" fill="'+(v>=c.alert?C.red:AC)+'"/>';
+      s+='<text x="'+(bx+bwid/2).toFixed(1)+'" y="'+(T+ih-h+13).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="700" style="fill:#fff">'+v+'</text>';
+      s+='<text x="'+(bx+bwid/2).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10">'+esc(x)+'</text>';
+    });
+    return s+'</svg>'+legend([[t('Đang dùng','Occupied'),AC],[t('Từ ','From ')+c.alert+'%',C.red],[t('Còn trống','Empty'),'#E8EADF']]);
+  }
+  /* Treemap: split the larger side each time */
+  function treemap(c){
+    var W=Math.max(270,c._w),H=c.h||250,s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(c.title)+'">';
+    function lay(items,x,y,w,h){
+      if(items.length===1){
+        var it=items[0],m=1.5;
+        s+='<g class="gt"><rect x="'+(x+m).toFixed(1)+'" y="'+(y+m).toFixed(1)+'" width="'+(w-2*m).toFixed(1)+'" height="'+(h-2*m).toFixed(1)+'" rx="4" fill="'+it[2]+'"/>';
+        if(w>62&&h>38){s+='<text x="'+(x+9).toFixed(1)+'" y="'+(y+20).toFixed(1)+'" font-size="11.5" font-weight="700" style="fill:#fff">'+esc(it[0])+'</text><text x="'+(x+9).toFixed(1)+'" y="'+(y+35).toFixed(1)+'" font-size="11" style="fill:#fff">'+it[1]+'%</text>'}
+        s+='</g>';return;
+      }
+      var tot=items.reduce(function(a,i){return a+i[1]},0),acc=0,k=0;
+      while(k<items.length-1&&acc+items[k][1]<=tot/2){acc+=items[k][1];k++}
+      if(k===0){acc=items[0][1];k=1}
+      var A=items.slice(0,k),B=items.slice(k),f=acc/tot;
+      if(w>=h){lay(A,x,y,w*f,h);lay(B,x+w*f,y,w*(1-f),h)}else{lay(A,x,y,w,h*f);lay(B,x,y+h*f,w,h*(1-f))}
+    }
+    lay(c.items.slice().sort(function(a,b){return b[1]-a[1]}),0,0,W,H);
+    return s+'</svg>';
+  }
+  /* Map of warehouse racks, one square per bay */
+  function rack(c){
+    var W=Math.max(270,c._w),cols=Math.min(24,Math.floor((W-26)/16)),cell=(W-26)/cols,s='',rows=c.rows;
+    var H=rows.length*cell+2;
+    s='<svg viewBox="0 0 '+W+' '+H.toFixed(1)+'" role="img" aria-label="'+esc(c.title)+'">';
+    rows.forEach(function(r,ri){
+      s+='<text x="0" y="'+(ri*cell+cell*.68).toFixed(1)+'" font-size="11" font-weight="700">'+r+'</text>';
+      for(var i=0;i<cols;i++){
+        var q=Math.sin((ri+1)*12.9898+(i+1)*78.233)*43758.5453;q=q-Math.floor(q);
+        var col=q<c.empty?'#E3E6DA':q<c.empty+.68?AC:q<.97?C.amber:C.red;
+        s+='<rect class="gr" data-i="'+(i+ri*2)+'" x="'+(26+i*cell).toFixed(1)+'" y="'+(ri*cell+1).toFixed(1)+'" width="'+(cell-2).toFixed(1)+'" height="'+(cell-2).toFixed(1)+'" rx="2" fill="'+col+'"/>';
+      }
+    });
+    return s+'</svg>'+legend([[t('Trống','Empty'),'#E3E6DA'],[t('Đang dùng','Occupied'),AC],[t('Gần đầy','Nearly full'),C.amber],[t('Quá tải','Over limit'),C.red]]);
+  }
+  /* Waterfall from opening to closing value */
+  function waterfall(c){
+    var W=Math.max(280,c._w),H=c.h||220,L=34,T=12,B=30,ih=H-T-B,iw=W-L-6,n=c.items.length+2,bw=iw/n,hi=nice(c.start+c.items.reduce(function(a,i){return a+Math.max(0,i[1])},0));
+    var Y=function(v){return T+ih-ih*v/hi},run=c.start;
+    var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(c.title)+'">';
+    for(var g=0;g<=4;g++){var gy=T+ih-ih*g/4;s+='<line x1="'+L+'" x2="'+W+'" y1="'+gy+'" y2="'+gy+'" stroke="'+C.grid+'"/><text x="'+(L-6)+'" y="'+(gy+3.5)+'" text-anchor="end" font-size="10">'+num1(hi*g/4)+'</text>'}
+    function col(i,top,bot,fill,lab,val){
+      var x=L+bw*i+bw*.13;
+      s+='<rect class="gb" data-i="'+i+'" x="'+x.toFixed(1)+'" y="'+Y(top).toFixed(1)+'" width="'+(bw*.74).toFixed(1)+'" height="'+Math.max(1,Y(bot)-Y(top)).toFixed(1)+'" rx="2" fill="'+fill+'"/>';
+      s+='<text x="'+(x+bw*.37).toFixed(1)+'" y="'+(Y(top)-4).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="700" style="fill:#1C2333">'+val+'</text>';
+      s+='<text x="'+(x+bw*.37).toFixed(1)+'" y="'+(H-14)+'" text-anchor="middle" font-size="9.5">'+esc(lab)+'</text>';
+    }
+    col(0,run,0,AC,c.startLabel,run);
+    c.items.forEach(function(it,i){
+      var a=run,b=run+it[1];col(i+1,Math.max(a,b),Math.min(a,b),it[1]<0?C.red:C.teal,it[0],(it[1]>0?'+':'')+it[1]);run=b;
+    });
+    col(n-1,run,0,AC,c.endLabel,run);
+    return s+'</svg>';
+  }
+  /* Table, with optional bar cells and status pills */
+  function table(c){
+    var h='<div class="c-tw"><table class="c-t"><thead><tr>'+c.head.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+esc(x)+'</th>'}).join('')+'</tr></thead><tbody>';
+    c.rows.forEach(function(r){
+      h+='<tr'+(r.total?' class="tot"':'')+'>'+(r.cells||r).map(function(v,i){
+        if(v&&v.bar!==undefined){return '<td class="r"><span class="cb"><i class="pb" style="width:'+v.bar+'%;background:'+(v.c||AC)+'"></i></span>'+v.bar+'%</td>'}
+        if(v&&v.st){return '<td class="r"><span class="pill '+v.st+'">'+esc(v.t)+'</span></td>'}
+        return '<td'+(i?' class="r"':'')+'>'+esc(v)+'</td>';
+      }).join('')+'</tr>';
+    });
+    return h+'</tbody></table></div>';
+  }
+  /* Labelled progress bars */
+  function pbars(c){
+    return '<div class="pbs">'+c.items.map(function(it){
+      return '<div class="pbr"><div class="pbl"><b>'+esc(it[0])+'</b><span>'+esc(it[2]||(it[1]+'%'))+'</span></div><div class="pbt"><i class="pb" style="width:'+it[1]+'%;background:'+(it[3]||AC)+'"></i></div></div>';
+    }).join('')+'</div>';
+  }
+  /* Month calendar with marked days */
+  function cal(c){
+    var names=lang()==='en'?['M','T','W','T','F','S','S']:['T2','T3','T4','T5','T6','T7','CN'];
+    var h='<div class="cal">'+names.map(function(n){return '<em>'+n+'</em>'}).join('');
+    for(var i=0;i<c.offset;i++){h+='<span></span>'}
+    for(var d=1;d<=c.days;d++){
+      var m=c.marks[d];
+      h+='<b class="gt '+(m||'')+'">'+d+'</b>';
+    }
+    return h+'</div>'+legend(c.legend);
+  }
+  /* Actual against budget */
+  function bullet(c){
+    var max=Math.max.apply(0,c.items.map(function(i){return Math.max(i[1],i[2])}))*1.1;
+    return '<div class="pbs">'+c.items.map(function(it){
+      var over=it[1]>it[2];
+      return '<div class="pbr"><div class="pbl"><b>'+esc(it[0])+'</b><span>'+it[1]+' / '+it[2]+'</span></div><div class="pbt tall"><i class="pb" style="width:'+(it[1]/max*100).toFixed(1)+'%;background:'+(over?C.red:AC)+'"></i><u style="left:'+(it[2]/max*100).toFixed(1)+'%"></u></div></div>';
+    }).join('')+'</div>'+legend([[t('Thực tế','Actual'),AC],[t('Vượt ngân sách','Over budget'),C.red],[t('Ngân sách','Budget'),'#1C2333']]);
+  }
+  /* Small progress rings */
+  function rings(c){
+    var r=30,circ=2*Math.PI*r;
+    return '<div class="rings">'+c.items.map(function(it){
+      var len=circ*it[1]/100;
+      return '<div><svg viewBox="0 0 80 80" role="img" aria-label="'+esc(it[0])+' '+it[1]+'%"><circle cx="40" cy="40" r="'+r+'" fill="none" stroke="'+C.track+'" stroke-width="9"/><circle class="gd" data-len="'+len.toFixed(2)+'" data-c="'+circ.toFixed(2)+'" transform="rotate(-90 40 40)" cx="40" cy="40" r="'+r+'" fill="none" stroke="'+(it[2]||AC)+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+len.toFixed(2)+' '+(circ-len).toFixed(2)+'"/><text x="40" y="45" text-anchor="middle" font-size="16" font-weight="700" style="fill:#1C2333;font-family:var(--f-display)">'+it[1]+'</text></svg><span>'+esc(it[0])+'</span></div>';
+    }).join('')+'</div>';
+  }
+  /* Board of tasks by status */
+  function board(c){
+    return '<div class="board">'+c.cols.map(function(col){
+      var dots='';for(var i=0;i<col[2];i++){dots+='<i class="gt" style="background:'+col[3]+'"></i>'}
+      return '<div><h5>'+esc(col[0])+'</h5><b>'+col[1]+'</b><p>'+dots+'</p></div>';
+    }).join('')+'</div>';
+  }
+  var DRAW={combo:combo,area:area,hbar:hbar,donut:donut,gauge:gauge,tanks:tanks,stack:stack,treemap:treemap,rack:rack,waterfall:waterfall,table:table,pbars:pbars,cal:cal,bullet:bullet,rings:rings,board:board};
+
+  /* Names shown on per-person charts. Every person gets the same sample value, so nobody is ranked by a made-up number. */
+  var P=['Binh Phu','Dat Thanh','Duc Tan','Le Tai','Quoc Phuong','Van Tho','Van Tinh','Xuan Nam','Xuan Trung'];
+  function K(v,u,l,d,dir,o){var k={kpi:1,v:v,u:u,l:l,d:d,dir:dir,span:3};for(var x in (o||{})){k[x]=o[x]}return k}
+  function W(type,span,title,o){o.type=type;o.span=span;o.title=title;return o}
+  var GROUPS=[
+    {id:'all',name:['Tổng quan','Summary'],ac:'#DDE31C',ink:'#111B3A',bar:C.navy,line:C.olive},
+    {id:'ppl',name:['Nhân lực','Workforce'],ac:C.navy,ink:'#FFFFFF',bar:C.navy,line:C.amber},
+    {id:'inv',name:['Tồn kho','Inventory'],ac:C.teal,ink:'#FFFFFF',bar:C.teal,line:C.navy},
+    {id:'iss',name:['Sự cố & chất lượng','Issues & quality'],ac:C.orange,ink:'#FFFFFF',bar:C.orange,line:C.navy},
+    {id:'ops',name:['Vận hành & chi phí','Operations & cost'],ac:C.purple,ink:'#FFFFFF',bar:C.purple,line:C.amber}
+  ];
+  var PAGES=[
+    {id:'KPI',g:'all',why:['Mọi KPI chính gom vào một trang, xem một lần là biết hôm nay chỗ nào ổn, chỗ nào không.','All the main KPIs on one page, so you can see at a glance what is fine and what is not.'],
+     w:function(){return [
+      W('rings',12,t('Điểm KPI tháng này','This month\'s KPI scores'),{items:[[t('An toàn','Safety'),94,C.teal],[t('Độ chính xác','Accuracy'),99,C.navy],[t('Cycle count','Cycle count'),91,C.amber],[t('Hiệu suất','Efficiency'),98,C.navy],['5S',88,C.amber],[t('Giao đúng hạn','On time'),96,C.teal]]}),
+      W('combo',7,t('Giờ làm và hiệu suất theo tháng','Total hours and efficiency by month'),{x:mo(9),bar:[92,88,101,97,104,110,108,99,106],line:[93,94,96,95,97,98,97,99,98],lmin:80,lmax:120,unit:'%',target:100,barName:t('Giờ làm (nghìn)','Hours (thousands)'),lineName:t('Hiệu suất','Efficiency')}),
+      W('area',5,t('Tổng giờ mất theo tháng','Total loss hours by month'),{x:mo(9),y:[62,55,58,47,44,41,39,42,37],unit:'h'})
+     ]}},
+    {id:'Overview',g:'all',why:['Trang quản lý mở mỗi sáng: giờ làm, hiệu suất, OT, hàng nhận và hàng soạn trong tháng.','The page managers open each morning: hours, efficiency, OT, and goods received and picked this month.'],
+     w:function(){return [
+      K(98.4,'%',t('Hiệu suất','Efficiency'),'+1.2','up',{span:4,dark:1,spark:[93,94,96,95,97,98,97,99,98]}),
+      K(4210,'',t('Giờ OT','Over time (hours)'),'-6%','up',{span:4,spark:[52,50,49,47,48,45,44,43,42]}),
+      K(612,'','Headcount','+4','up',{span:4,spark:[58,58,59,60,60,60,61,61,61]}),
+      W('combo',8,t('Hàng nhận và hàng soạn','Received and picked'),{x:mo(9),bar:[41,38,47,45,52,49,55,51,58],line:[39,37,44,46,50,48,52,53,56],barName:t('Nhận (nghìn dòng)','Received (k lines)'),lineName:t('Soạn (nghìn dòng)','Picked (k lines)'),lmin:0,lmax:80,ymax:80}),
+      W('hbar',4,t('Hiệu suất theo site','Efficiency by site'),{unit:'%',lw:56,row:40,items:[['Site A',101],['Site B',99],['Site C',96],['Site D',92,C.amber]]})
+     ]}},
+    {id:'Headcount & OT',g:'ppl',why:['Xem người và giờ OT theo tháng, theo site, để biết chỗ nào đang phải tăng ca nhiều.','Shows people and OT hours by month and site, to spot where overtime runs high.'],
+     w:function(){return [
+      W('combo',8,t('Headcount và OT trung bình/ngày','Headcount and average OT/day'),{x:mo(9),bar:[580,586,590,598,604,600,608,610,612],line:[2.6,2.4,2.5,2.2,2.3,2,1.9,2,1.8],lmin:0,lmax:4,unit:'h',target:2,barName:'Headcount',lineName:t('OT/ngày','OT/day')}),
+      W('pbars',4,t('Tỉ lệ OT','OT ratio'),{items:[['%OT 4H',14,'14%',C.red],['%OT 2H',38,'38%',C.amber],[t('Không OT','No OT'),48,'48%',C.teal]]}),
+      W('hbar',12,t('OT trung bình theo Supervisor (cùng một số mẫu)','Average OT by Supervisor (same sample value)'),{unit:'h',max:4,row:25,items:P.map(function(n){return [n,1.8]})})
+     ]}},
+    {id:'Task#',g:'ppl',why:['Đếm số task theo site và theo loại việc, để chia người cho hợp với lượng việc.','Counts tasks by site and type, so people can be assigned to match the workload.'],
+     w:function(){return [
+      W('table',8,t('Tổng hợp theo site','Summary by site'),{head:[t('Site','Site'),'Receiving','Put-away','Picking',t('TB/ngày','AVG/day')],rows:[['Site A','4,120','3,980','9,240','668'],['Site B','3,410','3,350','7,860','564'],['Site C','2,780','2,690','6,410','460'],['Site D','1,240','1,200','2,980','210'],{total:1,cells:[t('Tổng','Total'),'11,550','11,220','26,490','1,902']}]}),
+      W('donut',4,t('Tỉ trọng theo loại việc','Share by task type'),{center:t('nghìn task','k tasks'),big:'49',items:[['Picking',54,AC],['Receiving',24,C.sky],['Put-away',22,C.amber]]}),
+      W('area',12,t('Số task theo ngày','Tasks by day'),{x:['1','3','5','7','9','11','13','15','17','19','21','23','25'],y:[1720,1810,1930,1880,1990,2050,1940,1870,2010,2120,2080,1960,2040],h:170})
+     ]}},
+    {id:'Efficiency',g:'ppl',why:['Có dữ liệu tới từng người nên trang này xem được hiệu suất theo Supervisor và Leader.','With data for each person, this page shows efficiency by Supervisor and Leader.'],
+     w:function(){return [
+      W('gauge',5,t('Hiệu suất so với mục tiêu','Efficiency vs target'),{value:98.4,min:80,max:130,target:105,unit:'%'}),
+      W('combo',7,t('Tổng giờ và hiệu suất theo ngày','Total hours and efficiency by date'),{x:['1','2','3','4','5','6','7','8','9','10','11','12'],bar:[4.2,4.4,4.1,4.5,4.6,4.3,4.4,4.7,4.5,4.2,4.6,4.8],line:[96,97,95,98,99,97,98,100,99,97,99,100],lmin:80,lmax:120,unit:'%',barName:t('Giờ (nghìn)','Hours (k)'),lineName:t('Hiệu suất','Efficiency')}),
+      W('hbar',12,t('Hiệu suất theo Supervisor (cùng một số mẫu)','Efficiency by Supervisor (same sample value)'),{unit:'%',max:130,row:25,items:P.map(function(n){return [n,100]})})
+     ]}},
+    {id:'Aging',g:'inv',why:['Hàng để càng lâu càng dễ thành vấn đề, nên trang này chia tồn kho theo thời gian lưu kho.','The longer stock sits, the bigger the risk, so this page splits inventory by age.'],
+     w:function(){return [
+      W('tanks',7,t('Tỉ trọng tồn kho theo tuổi hàng','Inventory share by age'),{h:250,items:[['< 01M',68,C.teal],['01-06M',21,C.navy],['06-24M',8,C.amber],['> 24M',3,C.red]]}),
+      W('area',5,t('Tồn trên 6 tháng','Stock over 6 months'),{x:mo(6),y:[18,17,15,14,12,11],unit:'%',h:215}),
+      W('table',12,t('Top mã hàng để lâu','Top aged items'),{head:[t('Mã hàng','Part#'),t('Khu','Area'),t('Số tháng','Months'),t('Xử lý','Status')],rows:[['PN-1042','RM-A','26',{st:'bad',t:t('Cần xử lý','Action')}],['PN-2210','RM-C','19',{st:'warn',t:t('Theo dõi','Watch')}],['PN-3187','FG-B','14',{st:'warn',t:t('Theo dõi','Watch')}],['PN-0875','RM-A','8',{st:'ok',t:t('Đã có kế hoạch','Planned')}]]})
+     ]}},
+    {id:'Stock count 3.0',g:'inv',why:['Theo dõi đợt kiểm kê: đã đếm bao nhiêu, còn bao nhiêu và độ chính xác lần đầu.','Follows the stock count: how much is counted, what is left and first-count accuracy.'],
+     w:function(){return [
+      W('gauge',4,t('Độ chính xác lần 1','1st accuracy'),{value:97.6,min:90,max:100,target:98,unit:'%'}),
+      W('rings',4,t('Tiến độ','Progress'),{items:[[t('Đã đếm','Counted'),96,C.teal],[t('Giá trị đã đếm','Value counted'),93,C.navy]]}),
+      W('board',4,t('Trạng thái','Status'),{cols:[[t('Đã đếm','Counted'),'8,420',24,C.teal],[t('Chưa đếm','Not yet'),'310',3,C.amber]]}),
+      W('combo',12,t('Lượng đếm và độ chính xác theo ngày','Counted items and accuracy by day'),{x:['1','2','3','4','5','6','7','8'],bar:[820,960,1100,1040,1210,1180,1260,850],line:[95,96,96,97,97,98,98,98],lmin:92,lmax:100,unit:'%',target:98,h:190,barName:t('Đã đếm','Counted'),lineName:t('Độ chính xác','Accuracy')})
+     ]}},
+    {id:'Express scan 2.0',g:'inv',why:['Kiểm tra nhanh bằng máy quét theo khu, xem độ chính xác từng tháng và số lần quét mỗi ngày.','Quick scanner checks by area, with monthly accuracy and scans per day.'],
+     w:function(){return [
+      W('pbars',5,t('Độ chính xác theo khu','Accuracy by area'),{items:[['OP1',99,'99.1%'],['OP2',98,'98.4%'],['OP3',97,'96.9%',C.amber],['CPT',99,'99.3%'],['TPT',98,'97.8%']]}),
+      W('combo',7,t('Số lần quét theo ngày','Scan tasks by day'),{x:['1','2','3','4','5','6','7','8','9','10'],bar:[310,285,342,356,298,330,371,344,322,360],barName:t('Lần quét','Scans')}),
+      W('area',12,t('Độ chính xác theo tháng','Accuracy by month'),{x:mo(9),y:[96.2,96.8,97.1,97.4,97.2,97.9,98.1,98.3,98.4],min:95,max:100,unit:'%',h:160})
+     ]}},
+    {id:'Cycle count daily',g:'inv',why:['Danh sách đếm mỗi ngày: đếm tới đâu, lệch bao nhiêu và mã nào đang trễ hạn.','The daily count list: progress, variances and which items are overdue.'],
+     w:function(){return [
+      K(98.7,'%','%Accuracy','+0.2','up',{span:3}),K(212,'',t('Mã đếm hôm nay','Items today'),'','',{span:3}),K(186,'',t('Đã đếm','Counted'),'','',{span:3}),K(4,'',t('Trễ hạn','Overdue'),'-2','up',{span:3}),
+      W('donut',4,t('Trễ hạn theo nhóm','Overdue by category'),{center:t('mã','items'),big:'4',items:[['A',2,C.red],['B',1,C.amber],['C',1,C.sky]]}),
+      W('table',8,t('Chi tiết chênh lệch','Variance detail'),{head:[t('Mã hàng','Part#'),t('Hệ thống','System'),t('Thực đếm','Counted'),t('Lệch','Var.')],rows:[['PN-4411','120','118','-2'],['PN-1190','64','65','+1'],['PN-7302','300','296','-4'],['PN-2076','48','48','0']]})
+     ]}},
+    {id:'Capacity',g:'inv',why:['Biết sớm khu nào và tuần nào sắp đầy để còn kịp sắp xếp.','Shows early which areas and weeks are filling up, so there is time to plan.'],
+     w:function(){return [
+      W('rack',8,t('Sơ đồ vị trí theo dãy','Locator map by aisle'),{rows:['A','B','C','D','E','F','G','H'],empty:.13}),
+      W('donut',4,t('Tỉ lệ sử dụng','Occupied rate'),{center:t('đang dùng','occupied'),big:'87%',items:[[t('Đang dùng','Occupied'),87,AC],[t('Còn trống','Empty'),13,'#C9D6E6']]}),
+      W('stack',12,t('Tỉ lệ sử dụng theo tuần','Occupied rate by week'),{x:['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10'],vals:[78,81,84,83,87,92,96,88,85,86],alert:90,h:185})
+     ]}},
+    {id:'Temporary',g:'inv',why:['Hàng ở khu tạm chiếm chỗ và dễ bị quên, nên trang này theo dõi giá trị và xu hướng giảm.','Stock in temporary areas takes up space and gets forgotten, so this page follows its value and trend.'],
+     w:function(){return [
+      W('treemap',8,t('Tỉ trọng giá trị theo nhóm hàng','Value share by item group'),{h:280,items:[['Motor',31,AC],['PCBA',24,'#0E7A65'],['Plastic',17,'#2AA88F'],['Gift box',12,C.navy],['Battery',9,'#3B6E9C'],['Label',4,C.amber],[t('Khác','Other'),3,C.mute]]}),
+      K(-18,'%',t('Giảm so với tháng trước','Change vs last month'),t('Mẫu','Sample'),'up',{span:4,dark:1,spark:[60,57,54,51,46,44,40,37]}),
+      W('area',12,t('Giá trị theo tháng (chỉ số)','Value by month (index)'),{x:mo(9),y:[100,96,94,89,85,78,74,70,64],h:150})
+     ]}},
+    {id:'Stock adjustment',g:'inv',why:['Mỗi lần điều chỉnh tồn kho đều có lý do. Trang này cho thấy lý do nào làm số thay đổi nhiều nhất.','Every stock adjustment has a reason. This page shows which reasons move the number most.'],
+     w:function(){return [
+      W('waterfall',8,t('Tồn đầu kỳ tới cuối kỳ (chỉ số)','Opening to closing stock (index)'),{start:100,startLabel:t('Đầu kỳ','Open'),endLabel:t('Cuối kỳ','Close'),h:250,items:[[t('Sai ĐVT','UOM'),-12],[t('Kiểm kê','Count'),6],['Scrap',-18],[t('Chuyển','Move'),-4],[t('Trả hàng','Return'),10]]}),
+      W('donut',4,t('Theo lý do','By reason'),{center:'SJ',items:[[t('Kiểm kê','Count'),41,AC],['Scrap',33,C.red],[t('Sai ĐVT','UOM'),19,C.amber],[t('Khác','Other'),15,C.sky]]}),
+      W('combo',12,t('Số phiếu điều chỉnh theo tháng','Adjustment count by month'),{x:mo(9),bar:[14,12,15,11,10,9,12,8,7],h:160,barName:t('Số phiếu','Count of SJ')})
+     ]}},
+    {id:'DNR',g:'iss',why:['Theo dõi chargeback nhà cung cấp: bao nhiêu case còn chờ, bao nhiêu đã xong.','Tracks supplier chargebacks: how many cases are pending and how many are done.'],
+     w:function(){return [
+      W('board',12,t('Trạng thái case','Case status'),{cols:[[t('Đang chờ','Pending'),'32',8,C.amber],[t('Đang xử lý','In progress'),'21',5,C.sky],[t('Đã xong','Done'),'265',36,C.teal]]}),
+      W('donut',4,t('Theo loại DNR','By DNR type'),{center:'case',items:[['Scrap',142,AC],['Rework',78,C.teal],['Wrong Part',61,C.amber],['Local',37,C.sky]]}),
+      W('combo',8,t('Số case và tỉ lệ hoàn thành','Cases and completion'),{x:mo(9),bar:[41,36,44,31,38,29,35,33,31],line:[71,74,76,80,83,85,86,88,90],lmin:60,lmax:100,unit:'%',barName:t('Số case','Cases'),lineName:t('Hoàn thành','Completion')})
+     ]}},
+    {id:'Supplier issue',g:'iss',why:['Xem nhà cung cấp nào hay có vấn đề và thuộc nhóm lỗi nào, để làm việc lại cho đúng chỗ.','Shows which suppliers have repeat issues and of what kind, so follow-up goes to the right place.'],
+     w:function(){return [
+      W('hbar',7,t('Nhà cung cấp theo số case','Suppliers by cases'),{row:34,lw:56,items:[['NCC A',38],['NCC B',27],['NCC C',21],['NCC D',16],['NCC E',11],['NCC F',8]]}),
+      W('donut',5,t('Theo nhóm lỗi','By issue category'),{center:'case',items:[[t('Thiếu hàng','Shortage'),62,AC],[t('Sai nhãn','Wrong label'),38,C.teal],[t('Hư hỏng','Damage'),27,C.amber],[t('Khác','Other'),19,C.sky]]}),
+      W('pbars',12,t('Phát hiện thiếu hàng ở khâu nào','When shortages were detected'),{items:[[t('Khi nhận hàng','At receiving'),41],[t('Khi cấp cho sản xuất','At line feed'),37,'37%',C.amber],[t('Khi kiểm kê','At stock count'),22,'22%',C.sky]]})
+     ]}},
+    {id:'Downtime',g:'iss',why:['Ghi lại giờ dừng sản xuất liên quan tới kho và lỗi hay gặp nhất, để biết nên sửa gì trước.','Records production hours lost due to the warehouse and the most common causes, so we know what to fix first.'],
+     w:function(){return [
+      W('cal',5,t('Lịch sự cố trong tháng','Issues this month'),{offset:3,days:30,marks:{4:'bad',11:'warn',12:'warn',19:'bad',26:'warn',5:'ok',6:'ok',7:'ok',13:'ok',14:'ok',15:'ok',16:'ok',20:'ok',21:'ok',22:'ok',23:'ok',27:'ok',28:'ok'},legend:[[t('Không sự cố','No issue'),C.teal],[t('Có sự cố nhỏ','Minor issue'),C.amber],[t('Có dừng máy','Line stop'),C.red]]}),
+      W('hbar',7,t('Top 5 lỗi gây dừng','Top 5 downtime issues'),{unit:'h',row:38,lw:76,items:[[t('Thiếu hàng','Shortage'),14,C.red],[t('Sai mã','Wrong part'),9],[t('Cấp trễ','Late feed'),7],[t('Hỏng xe','Equipment'),4],[t('Khác','Other'),3]]}),
+      W('combo',12,t('Giờ mất và số sự cố theo tháng','Loss hours and issues by month'),{x:mo(9),bar:[9,6,8,3,0,5,2,0,4],line:[6,4,5,2,0,3,1,0,3],lmin:0,lmax:8,h:175,barName:t('Giờ mất','Loss hours'),lineName:t('Số sự cố','Issues')})
+     ]}},
+    {id:'Quality issue',g:'iss',why:['Tổng hợp lỗi chất lượng có liên quan đến kho, theo số lượng, lý do và giá trị.','Sums up warehouse-related quality issues by count, reason and value.'],
+     w:function(){return [
+      K(23,'',t('Số lỗi năm nay','Issues this year'),'-7','up',{span:3,dark:1}),K(5,'',t('Lý do khác nhau','Different reasons'),'','',{span:3}),K(2,'',t('Đang mở','Open'),'-1','up',{span:3}),K(91,'%',t('Đã khắc phục','Fixed'),'+4','up',{span:3}),
+      W('table',7,t('Lỗi theo lý do','Issues by reason'),{head:[t('Lý do','Reason'),t('Số lỗi','Count'),t('Tỉ trọng','Share')],rows:[[t('Sai nhãn','Wrong label'),'9',{bar:39}],[t('Sai số lượng','Wrong quantity'),'6',{bar:26}],[t('Hư hỏng','Damage'),'4',{bar:17,c:C.amber}],[t('Lẫn lô','Mixed lot'),'3',{bar:13,c:C.amber}],[t('Khác','Other'),'1',{bar:4,c:C.sky}]]}),
+      W('combo',5,t('Số lỗi theo tháng','Issues by month'),{x:mo(9),bar:[4,3,4,2,3,2,2,2,1],barName:t('Số lỗi','Issues')})
+     ]}},
+    {id:'e-Mi',g:'ops',why:['Theo dõi phiếu xuất vật tư điện tử (MI): số phiếu, số mã và lượng trung bình mỗi ngày.','Tracks electronic material issues (MI): tickets, part numbers and the daily average.'],
+     w:function(){return [
+      W('donut',4,t('Theo loại phiếu','By ticket type'),{pie:1,items:[[t('Sản xuất','Production'),58,AC],[t('Bảo trì','Maintenance'),17,C.teal],[t('Mẫu','Sample'),14,C.amber],[t('Khác','Other'),11,C.sky]]}),
+      K(186,'',t('MI trung bình/ngày','Average MI/day'),'+9','up',{span:4,dark:1,spark:[150,158,162,171,168,176,181,186]}),
+      K(742,'',t('Mã trung bình/ngày','Average part#/day'),'+21','up',{span:4,spark:[640,655,690,680,702,715,730,742]}),
+      W('combo',12,t('Số phiếu theo tuần','Tickets by week'),{x:['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10'],bar:[920,980,1010,1040,990,1080,1120,1090,1150,1180],line:[92,94,93,95,96,95,97,97,98,98],lmin:80,lmax:100,unit:'%',h:175,barName:t('Số phiếu','Tickets'),lineName:t('Đúng hạn','On time')})
+     ]}},
+    {id:'Picking progress',g:'ops',why:['Xem soạn hàng theo từng CA# tới đâu và đơn nào đang có nguy cơ thiếu hàng.','Shows picking progress for each CA# and which orders risk a shortage.'],
+     w:function(){return [
+      W('pbars',7,t('Tiến độ theo CA#','Progress by CA#'),{items:[['CA# 5101',100,'100%',C.teal],['CA# 5102',92],['CA# 5103',76],['CA# 5104',54,'54%',C.amber],['CA# 5105',31,'31%',C.amber],['CA# 5106',8,'8%',C.red]]}),
+      W('gauge',5,t('Tỉ lệ hoàn thành hôm nay','Completion today'),{value:71,min:0,max:100,target:80,unit:'%'}),
+      W('stack',12,t('Tỉ lệ CA# hoàn thành theo ngày','CA# completion by date'),{x:['1','2','3','4','5','6','7','8','9','10'],vals:[82,76,91,85,79,88,93,84,71,86],alert:101,h:175})
+     ]}},
+    {id:'5S/Safety',g:'ops',why:['Ghi lại các đợt Gemba Walk và lỗi 5S theo từng team, xem đã xử lý tới đâu.','Records monthly Gemba Walks and 5S issues by team, and how far they have been handled.'],
+     w:function(){return [
+      W('cal',4,t('Lịch Gemba Walk','Gemba Walk days'),{offset:3,days:30,marks:{3:'ok',10:'ok',17:'ok',24:'ok',12:'warn',25:'warn'},legend:[['Gemba Walk',C.teal],[t('Có lỗi cần xử lý','Issue found'),C.amber]]}),
+      W('rings',8,t('Tiến độ xử lý lỗi','Issue handling progress'),{items:[['Inbound',92,C.teal],['Picking',84,C.teal],['Packing',76,C.amber],['Outbound',88,C.teal],['JIT',69,C.amber],['Scrap',95,C.teal]]}),
+      W('combo',12,t('Số lỗi theo tháng','Issues by month'),{x:mo(9),bar:[38,34,36,29,27,24,26,21,18],line:[62,68,71,74,79,82,84,88,91],lmin:50,lmax:100,unit:'%',h:175,barName:t('Số lỗi','Issues'),lineName:t('Đã xử lý','Handled')})
+     ]}},
+    {id:'Cost management',g:'ops',why:['So chi phí thực tế với ngân sách theo tháng, để thấy sớm khoản nào sắp vượt.','Compares actual cost to budget by month, to catch items about to go over.'],
+     w:function(){return [
+      W('bullet',6,t('Chi phí so với ngân sách (chỉ số)','Cost vs budget (index)'),{items:[['C&B',96,100],['OT',108,100],[t('Vật tư','Supplies'),88,100],[t('Xe nâng','Forklift'),94,100],[t('Khác','Other'),72,80]]}),
+      W('donut',6,t('Cơ cấu chi phí','Cost split'),{center:t('chỉ số','index'),big:'100',items:[['C&B',71,AC],[t('Thuê ngoài','Outsource'),14,C.amber],[t('Vật tư','Supplies'),9,C.teal],[t('Khác','Other'),6,C.sky]]}),
+      W('combo',12,t('Chi phí khác theo tháng (chỉ số)','Non-personal cost by month (index)'),{x:mo(9),bar:[104,99,96,101,94,92,95,90,88],line:[100,100,100,100,100,100,100,100,100],lmin:60,lmax:120,h:175,barName:t('Thực tế','Actual'),lineName:t('Ngân sách','Budget')})
+     ]}}
+  ];
+  var biPage=0,biAnimated=false;
+  var railEl=$('biTabs'),canvas=$('biCanvas'),repEl=$('biRep');
+  function drawRail(){
+    var h='';
+    GROUPS.forEach(function(g){
+      h+='<div class="rg"><h4>'+esc(L2g(g))+'</h4>';
+      PAGES.forEach(function(p,i){if(p.g===g.id){h+='<button type="button" class="rbtn" id="bitab'+i+'" data-p="'+i+'" role="tab" aria-selected="'+(i===biPage)+'" style="--ac:'+g.ac+';--ink:'+g.ink+'">'+esc(p.id)+'</button>'}});
+      h+='</div>';
+    });
+    railEl.innerHTML=h;
+    railEl.querySelectorAll('.rbtn').forEach(function(b){b.addEventListener('click',function(){stopAuto();showPage(+b.dataset.p,true)})});
+  }
+  function L2g(g){return lang()==='en'?g.name[1]:g.name[0]}
+  function fmt(v){return Math.abs(v)>=1000?v.toLocaleString(lang()==='en'?'en-US':'de-DE'):String(v)}
+  function sparkline(v,color){
+    var w=120,h=34,lo=Math.min.apply(0,v),hi=Math.max.apply(0,v),n=v.length;
+    var d=v.map(function(a,i){return (i?'L':'M')+(i*(w-6)/(n-1)+3).toFixed(1)+' '+(h-4-(a-lo)/(hi-lo||1)*(h-8)).toFixed(1)}).join('');
+    return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" aria-hidden="true"><path class="gl" pathLength="1" d="'+d+'" fill="none" stroke="'+color+'" stroke-width="2.4" stroke-linejoin="round"/></svg>';
+  }
+  function renderPage(animate){
+    var p=PAGES[biPage],g=GROUPS.filter(function(x){return x.id===p.g})[0];
+    AC=g.bar;AC2=g.line;uid=0;
+    railEl.querySelectorAll('.rbtn').forEach(function(b){b.setAttribute('aria-selected',String(+b.dataset.p===biPage))});
+    repEl.innerHTML='<div class="c-head" style="background:'+g.ac+';color:'+g.ink+'"><div><small>'+esc(L2g(g))+'</small><h3>'+esc(p.id)+'</h3></div><span>Warehouse BI · '+(biPage+1)+'/20 · '+t('Số mẫu','Sample data')+'</span></div><div class="c-body" id="biBody"></div>';
+    var body=$('biBody'),bw=body.clientWidth-28,narrow=bw<560,gap=10,col=(bw-gap*11)/12,h='';
+    p.w().forEach(function(w){
+      var span=w.span;
+      if(narrow){span=w.kpi?6:12}
+      var cls='c-w s'+span+(w.kpi?' c-k'+(w.dark?' dark':''):'');
+      if(w.kpi){
+        h+='<div class="'+cls+'"><b>'+fmt(w.v)+w.u+'</b><span>'+esc(w.l)+'</span>'+(w.d?'<em class="'+w.dir+'">'+esc(w.d)+'</em>':'')+(w.spark?sparkline(w.spark,w.dark?'#DDE31C':AC):'')+'</div>';
+      }else{
+        w._w=col*span+gap*(span-1)-26;
+        h+='<div class="'+cls+'"><h4>'+esc(w.title)+'</h4>'+DRAW[w.type](w)+'</div>';
+      }
+    });
+    h+='<div class="c-why c-w s12"><b>'+t('Trang này để làm gì: ','What it\'s for: ')+'</b>'+esc(lang()==='en'?p.why[1]:p.why[0])+'</div>';
+    body.innerHTML=h;
+    if(animate){animateCanvas()}
+  }
+  function animateCanvas(){
+    var q=function(s){return repEl.querySelectorAll(s)};
+    play(repEl.querySelector('.c-head'),[{transform:'translateY(-100%)'},{transform:'none'}],{duration:420});
+    q('.c-w').forEach(function(el,i){rise(el,i*70)});
+    q('.gb').forEach(function(el){
+      el.style.transformBox='fill-box';el.style.transformOrigin='50% 100%';
+      play(el,[{transform:'scaleY(0)'},{transform:'scaleY(1)'}],{duration:760,delay:260+(+el.dataset.i)*50});
+    });
+    q('.gl').forEach(function(el){
+      el.style.strokeDasharray='1';
+      play(el,[{strokeDashoffset:1},{strokeDashoffset:0}],{duration:1200,delay:500,easing:'ease-in-out'});
+      setTimeout(function(){el.style.strokeDasharray=''},2200);
+    });
+    q('.gf,.gp').forEach(function(el,i){play(el,[{opacity:0},{opacity:1}],{duration:420,delay:700+i*40})});
+    q('.gh').forEach(function(el,i){
+      el.style.transformBox='fill-box';el.style.transformOrigin='0 50%';
+      play(el,[{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:800,delay:280+i*60});
+    });
+    q('.pb').forEach(function(el,i){
+      el.style.transformOrigin='0 50%';
+      play(el,[{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:800,delay:280+i*70});
+    });
+    q('.gw').forEach(function(el,i){
+      el.style.transformBox='fill-box';el.style.transformOrigin='50% 100%';
+      play(el,[{transform:'scaleY(0)'},{transform:'scaleY(1)'}],{duration:1300,delay:300+i*140});
+    });
+    q('.gn').forEach(function(el){
+      play(el,[{transform:'rotate(-90deg)'},{transform:'rotate('+el.dataset.ang+'deg)'}],{duration:1300,delay:320,easing:'cubic-bezier(.3,1.35,.5,1)'});
+    });
+    q('.gd').forEach(function(el,i){
+      var circ=+el.dataset.c,len=+el.dataset.len;
+      play(el,[{strokeDasharray:'0 '+circ},{strokeDasharray:len+' '+(circ-len)}],{duration:800,delay:300+i*110});
+    });
+    q('.gr').forEach(function(el){play(el,[{opacity:0},{opacity:1}],{duration:260,delay:180+(+el.dataset.i)*22})});
+    q('.gt').forEach(function(el,i){play(el,[{opacity:0,transform:'scale(.82)'},{opacity:1,transform:'none'}],{duration:340,delay:220+i*(i>40?4:24)})});
+  }
+  function showPage(i,animate){
+    biPage=i;renderPage(animate);
+    var tab=$('bitab'+i);
+    if(tab){railEl.scrollTo({left:tab.offsetLeft-railEl.offsetLeft-20,top:tab.offsetTop-railEl.offsetTop-60,behavior:CALM?'auto':'smooth'})}
+  }
+  drawRail();renderPage(false);
+  redraws.push(function(){drawRail();renderPage(false)});
+  var lastW=repEl.clientWidth;
+  addEventListener('resize',function(){
+    if(Math.abs(repEl.clientWidth-lastW)>40){lastW=repEl.clientWidth;renderPage(false)}
+  });
+  /* Pages turn on their own until someone touches the report */
+  var autoTimer=null;
+  function stopAuto(){if(autoTimer){clearInterval(autoTimer);autoTimer=null}}
+  whenSeen(canvas,function(){
+    animateCanvas();
+    if(CALM){return}
+    autoTimer=setInterval(function(){
+      var r=canvas.getBoundingClientRect();
+      if(document.hidden||r.bottom<0||r.top>innerHeight){return}
+      showPage((biPage+1)%PAGES.length,true);
+    },7000);
+  },.2);
+  canvas.addEventListener('pointerenter',stopAuto);
+
+  /* ---------- Power Automate: stages built from the real flow steps ---------- */
+  var FLOWS=[
+    {name:'FG - GatePass - Request Approval',shot:'flow-gatepass.png',full:true,
+     short:['Gate pass xuất hàng','Outbound gate pass'],
+     desc:['Người phụ trách điền form cho container sắp ra cổng. Flow tự cấp mã, lưu ảnh, gửi người duyệt và tạo file PDF khi được duyệt.','Someone fills in a form for a container leaving the gate. The flow creates the ID, files the photos, asks for approval and produces a PDF once approved.'],
+     meta:['Forms','Office 365 Users','Excel Online','OneDrive','SharePoint','Teams','Approvals'],
+     count:['52 bước, 7 dịch vụ','52 steps, 7 services'],
+     stages:[
+      {t:['Nhận form','Form received'],n:3,d:['Có phản hồi mới thì flow lấy nội dung form và thông tin người gửi.','A new response starts the flow, which reads the form and the sender\'s profile.'],s:['When a new response is submitted','GetResponseDetails','GetUserProfile']},
+      {t:['Đọc thông tin','Read the details'],n:13,d:['Tách container, invoice, seal, tuyến, người gửi, ảnh và thời gian ra từng biến.','Splits container, invoice, seals, lane, sender, photos and time into variables.'],s:['varContainer','varInvoice','varTTISeal','varCarrierSeal','varLane','varRequesterEmail','varRequesterName','varPhotoLinks','varPhotoCount','varYearMonth','varDay','varSubmitTime','varDateCode']},
+      {t:['Cấp mã GatePass','Create the ID'],n:6,d:['Đọc cấu hình trong Excel, đếm số phiếu trong ngày rồi tạo mã tiếp theo.','Reads the Excel settings, counts today\'s passes and creates the next ID.'],s:['ListRowsConfig','varPrefix','ListRowsToday','varSeq','varGatePassID','FilterArrayCont']},
+      {t:['Lưu ảnh','File the photos'],n:9,d:['Tạo thư mục, chép từng ảnh từ OneDrive sang SharePoint và lấy link chia sẻ.','Creates a folder, copies each photo from OneDrive to SharePoint and gets a share link.'],s:['varFolderName','varPhotoFolder','varPhotoFolderUrl','ParseJSONPhotos','GetFileContent','CreateFilePhoto','CreateSharingLinkPhoto','Append_to_string_variable','Increment_variable'],loop:1},
+      {t:['Báo người duyệt','Notify approvers'],n:6,d:['Tìm email người duyệt trong Excel, ghi một dòng vào file theo dõi và đăng thẻ lên Teams.','Finds approver emails in Excel, adds a tracking row and posts a card in Teams.'],s:['ApplyToEachPhoto','ComposeApproverNames','ListRowsApprover','FilterArrayApprover','SelectEmails','AddRowGatePass','PostCardPending']},
+      {t:['Chờ duyệt','Wait for approval'],n:4,d:['Flow dừng ở đây cho tới khi người duyệt trả lời, rồi ghi lại người duyệt và thời gian.','The flow waits here for an answer, then records who approved it and when.'],s:['StartApproval','SelectApprovedBy','varCompletedTime','varApprovedByHtml']}
+     ],
+     yes:{t:['Được duyệt','Approved'],d:['Tạo file PDF, lưu SharePoint, cập nhật thẻ Teams và file theo dõi.','Creates the PDF, saves it to SharePoint, updates the Teams card and the tracking file.'],s:['ComposeHTML','CreateFileHTML','ConvertFile','CreateFilePDF','CreateSharingLinkPDF','UpdateCardApproved','DeleteFileHTML','UpdateRowApproved']},
+     no:{t:['Bị từ chối','Rejected'],d:['Ghi trạng thái vào file theo dõi và cập nhật thẻ Teams.','Records the status in the tracking file and updates the Teams card.'],s:['UpdateRowRejected','UpdateCardRejected']}},
+    {name:'Submit MISSING to Sup Approve',shot:'flow-missing.png',
+     short:['Quên chấm công','Missing IN/OUT'],
+     desc:['Nhân viên quên chấm công thì điền form, thay cho đơn giấy trước đây. Yêu cầu được chuyển tới Supervisor duyệt.','Staff who missed a clock-in fill out a form instead of the old paper one. The request goes to their Supervisor for approval.'],
+     meta:['Forms','Excel Online'],count:['Phần đầu của flow','First part of the flow'],
+     stages:[
+      {t:['Nhận form','Form received'],d:['Có đơn mới thì flow lấy nội dung form.','A new form response starts the flow and its details are read.'],s:['When a new response is submitted','Get response details']},
+      {t:['Tạo mã đơn','Create the request ID'],d:['Tạo mã đơn và chuẩn bị các biến.','Creates the request ID and sets up the variables.'],s:['MaDon','Initialize variable','Initialize variable 1','Initialize variable 2']},
+      {t:['Tra trong Excel','Look up in Excel'],d:['Đọc danh sách trong bảng Excel.','Reads the rows of an Excel table.'],s:['List rows present in a table']},
+      {t:['Rẽ nhánh','Branch'],d:['Điều kiện chia flow thành 2 nhánh.','A condition splits the flow into 2 cases.'],s:['Condition (2 cases)']}
+     ]},
+    {name:'Xin Nghỉ Phép',shot:'flow-leave.png',
+     short:['Xin nghỉ phép','Leave request'],
+     desc:['Đơn xin nghỉ phép chuyển từ giấy lên form, cùng cách làm với đơn quên chấm công.','Leave requests moved from paper to a form, built the same way as the Missing IN/OUT flow.'],
+     meta:['Forms','Excel Online'],count:['Phần đầu của flow','First part of the flow'],
+     stages:[
+      {t:['Nhận form','Form received'],d:['Có đơn mới thì flow lấy nội dung form.','A new form response starts the flow and its details are read.'],s:['When a new response is submitted','Get response details']},
+      {t:['Tạo mã đơn','Create the request ID'],d:['Tạo mã đơn và chuẩn bị các biến.','Creates the request ID and sets up the variables.'],s:['MaDon','Initialize variable','Initialize variable 1','Initialize variable 2']},
+      {t:['Tra trong Excel','Look up in Excel'],d:['Đọc danh sách trong bảng Excel.','Reads the rows of an Excel table.'],s:['List rows present in a table']},
+      {t:['Rẽ nhánh','Branch'],d:['Điều kiện chia flow thành 2 nhánh.','A condition splits the flow into 2 cases.'],s:['Condition (2 cases)']}
+     ]}
+  ];
+  var flIdx=0,flSel=0,flTimer=null,flTabs=$('flTabs'),flBox=$('flBox');
+  function L2(a){return lang()==='en'?a[1]:a[0]}
+  FLOWS.forEach(function(f,i){
+    var b=document.createElement('button');b.type='button';b.className='fl-tab';b.id='fltab'+i;b.setAttribute('role','tab');
+    b.addEventListener('click',function(){flStop();flIdx=i;flSel=0;drawFlow()});
+    flTabs.appendChild(b);
+  });
+  function flStop(){if(flTimer){clearInterval(flTimer);flTimer=null}}
+  function drawFlow(){
+    var f=FLOWS[flIdx];
+    [].forEach.call(flTabs.children,function(b,i){b.textContent=L2(FLOWS[i].short);b.setAttribute('aria-selected',String(i===flIdx))});
+    var h='<div class="fl-top"><div><h3>'+esc(f.name)+'</h3><p>'+esc(L2(f.desc))+'</p></div><div class="fl-run">';
+    if(f.full){h+='<button type="button" class="mini" data-run="yes">▶ '+t('Chạy: được duyệt','Run: approved')+'</button><button type="button" class="mini" data-run="no">▶ '+t('Chạy: từ chối','Run: rejected')+'</button>'}
+    else{h+='<button type="button" class="mini" data-run="seq">▶ '+t('Chạy thử','Run it')+'</button>'}
+    h+='</div></div><div class="fl-meta"><span class="chip" style="background:var(--navy);color:#DDE31C">'+esc(L2(f.count))+'</span>'+f.meta.map(function(m){return '<span class="chip">'+esc(m)+'</span>'}).join('')+'</div>';
+    h+='<div class="stages" style="--n:'+f.stages.length+'">'+f.stages.map(function(s,i){
+      return '<button type="button" class="stage" data-st="'+i+'" aria-pressed="'+(flSel===i)+'"><i>'+(i+1)+'</i><b>'+esc(L2(s.t))+'</b><small>'+s.s.length+' '+t('bước',s.s.length===1?'step':'steps')+(s.loop?' · '+t('lặp theo ảnh','per photo'):'')+'</small></button>';
+    }).join('')+'</div>';
+    if(f.yes){
+      h+='<div class="branches"><button type="button" class="branch yes" data-st="yes" aria-pressed="'+(flSel==='yes')+'"><b>✓ '+esc(L2(f.yes.t))+'</b><small>'+esc(L2(f.yes.d))+'</small></button><button type="button" class="branch no" data-st="no" aria-pressed="'+(flSel==='no')+'"><b>✕ '+esc(L2(f.no.t))+'</b><small>'+esc(L2(f.no.d))+'</small></button></div>';
+    }
+    h+='<div class="fl-detail" id="flDetail"></div>';
+    h+='<details class="fl-shot"><summary>'+t('Xem ảnh chụp trong Power Automate','See the screenshot from Power Automate')+'</summary><img src="'+f.shot+'" loading="lazy" alt="'+esc(f.name)+'"></details>';
+    flBox.innerHTML=h;
+    drawDetail();
+    flBox.querySelectorAll('[data-st]').forEach(function(b){
+      b.addEventListener('click',function(){
+        flStop();var v=b.dataset.st;flSel=(v==='yes'||v==='no')?v:+v;
+        flBox.querySelectorAll('[data-st]').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))});
+        drawDetail();
+      });
+    });
+    flBox.querySelectorAll('[data-run]').forEach(function(b){b.addEventListener('click',function(){runFlow(b.dataset.run)})});
+  }
+  function drawDetail(){
+    var f=FLOWS[flIdx],s=(flSel==='yes'||flSel==='no')?f[flSel]:f.stages[flSel],box=$('flDetail');
+    if(!s||!box){return}
+    box.innerHTML='<h4>'+esc(L2(s.t))+'</h4><p>'+esc(L2(s.d))+'</p><div class="steps">'+s.s.map(function(x){return '<code>'+esc(x)+'</code>'}).join('')+'</div>';
+  }
+  function runFlow(end){
+    flStop();
+    var st=[].slice.call(flBox.querySelectorAll('.stage')),br=flBox.querySelector('.branch.'+end),i=0;
+    flBox.querySelectorAll('.stage,.branch').forEach(function(x){x.classList.remove('on','past')});
+    if(CALM){st.forEach(function(x){x.classList.add('past')});if(br){br.classList.add('on')}return}
+    function pick(v,el){flSel=v;flBox.querySelectorAll('[data-st]').forEach(function(x){x.setAttribute('aria-pressed',String(x===el))});drawDetail()}
+    function tick(){
+      if(i>0&&st[i-1]){st[i-1].classList.remove('on');st[i-1].classList.add('past')}
+      if(i<st.length){st[i].classList.add('on');pick(i,st[i])}
+      else{if(br){br.classList.add('on');pick(end,br)}flStop();return}
+      i++;
+    }
+    tick();flTimer=setInterval(tick,850);
+  }
+  drawFlow();
+  redraws.push(function(){flStop();drawFlow()});
+  whenSeen(flBox,function(){if(flIdx===0){runFlow('yes')}},.35);
+
+  /* ---------- Master data demo ---------- */
+  var COLS=[['code','Mã','Code'],['name','Tên hàng','Item'],['unit','ĐVT','Unit'],['site','Kho','Site'],['open','Đầu','Open',1],['in','Nhập','In',1],['out','Xuất','Out',1],['close','Tồn cuối','Close',1]];
+  var SAMPLE=[
+    ['CT-4030','Thùng carton 40x30','Thùng','HCM',120,60,50,130],
+    ['BK-0048','Băng keo 48mm','Cuộn','HCM',300,0,40,260],
+    ['BK-0048','Băng keo 48 mm','Cây','Hồ Chí Minh',80,10,20,70],
+    ['GT-0102','Găng tay vải','Đôi','TP.HCM',90,30,25,100],
+    ['PL-1210','Pallet nhựa','Cái','HCM',40,0,55,-15],
+    ['TQ-0500','Tem QR','Cuộn','HCM',15,20,5,30],
+    ['PL-1210','Pallet nhựa','Cái','HCM',40,0,55,-15]
+  ];
+  var tb=document.querySelector('#mdTable tbody'),th=document.querySelector('#mdTable thead');
+  function clean(s){return String(s).replace(/\s+/g,' ').trim()}
+  function fold(s){return clean(s).toLowerCase().normalize('NFD').replace(/\p{M}/gu,'').replace(/đ/g,'d').replace(/[^a-z0-9]/g,'')}
+  var SITE={hcm:'hcm',tphcm:'hcm',hochiminh:'hcm',saigon:'hcm',tphochiminh:'hcm'};
+  function num(s){var n=Number(clean(s).replace(/\s/g,''));return clean(s)===''||isNaN(n)?null:n}
+  function drawHead(){th.innerHTML='<tr>'+COLS.map(function(c){return '<th scope="col"'+(c[3]?' class="num"':'')+'>'+(lang()==='en'?c[2]:c[1])+'</th>'}).join('')+'</tr>'}
+  function fillRows(){
+    tb.textContent='';
+    SAMPLE.forEach(function(r,i){
+      var tr=document.createElement('tr');
+      r.forEach(function(v,j){
+        var td=document.createElement('td');
+        td.textContent=v;td.contentEditable='true';td.spellcheck=false;
+        td.dataset.r=i;td.dataset.c=COLS[j][0];
+        if(COLS[j][3]){td.className='num'}
+        td.addEventListener('input',check);
+        td.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();td.blur()}});
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+  }
+  function read(){return [].map.call(tb.rows,function(tr){var o={};[].forEach.call(tr.cells,function(td){o[td.dataset.c]=td.textContent});return o})}
+  function check(){
+    var rows=read(),issues=[],marks=[];
+    function mark(r,c,lvl){marks.push([r,c,lvl])}
+    var seen={},byCode={};
+    rows.forEach(function(x,i){
+      var key=COLS.map(function(c){return fold(x[c[0]])}).join('|');
+      if(seen[key]!==undefined){
+        COLS.forEach(function(c){mark(i,c[0],'err')});
+        issues.push(['err',t('Dòng '+(i+1)+' trùng y hệt dòng '+(seen[key]+1)+'.','Row '+(i+1)+' is an exact duplicate of row '+(seen[key]+1)+'.')]);
+      }else{seen[key]=i}
+      var code=clean(x.code).toUpperCase();(byCode[code]=byCode[code]||[]).push(i);
+    });
+    Object.keys(byCode).forEach(function(code){
+      var idx=byCode[code];if(idx.length<2||!code){return}
+      var units={},names={};
+      idx.forEach(function(i){units[fold(rows[i].unit)]=1;names[fold(rows[i].name)]=1});
+      if(Object.keys(units).length>1){
+        idx.forEach(function(i){mark(i,'unit','err');mark(i,'code','err')});
+        issues.push(['err',t('Mã '+code+' đang có 2 đơn vị tính: ','Code '+code+' has more than one unit: ')+idx.map(function(i){return clean(rows[i].unit)}).join(' / ')+'.']);
+      }
+      if(Object.keys(names).length>1&&Object.keys(units).length===1){
+        idx.forEach(function(i){mark(i,'name','wrn')});
+        issues.push(['wrn',t('Mã '+code+' có nhiều cách ghi tên hàng.','Code '+code+' has more than one item name.')]);
+      }
+    });
+    var variants={};
+    rows.forEach(function(x,i){
+      var f=fold(x.site),canon=SITE[f]||f;
+      (variants[canon]=variants[canon]||{list:{},rows:[]}).list[clean(x.site)]=1;
+      variants[canon].rows.push(i);
+    });
+    Object.keys(variants).forEach(function(k){
+      var names=Object.keys(variants[k].list);
+      if(names.length>1){
+        variants[k].rows.forEach(function(i){if(clean(rows[i].site)!==names[0]){mark(i,'site','wrn')}});
+        issues.push(['wrn',t('Cùng một kho mà ghi nhiều kiểu: ','One site written several ways: ')+names.join(' / ')+'.']);
+      }
+    });
+    rows.forEach(function(x,i){
+      var o=num(x.open),n=num(x['in']),u=num(x.out),c=num(x.close);
+      ['open','in','out','close'].forEach(function(f){
+        if(num(x[f])===null){mark(i,f,'err');issues.push(['err',t('Dòng '+(i+1)+': ô này không phải số.','Row '+(i+1)+': this cell is not a number.')])}
+      });
+      if(o===null||n===null||u===null||c===null){return}
+      if(c<0){mark(i,'close','err');issues.push(['err',t('Dòng '+(i+1)+': tồn âm ('+c+'), xuất nhiều hơn số đang có.','Row '+(i+1)+': negative stock ('+c+'), issued more than available.')])}
+      if(o+n-u!==c){mark(i,'close','err');issues.push(['err',t('Dòng '+(i+1)+': tồn cuối ghi '+c+', nhưng '+o+' + '+n+' − '+u+' = '+(o+n-u)+'.','Row '+(i+1)+': close says '+c+', but '+o+' + '+n+' − '+u+' = '+(o+n-u)+'.')])}
+    });
+    [].forEach.call(tb.querySelectorAll('td'),function(td){td.classList.remove('err','wrn')});
+    var bad={};
+    marks.forEach(function(m){
+      bad[m[0]]=1;
+      var td=tb.querySelector('td[data-r="'+m[0]+'"][data-c="'+m[1]+'"]');
+      if(td&&!(m[2]==='wrn'&&td.classList.contains('err'))){td.classList.remove('wrn');td.classList.add(m[2])}
+    });
+    $('mdScore').textContent=Math.round((rows.length-Object.keys(bad).length)/rows.length*100)+'%';
+    var box=$('mdIssues');box.textContent='';
+    if(!issues.length){issues.push(['ok',t('Hết lỗi theo các quy tắc của demo này.','No errors left under these demo rules.')])}
+    var label={err:t('Lỗi','Error'),wrn:t('Cảnh báo','Warning'),ok:'OK'};
+    issues.slice(0,7).forEach(function(it){
+      var li=document.createElement('li'),s=document.createElement('span'),m=document.createElement('span');
+      s.className='sev '+it[0];s.textContent=label[it[0]];m.textContent=it[1];
+      li.appendChild(s);li.appendChild(m);box.appendChild(li);
+    });
+    if(issues.length>7){var more=document.createElement('li');more.style.color='var(--fg2)';more.textContent=t('và '+(issues.length-7)+' lỗi khác.','and '+(issues.length-7)+' more.');box.appendChild(more)}
+  }
+  drawHead();fillRows();check();
+  $('mdReset').addEventListener('click',function(){fillRows();check()});
+  redraws.push(function(){drawHead();check()});
+
+  /* ---------- ASN simulation ---------- */
+  var MISS={23:1,67:1},slipsEl=$('slips'),logEl=$('asnLog');
+  for(var s=0;s<100;s++){var d=document.createElement('div');d.className='slip';slipsEl.appendChild(d)}
+  var slips=slipsEl.children,asnTimer=null,asnState={i:0,done:0,miss:0,lines:[]};
+  function pad(n,w){n=String(n);while(n.length<w){n='0'+n}return n}
+  function asnName(i){return 'ASN-2610-'+pad((i*37+1041)%9000+1000,4)+'.jpg'}
+  function logLine(i){
+    var row=document.createElement('div'),a=document.createElement('span'),b=document.createElement('span');
+    a.className='a';a.textContent='page_'+pad(i+1,3)+'.jpg  →  ';
+    if(MISS[i]){b.className='m';b.textContent='page_'+pad(i+1,3)+'.jpg  ('+t('không đọc được QR','QR unreadable')+')'}
+    else{b.className='b';b.textContent=asnName(i)}
+    row.appendChild(a);row.appendChild(b);return row;
+  }
+  function drawLog(){
+    logEl.textContent='';
+    (asnState.i===0?[0,1,2,3,4]:asnState.lines.slice(-5)).forEach(function(i){logEl.appendChild(logLine(i))});
+  }
+  function drawAsn(){
+    $('asnTime').textContent=(asnState.i*.3).toFixed(1)+'s';
+    $('asnDone').textContent=asnState.done;$('asnMiss').textContent=asnState.miss;
+  }
+  function resetAsn(){asnState={i:0,done:0,miss:0,lines:[]};[].forEach.call(slips,function(x){x.className='slip'});drawAsn();drawLog()}
+  function runAsn(){
+    if(asnTimer){return}
+    resetAsn();
+    asnTimer=setInterval(function(){
+      var i=asnState.i;
+      slips[i].classList.add(MISS[i]?'miss':'done');
+      if(MISS[i]){asnState.miss++}else{asnState.done++}
+      asnState.lines.push(i);asnState.i++;
+      drawAsn();drawLog();
+      if(asnState.i>=100){clearInterval(asnTimer);asnTimer=null}
+    },30);
+  }
+  $('asnRun').addEventListener('click',runAsn);
+  resetAsn();
+  redraws.push(drawLog);
+  if(!CALM){whenSeen(slipsEl,runAsn,.6)}
+
+  /* ---------- Attendance illustration ---------- */
+  var TEAMS=['Inbound','Picking','Packing','Outbound','JIT','Scrap'],DAYS=14,shift='all';
+  function rate(team,day,sh){
+    var seed=(team+1)*7919+(day+1)*104729+(sh==='night'?541:sh==='day'?197:0);
+    var r=Math.sin(seed)*10000;r=r-Math.floor(r);
+    var base=sh==='night'?91:sh==='day'?94:93;
+    return Math.min(100,Math.round((base+r*7.5-(team===3?1.6:0))*10)/10);
+  }
+  function bucket(v){return v<92?0:v<94?1:v<96?2:v<98?3:4}
+  function drawAtt(animate){
+    var heat=$('heat'),html='<div></div>',sum=0,n=0,teamAvg=[],below=0;
+    for(var d=0;d<DAYS;d++){html+='<div class="cl">'+(d+1)+'</div>'}
+    TEAMS.forEach(function(name,ti){
+      var ts=0;html+='<div class="rl">'+name+'</div>';
+      for(var d=0;d<DAYS;d++){
+        var v=rate(ti,d,shift),b=bucket(v);ts+=v;sum+=v;n++;if(v<92){below++}
+        html+='<div class="hc" style="background:var(--h'+b+');color:var(--i'+b+')" title="'+name+', '+t('ngày','day')+' '+(d+1)+': '+v.toFixed(1)+'%">'+Math.round(v)+'</div>';
+      }
+      teamAvg.push([name,ts/DAYS]);
+    });
+    heat.innerHTML=html;
+    heat.setAttribute('aria-label',t('Bản đồ nhiệt tỉ lệ đi làm mẫu theo tổ và ngày','Heatmap of sample attendance rate by team and day'));
+    teamAvg.sort(function(a,b){return a[1]-b[1]});
+    $('attKpis').innerHTML=
+      '<div><b>'+(sum/n).toFixed(1)+'%</b><span>'+t('Tỉ lệ đi làm trung bình','Average attendance')+'</span></div>'+
+      '<div><b>'+teamAvg[0][0]+'</b><span>'+t('Tổ thấp nhất','Lowest team')+' · '+teamAvg[0][1].toFixed(1)+'%</span></div>'+
+      '<div><b>'+below+'</b><span>'+t('Ô dưới 92%, cần xem lại','Cells under 92% to review')+'</span></div>';
+    if(animate===true){
+      [].forEach.call(heat.querySelectorAll('.hc'),function(c,i){
+        play(c,[{opacity:0,transform:'scale(.5)'},{opacity:1,transform:'none'}],{duration:300,delay:(i%14)*24+Math.floor(i/14)*40});
+      });
+    }
+  }
+  document.querySelectorAll('#shiftFilter button').forEach(function(b){
+    b.addEventListener('click',function(){
+      shift=b.dataset.shift;
+      document.querySelectorAll('#shiftFilter button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))});
+      drawAtt(true);
+    });
+  });
+  drawAtt();
+  redraws.push(function(){drawAtt()});
+  whenSeen($('heat'),function(){drawAtt(true)},.3);
+
+  /* Copy email */
+  var copyLabel=$('copyLabel');
+  function drawCopy(){copyLabel.textContent=t('Sao chép','Copy')}
+  redraws.push(drawCopy);
+  $('copyMail').addEventListener('click',function(){
+    function done(){copyLabel.textContent=t('Đã chép','Copied');setTimeout(drawCopy,1600)}
+    function pick(){var r=document.createRange();r.selectNodeContents($('mailLink'));var sel=getSelection();sel.removeAllRanges();sel.addRange(r)}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText('hoailuan0311@gmail.com').then(done,pick)}else{pick()}
+  });
+
+  setLang(lang());
+})();
+</script>
+</body>
+</html>
