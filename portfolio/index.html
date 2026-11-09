@@ -104,15 +104,21 @@ button{font:inherit;color:inherit;cursor:pointer}
 .btn.alt{background:transparent;color:var(--on-navy)}
 .btn.alt:hover{background:var(--lime);color:var(--lime-ink)}
 
-.pic{position:relative;max-width:440px;width:100%;margin-inline:auto;justify-self:center}
-.pic::before{content:"";position:absolute;inset:26px -18px -18px 24px;background:var(--lime);border-radius:220px 220px 24px 24px}
-.pic img{position:relative;width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 0;border-radius:220px 220px 24px 24px}
-.float{position:absolute;background:#FFFFFF;color:#121B36;border-radius:12px;padding:9px 13px;box-shadow:0 12px 30px rgba(6,12,32,.34);animation:bob 5s ease-in-out infinite;min-width:128px;will-change:transform}
-.float b,.float b span{display:block;font:800 23px/1.15 var(--f-display);color:#121B36}
-.float span{display:block;font-size:11.5px;line-height:1.35;color:#4C5469}
-.float.a{left:-44px;top:21%}
-.float.b{right:-38px;top:44%;animation-delay:-1.6s}
-.float.c{left:-30px;bottom:8%;animation-delay:-3.2s}
+.pic{position:relative;max-width:400px;width:100%;margin-inline:auto;justify-self:center}
+.pic::before{content:"";position:absolute;inset:26px -18px -18px 24px;background:var(--lime);border-radius:200px 200px 24px 24px}
+.pic img{position:relative;width:100%;height:auto;border-radius:200px 200px 24px 24px}
+.float{position:absolute;display:flex;align-items:center;gap:8px;background:rgba(10,18,48,.9);color:#F2F4FA;border:1.5px solid var(--lime);border-radius:999px;padding:7px 14px 7px 8px;font:700 13.5px/1.2 var(--f-body);white-space:nowrap;box-shadow:0 10px 26px rgba(6,12,32,.35);backdrop-filter:blur(6px);animation:bob 5s ease-in-out infinite;will-change:transform}
+.float i{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--lime);color:#111B3A;font:800 10px/1 var(--f-mono);font-style:normal;flex:none}
+.float:nth-child(odd){animation-duration:6s}
+.k1{left:-52px;top:8%}
+.k2{right:-46px;top:15%;animation-delay:-1.2s}
+.k3{left:-60px;top:29%;animation-delay:-2.4s}
+.k4{right:-58px;top:37%;animation-delay:-.6s}
+.k5{left:-44px;top:51%;animation-delay:-3.1s}
+.k6{right:-40px;top:59%;animation-delay:-1.8s}
+.k7{left:-56px;top:72%;animation-delay:-4s}
+.k8{right:-52px;top:80%;animation-delay:-2.7s}
+.k9{left:-30px;top:91%;animation-delay:-.9s}
 @keyframes bob{50%{translate:0 -9px}}
 .bars{position:absolute;left:0;right:0;bottom:0;height:min(150px,20vw);display:flex;align-items:flex-end;gap:.55%;z-index:1;opacity:.34;pointer-events:none}
 .bars i{flex:1;background:linear-gradient(to top,var(--navy2),#42558F);border-radius:3px 3px 0 0;transform-origin:50% 100%}
@@ -394,7 +400,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
   .flow::before,.flow::after{display:none}
   .others,.bi-index{grid-template-columns:repeat(2,minmax(0,1fr))}
   .skills{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .float.a{left:-14px}.float.b{right:-10px}.float.c{left:-10px}
+  .k1,.k3,.k5,.k7,.k9{left:-18px}.k2,.k4,.k6,.k8{right:-16px}
 }
 @media (max-width:760px){
   .hero-grid{grid-template-columns:minmax(0,1fr)}
@@ -413,7 +419,8 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
   .dots.many{grid-template-columns:repeat(35,minmax(0,1fr))}
   .dots-compare{grid-template-columns:minmax(0,1fr);gap:12px}
   .dots.few{max-width:30%}
-  .float{min-width:0;padding:7px 10px}.float b{font-size:19px}
+  .float{font-size:12px;padding:5px 10px 5px 6px}.float i{width:22px;height:22px;font-size:9px}
+  .k1,.k3,.k5,.k7,.k9{left:-12px}.k2,.k4,.k6,.k8{right:-10px}
   .contact-grid{grid-template-columns:minmax(0,1fr)}
 }
 @media (max-width:460px){
@@ -459,23 +466,29 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
     <div class="wrap">
       <div class="hero-grid">
         <div>
-          <p class="role" data-rise><i aria-hidden="true"></i><span>Senior Warehouse Clerk · TTI <span class="vi">Việt Nam</span><span class="en">Vietnam</span></span></p>
+          <p class="role" data-rise><i aria-hidden="true"></i><span>Cris · Senior Warehouse Clerk · TTI <span class="vi">Việt Nam</span><span class="en">Vietnam</span></span></p>
           <h1 id="heroTitle">
-            <span class="vi">Hơn 5 năm làm kho. Việc nào cứ lặp lại, <mark>tôi viết công cụ</mark> cho nó.</span>
-            <span class="en">Over 5 years in the warehouse. If a job keeps repeating, <mark>I build a tool</mark> for it.</span>
+            <span class="vi">Nguyễn <mark>Hoài Luận</mark></span>
+            <span class="en">Nguyen <mark>Hoai Luan</mark></span>
           </h1>
-          <p class="lead vi" data-rise><strong>Tôi là Nguyễn Hoài Luận (Cris).</strong> Hằng ngày tôi lo số liệu nhân sự, ca, OT và báo cáo cho kho hơn 600 người, rồi dùng Excel VBA, Power BI, Power Automate và web app để bớt phần làm tay.</p>
-          <p class="lead en" data-rise><strong>I'm Nguyen Hoai Luan (Cris).</strong> Every day I handle workforce, shift, overtime and reporting data for a warehouse of 600+ people, and I use Excel VBA, Power BI, Power Automate and web apps to cut the manual work.</p>
+          <p class="lead vi" data-rise>Tôi làm ở kho TTI Việt Nam hơn 5 năm, chủ yếu lo số liệu nhân sự, chấm công, OT và báo cáo cho khoảng 600 người. Việc gì làm tay mất thời gian, tôi tìm cách chuyển thành công cụ, thường là bằng Excel VBA, Power BI hoặc Power Automate.</p>
+          <p class="lead en" data-rise>I've worked in the warehouse at TTI Vietnam for over 5 years, mostly handling headcount, attendance, overtime and reporting data for about 600 people. When something takes too long by hand, I try to turn it into a tool, usually with Excel VBA, Power BI or Power Automate.</p>
           <div class="cta" data-rise>
             <a class="btn" href="#bi"><span class="vi">Xem báo cáo BI</span><span class="en">See the BI reports</span></a>
             <a class="btn alt" href="#projects"><span class="vi">Thử công cụ</span><span class="en">Try the tools</span></a>
           </div>
         </div>
         <div class="pic" id="pic">
-          <img src="avatar.jpg" width="880" height="1100" alt="Nguyễn Hoài Luận">
-          <div class="float a" data-depth="16"><b><span data-count="700" data-prefix="~">~700</span></b><span class="vi">bản ghi hiệu suất/ngày</span><span class="en">efficiency records/day</span></div>
-          <div class="float b" data-depth="-20"><b>09:30</b><span class="vi">báo cáo tới tay quản lý</span><span class="en">report reaches managers</span></div>
-          <div class="float c" data-depth="10"><b data-count="20">20</b><span class="vi">trang báo cáo Power BI</span><span class="en">Power BI report pages</span></div>
+          <img src="avatar-full.jpg" width="900" height="1463" alt="Nguyễn Hoài Luận">
+          <div class="float k1" data-depth="18"><i aria-hidden="true">BI</i>Power BI</div>
+          <div class="float k2" data-depth="-16"><i aria-hidden="true">VBA</i>Excel VBA</div>
+          <div class="float k3" data-depth="12"><i aria-hidden="true">PQ</i>Power Query</div>
+          <div class="float k4" data-depth="-20"><i aria-hidden="true">PY</i>Python</div>
+          <div class="float k5" data-depth="14"><i aria-hidden="true">PA</i>Power Automate</div>
+          <div class="float k6" data-depth="-14"><i aria-hidden="true">JS</i>HTML · CSS · JS</div>
+          <div class="float k7" data-depth="10"><i aria-hidden="true">DAX</i>DAX</div>
+          <div class="float k8" data-depth="-12"><i aria-hidden="true">SP</i>SharePoint</div>
+          <div class="float k9" data-depth="16"><i aria-hidden="true">FB</i>Firebase</div>
         </div>
       </div>
     </div>
@@ -486,15 +499,15 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
   <section id="results">
     <div class="wrap">
       <div class="sec-head" data-reveal>
-        <h2><span class="vi">Trước và sau khi làm</span><span class="en">Before and after</span></h2>
-        <p class="vi">Vài việc tôi đã làm ở kho. Số liệu lấy từ báo cáo công việc của tôi.</p>
-        <p class="en">Some of the work I've done in the warehouse. The figures come from my own work reports.</p>
+        <h2><span class="vi">Một số kết quả</span><span class="en">Some results</span></h2>
+        <p class="vi">Các con số dưới đây lấy từ báo cáo công việc thật của tôi.</p>
+        <p class="en">The figures below come from my actual work reports.</p>
       </div>
 
       <div class="ruler-box" data-reveal>
         <div class="ruler-head">
-          <h3><span class="vi">Báo cáo hằng ngày ra sớm hơn 2 tiếng</span><span class="en">The daily report now lands 2 hours earlier</span></h3>
-          <p><span class="vi">Quản lý có số sớm nên còn kịp xử lý trong ca.</span><span class="en">Managers get the numbers early enough to act within the shift.</span></p>
+          <h3><span class="vi">Báo cáo hằng ngày: từ 11:30 xuống trước 09:30</span><span class="en">Daily report: from 11:30 to before 09:30</span></h3>
+          <p><span class="vi">Quản lý có số sớm hơn khoảng 2 tiếng, nên xử lý được ngay trong ca.</span><span class="en">Managers get the numbers about 2 hours sooner, so they can act within the same shift.</span></p>
         </div>
         <div class="ruler-scroll">
           <div class="ruler" id="ruler">
@@ -509,19 +522,19 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
 
       <div class="ledger">
         <div class="lc" data-reveal>
-          <h3><span class="vi">Theo dõi hiệu suất: từ cấp tổ xuống từng người</span><span class="en">Efficiency tracking: from team level down to each person</span></h3>
+          <h3><span class="vi">Đo hiệu suất tới từng người thay vì từng tổ</span><span class="en">Measuring efficiency per person instead of per team</span></h3>
           <div class="dots-compare" aria-hidden="true">
             <div><span class="label"><span class="vi">Trước: ~80 bản ghi/ngày</span><span class="en">Before: ~80 records/day</span></span><div class="dots few" id="dotsFew"></div></div>
             <div><span class="label" style="color:var(--ok);font-weight:700"><span class="vi">Sau: ~700 bản ghi/ngày</span><span class="en">After: ~700 records/day</span></span><div class="dots many" id="dotsMany"></div></div>
           </div>
-          <p class="vi">Chi tiết gấp khoảng 9 lần mà không thêm người nhập liệu. Công cụ kiểm tra lỗi ngay lúc Leader nộp. Mỗi chấm là 2 bản ghi.</p>
-          <p class="en">About 9× the detail with no extra data-entry staff. The tool checks for errors the moment a Leader submits. Each dot is 2 records.</p>
+          <p class="vi">Dữ liệu chi tiết hơn khoảng 9 lần nhưng không cần thêm người nhập. Leader nộp sai thì công cụ báo lỗi luôn. (Mỗi chấm là 2 bản ghi.)</p>
+          <p class="en">About 9 times more detail without adding anyone to enter data. If a Leader submits something wrong, the tool flags it right away. (Each dot is 2 records.)</p>
         </div>
         <div class="lc" data-reveal>
           <h3><span class="vi">Chứng từ ASN nhà cung cấp</span><span class="en">Supplier ASN documents</span></h3>
           <div class="ba"><div class="b4"><span class="vi">Đổi tên ảnh bằng tay</span><span class="en">Photos renamed by hand</span></div><svg viewBox="0 0 26 12" aria-hidden="true"><path d="M0 6h24M19 1l5 5-5 5"/></svg><div class="af"><span class="vi">100 ảnh trong ~30 giây</span><span class="en">100 images in ~30 sec</span></div></div>
-          <p class="vi">Mỗi ca có 800–1.000 phiếu. Làm xong công cụ, kho bớt được một vị trí clerk để làm việc khác.</p>
-          <p class="en">800–1,000 slips per shift. The tool freed up one clerk position for other work.</p>
+          <p class="vi">Mỗi ca có khoảng 800–1.000 phiếu. Có công cụ rồi thì một bạn clerk được chuyển sang làm việc khác.</p>
+          <p class="en">Around 800–1,000 slips per shift. With the tool in place, one clerk could move to other work.</p>
         </div>
         <div class="lc" data-reveal>
           <h3><span class="vi">Chargeback DNR / scrap</span><span class="en">DNR / scrap chargeback</span></h3>
@@ -532,14 +545,14 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
         <div class="lc" data-reveal>
           <h3><span class="vi">Đơn Missing IN/OUT và nghỉ phép</span><span class="en">Missing IN/OUT and leave forms</span></h3>
           <div class="ba"><div class="b4"><span class="vi">Chuyền giấy đi ký</span><span class="en">Paper passed around to sign</span></div><svg viewBox="0 0 26 12" aria-hidden="true"><path d="M0 6h24M19 1l5 5-5 5"/></svg><div class="af"><span class="vi">Duyệt online</span><span class="en">Approved online</span></div></div>
-          <p class="vi">Dùng Microsoft Forms, Power Automate, SharePoint và Teams. Phần tiết kiệm chi phí và nhân lực đã báo cáo lên lãnh đạo.</p>
-          <p class="en">Built with Microsoft Forms, Power Automate, SharePoint and Teams. I reported the cost and manpower savings to senior management.</p>
+          <p class="vi">Dùng Microsoft Forms, Power Automate, SharePoint và Teams. Sau đó tôi tính phần chi phí và nhân lực tiết kiệm được để báo cáo lên lãnh đạo.</p>
+          <p class="en">Built with Microsoft Forms, Power Automate, SharePoint and Teams. Then I worked out the cost and manpower saved and reported it to management.</p>
         </div>
         <div class="lc" data-reveal>
           <h3><span class="vi">Quy định OT</span><span class="en">Overtime rules</span></h3>
           <div class="ba"><div class="b4"><span class="vi">Quy định từ lãnh đạo</span><span class="en">Rules from management</span></div><svg viewBox="0 0 26 12" aria-hidden="true"><path d="M0 6h24M19 1l5 5-5 5"/></svg><div class="af"><span class="vi">Báo cáo OT 3 ngày cuốn chiếu</span><span class="en">3-day rolling OT report</span></div></div>
-          <p class="vi">Trên 2 giờ phải có duyệt, đăng ký trước 2 ngày. Các quy định này được đưa thẳng vào báo cáo.</p>
-          <p class="en">Approval above 2 hours, planning 2 days ahead. Both rules are built right into the report.</p>
+          <p class="vi">Tăng ca trên 2 tiếng phải có người duyệt và đăng ký trước 2 ngày. Tôi đưa hai quy định này vào báo cáo để theo dõi.</p>
+          <p class="en">Overtime above 2 hours needs approval and has to be planned 2 days ahead. I built both rules into the report so they can be tracked.</p>
         </div>
       </div>
     </div>
@@ -549,13 +562,13 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
     <div class="wrap">
       <div class="sec-head" data-reveal>
         <h2><span class="vi">Báo cáo Power BI</span><span class="en">Power BI reports</span></h2>
-        <p class="vi">File Warehouse BI gồm 20 trang, từ KPI, nhân sự, OT đến tồn kho, kiểm kê và sự cố. Cả 20 trang đều có ở đây để bạn bấm xem, mỗi trang một kiểu trình bày. Tên trang là tên thật, bố cục tôi dựng lại. Số liệu thật là của công ty nên ở đây tôi dùng số mẫu.</p>
-        <p class="en">The Warehouse BI file has 20 pages, from KPIs, headcount and overtime to inventory, stock counts and incidents. All 20 are here to click through, each with its own layout. The page names are real and the layouts are rebuilt. The real numbers belong to the company, so these are sample figures.</p>
+        <p class="vi">File Warehouse BI của tôi có 20 trang, gồm KPI, nhân sự, OT, tồn kho, kiểm kê và sự cố. Ở đây tôi dựng lại cả 20 trang để bạn xem thử. Tên trang giữ nguyên như file gốc, còn số liệu là số mẫu vì số thật là dữ liệu nội bộ của công ty.</p>
+        <p class="en">My Warehouse BI file has 20 pages covering KPIs, headcount, overtime, inventory, stock counts and incidents. I rebuilt all 20 here so you can click through them. Page names match the original file. The numbers are samples, since the real data belongs to the company.</p>
       </div>
       <div class="bi-note" data-reveal>
         <b><span class="vi">Số liệu mẫu</span><span class="en">Sample data</span></b>
-        <span class="vi">Tên trang lấy từ báo cáo thật. Tên người là tên thật và đã được họ đồng ý. Mọi con số là số mẫu tôi tự tạo để minh hoạ, không phản ánh kết quả của TTI hay của bất kỳ ai. Biểu đồ theo người dùng chung một số mẫu nên không phải bảng xếp hạng. Nhà cung cấp được ghi là NCC A, NCC B.</span>
-        <span class="en">Page names come from the real report. People's names are real and shared with their consent. Every number is a sample I made up for illustration and doesn't reflect the results of TTI or anyone there. Charts by person use one shared sample value, so they aren't rankings. Suppliers appear as NCC A, NCC B.</span>
+        <span class="vi">Tên trang và tên Supervisor là thật (đã xin phép). Toàn bộ con số là số mẫu tôi tự tạo, không phải kết quả thật của TTI hay của ai. Biểu đồ theo Supervisor để cùng một giá trị nên không mang ý xếp hạng. Nhà cung cấp ghi là NCC A, NCC B.</span>
+        <span class="en">Page names and Supervisor names are real (shared with permission). All numbers are samples I made up, not real results for TTI or anyone there. Charts by Supervisor use the same value for everyone, so they aren't rankings. Suppliers are shown as NCC A, NCC B.</span>
       </div>
       <div class="canvas" id="biCanvas">
         <nav class="rail" id="biTabs" role="tablist" aria-label="Report pages"></nav>
@@ -580,8 +593,8 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
     <div class="wrap">
       <div class="sec-head" data-reveal>
         <h2>Power Automate</h2>
-        <p class="vi">Mấy flow tôi làm để bỏ giấy tờ và việc chạy đi xin chữ ký. Sơ đồ bên dưới dựng từ đúng các bước trong flow thật, bạn bấm vào từng chặng để xem.</p>
-        <p class="en">Flows I built to replace paperwork and chasing signatures. The diagrams below use the actual steps from the real flows. Click a stage to see what's inside.</p>
+        <p class="vi">Đây là mấy flow tôi làm để thay đơn giấy và việc phải cầm đơn đi xin chữ ký. Sơ đồ vẽ theo đúng các bước trong flow thật, bấm vào từng chặng để xem chi tiết.</p>
+        <p class="en">These are flows I built to replace paper forms and walking around for signatures. The diagrams follow the actual steps in each flow. Click a stage for details.</p>
       </div>
       <div class="fl-tabs" id="flTabs" role="tablist" aria-label="Flows"></div>
       <div class="fl-box" id="flBox" data-reveal></div>
@@ -591,16 +604,16 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
   <section id="projects">
     <div class="wrap">
       <div class="sec-head" data-reveal>
-        <h2><span class="vi">Công cụ bấm thử được</span><span class="en">Tools you can try</span></h2>
-        <p class="vi">Các demo chạy ngay trên trang này. Dữ liệu là mẫu do tôi tạo, không phải số của công ty.</p>
-        <p class="en">These demos run right on this page. The data is sample data I made up, not company figures.</p>
+        <h2><span class="vi">Công cụ tôi tự làm</span><span class="en">Tools I built</span></h2>
+        <p class="vi">Bạn có thể bấm thử ngay trên trang. Demo dùng dữ liệu mẫu.</p>
+        <p class="en">You can try them right on this page. The demos use sample data.</p>
       </div>
 
       <article class="project" id="masterdata">
         <div data-reveal>
           <span class="label kicker">Web app · <span class="vi">Chất lượng dữ liệu</span><span class="en">Data quality</span></span>
           <h3>Master Data Pro</h3>
-          <p class="vi">Cùng một mã hàng mà mỗi nơi ghi một kiểu thì báo cáo nào cũng lệch. App này tìm các lỗi đó trong file rồi giúp làm sạch, chạy luôn trên trình duyệt.</p>
+          <p class="vi">Master data mà mỗi nơi ghi một kiểu thì báo cáo nào làm ra cũng lệch. App này đọc file, chỉ ra chỗ sai và giúp làm sạch, chạy ngay trên trình duyệt.</p>
           <p class="en">When each site writes the same item differently, every report ends up off. This app finds those errors in your file and helps clean them up, right in the browser.</p>
           <ul class="pts">
             <li><span class="vi">Chấm điểm chất lượng 0–100 theo 5 tiêu chí, kiểm tra 11 nhóm lỗi.</span><span class="en">Scores quality 0–100 on 5 criteria and checks 11 error groups.</span></li>
@@ -614,14 +627,14 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
         </div>
         <div class="demo" data-reveal>
           <div class="demo-bar">
-            <span class="label"><span class="vi">Demo: sửa một ô, kết quả đổi ngay</span><span class="en">Demo: edit a cell and watch it re-check</span></span>
+            <span class="label"><span class="vi">Demo: thử sửa một ô</span><span class="en">Demo: try editing a cell</span></span>
             <div class="score"><b id="mdScore">0%</b><span><span class="vi">dòng đạt</span><span class="en">rows pass</span></span><button type="button" class="mini" id="mdReset"><span class="vi">Đặt lại</span><span class="en">Reset</span></button></div>
           </div>
           <div class="demo-body">
             <div class="tbl-wrap"><table class="dt" id="mdTable"><thead></thead><tbody></tbody></table></div>
             <ul class="issues" id="mdIssues" aria-live="polite"></ul>
           </div>
-          <p class="demo-note"><span class="vi">Đây là bản rút gọn vài quy tắc của app. Thử đổi Tồn cuối của GT-0102 thành 95.</span><span class="en">A short version with a few of the app's rules. Try changing the Close value of GT-0102 to 95.</span></p>
+          <p class="demo-note"><span class="vi">Bản rút gọn, chỉ có vài quy tắc của app. Thử đổi Tồn cuối của GT-0102 thành 95 xem.</span><span class="en">A short version with a few of the app's rules. Try changing the Close value of GT-0102 to 95.</span></p>
         </div>
       </article>
 
@@ -665,16 +678,16 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
         <div data-reveal>
           <span class="label kicker"><span class="vi">Hệ thống nội bộ · Nhân sự</span><span class="en">Internal systems · Workforce</span></span>
           <h3><span class="vi">Chấm công &amp; dashboard nhân sự</span><span class="en">Attendance &amp; workforce dashboards</span></h3>
-          <p class="vi">Dữ liệu ca, chấm công và OT của cả kho đi qua các hệ thống này, từ file thô tới báo cáo quản lý xem mỗi ngày.</p>
-          <p class="en">Shift, attendance and overtime data for the whole warehouse runs through these systems, from raw files to the reports managers read each day.</p>
+          <p class="vi">Đây là phần việc chính hằng ngày của tôi: dữ liệu ca, chấm công và OT của cả kho, từ file thô tới báo cáo quản lý xem mỗi ngày.</p>
+          <p class="en">This is the core of my daily work: shift, attendance and overtime data for the whole warehouse, from raw files to the reports managers read every day.</p>
           <ul class="pts">
             <li><span class="vi">Chấm công và đặt suất ăn bằng Excel VBA + Power Query.</span><span class="en">Attendance and canteen booking in Excel VBA + Power Query.</span></li>
             <li><span class="vi">Web app HTML/Firebase theo dõi 642 nhân sự: tuyển mới, nghỉ việc, headcount theo chức danh.</span><span class="en">HTML/Firebase web app tracking 642 staff: new hires, resignations and headcount by title.</span></li>
             <li><span class="vi">Power BI theo dõi OT theo Manager, Supervisor và Leader: HC OT, giờ OT, %OT 4H/2H.</span><span class="en">Power BI overtime tracking by Manager, Supervisor and Leader: HC OT, OT hours, %OT 4H/2H.</span></li>
           </ul>
           <div class="chips"><span class="chip">Excel VBA</span><span class="chip">Power Query</span><span class="chip">Power BI · DAX</span><span class="chip">Firebase</span><span class="chip">PWA</span></div>
-          <p class="tagline vi">Đây là hệ thống nội bộ nên không có link công khai. Gặp nhau tôi có thể kể kỹ hơn.</p>
-          <p class="tagline en">These are internal systems, so there's no public link. I'm happy to go through them when we talk.</p>
+          <p class="tagline vi">Hệ thống nội bộ nên tôi không đưa link. Nếu cần, tôi có thể trình bày chi tiết khi phỏng vấn.</p>
+          <p class="tagline en">These are internal systems, so there's no link. I can walk through them in an interview.</p>
         </div>
         <div class="demo" data-reveal>
           <div class="demo-bar">
@@ -690,7 +703,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
             <div class="heat-scroll"><div class="heat" id="heat" role="img"></div></div>
             <div class="scale" aria-hidden="true"><span>&lt; 92%</span><i style="background:var(--h0)"></i><i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i><i style="background:var(--h4)"></i><span>≥ 98%</span></div>
           </div>
-          <p class="demo-note"><strong><span class="vi">Số mẫu tự tạo, không phải số liệu công ty.</span><span class="en">Made-up sample data, not company figures.</span></strong> <span class="vi">Đây là hình minh hoạ, không phải ảnh chụp hệ thống thật.</span><span class="en">This is an illustration, not a screenshot of the real system.</span></p>
+          <p class="demo-note"><strong><span class="vi">Số liệu mẫu.</span><span class="en">Sample data.</span></strong> <span class="vi">Hình minh hoạ cách trình bày.</span><span class="en">An illustration of the layout.</span></p>
         </div>
       </article>
     </div>
@@ -699,34 +712,34 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
   <section class="how" id="method">
     <div class="wrap">
       <div class="sec-head" data-reveal>
-        <h2><span class="vi">Sửa lỗi ngay lúc nhập liệu</span><span class="en">Catch errors when the data goes in</span></h2>
-        <p class="vi">Đây là cách hệ thống Efficiency chạy mỗi sáng. Nhập sai là công cụ báo ngay, đỡ phải đi hỏi lại từng người.</p>
-        <p class="en">This is how the Efficiency system runs each morning. Enter something wrong and the tool flags it right away, so I don't have to chase people afterwards.</p>
+        <h2><span class="vi">Cách hệ thống Efficiency chạy mỗi sáng</span><span class="en">How the Efficiency system runs each morning</span></h2>
+        <p class="vi">Lỗi được bắt ngay lúc nhập, nên không phải đi hỏi lại từng người sau đó.</p>
+        <p class="en">Errors are caught when the data is entered, so there's no need to chase people afterwards.</p>
       </div>
       <ol class="flow" data-reveal>
         <li><h3><span class="vi">Leader nộp số</span><span class="en">Leaders submit</span></h3><p><span class="vi">Cả 45 Leader dùng chung một công cụ Excel/VBA.</span><span class="en">All 45 Leaders use the same Excel/VBA tool.</span></p><time>09:00</time></li>
         <li><h3><span class="vi">Tự kiểm tra</span><span class="en">Automatic checks</span></h3><p><span class="vi">Headcount, giờ làm, job code và UPH phải khớp mới nộp được.</span><span class="en">Headcount, hours, job codes and UPH must match before it goes through.</span></p></li>
         <li><h3><span class="vi">Gom về một nơi</span><span class="en">Consolidate</span></h3><p><span class="vi">Tự tính hiệu suất, gửi mail và gộp vào file tổng.</span><span class="en">Calculates efficiency, sends it by email and merges it into the master file.</span></p></li>
-        <li><h3><span class="vi">Lên Power BI</span><span class="en">Into Power BI</span></h3><p><span class="vi">Bảng xếp hạng hiệu suất, xếp hạng Supervisor.</span><span class="en">Efficiency rankings and Supervisor leaderboards.</span></p><time><span class="vi">trước</span><span class="en">before</span> 09:30</time></li>
-        <li><h3><span class="vi">Xử lý trong ca</span><span class="en">Act within the shift</span></h3><p><span class="vi">Quản lý thấy vấn đề khi vẫn còn kịp làm gì đó.</span><span class="en">Managers see problems while they can still do something about them.</span></p></li>
+        <li><h3><span class="vi">Lên Power BI</span><span class="en">Into Power BI</span></h3><p><span class="vi">Báo cáo hiệu suất theo tổ, theo Supervisor.</span><span class="en">Efficiency reports by team and by Supervisor.</span></p><time><span class="vi">trước</span><span class="en">before</span> 09:30</time></li>
+        <li><h3><span class="vi">Xử lý trong ca</span><span class="en">Act within the shift</span></h3><p><span class="vi">Quản lý thấy vấn đề sớm và xử lý được ngay trong ca.</span><span class="en">Managers see problems early and can deal with them during the shift.</span></p></li>
       </ol>
 
       <div class="others">
         <div data-reveal><h3><span class="vi">Thống nhất quy trình Củ Chi và Dầu Giây</span><span class="en">One process for Cu Chi and Dau Giay</span></h3><p><span class="vi">Vẽ lại quy trình đang chạy ổn, xem hai bên khác nhau chỗ nào rồi đề xuất một chuẩn chung.</span><span class="en">Mapped the processes that work, compared both sites and proposed one common standard.</span></p></div>
         <div data-reveal><h3><span class="vi">Đối soát WMS và ERP</span><span class="en">WMS and ERP reconciliation</span></h3><p><span class="vi">Mô hình Power BI cho Dầu Giây để thấy chênh lệch sớm, khỏi đợi tới lúc kiểm kê.</span><span class="en">A Power BI model for Dau Giay that shows variances early, before the stock count.</span></p></div>
-        <div data-reveal><h3><span class="vi">Tìm hiểu vì sao nhân viên nghỉ</span><span class="en">Why people resign</span></h3><p><span class="vi">Làm cùng các team Supervisor, phân nhóm lý do nghỉ việc rồi đưa đề xuất lên lãnh đạo.</span><span class="en">Worked with the Supervisor teams, grouped the reasons and took proposals to senior management.</span></p></div>
+        <div data-reveal><h3><span class="vi">Phân tích lý do nghỉ việc</span><span class="en">Resignation analysis</span></h3><p><span class="vi">Làm cùng các team Supervisor, phân nhóm lý do nghỉ việc rồi đưa đề xuất lên lãnh đạo.</span><span class="en">Worked with the Supervisor teams, grouped the reasons and took proposals to senior management.</span></p></div>
         <div data-reveal><h3><span class="vi">Truy lỗi 4 luồng DNR</span><span class="en">Tracing 4 DNR streams</span></h3><p><span class="vi">Scrap, Rework, Wrong Part và Local. Nhờ có log nên thấy rõ lỗi hay lặp ở nhà cung cấp và mã hàng nào.</span><span class="en">Scrap, Rework, Wrong Part and Local. The log shows which suppliers and parts keep repeating.</span></p></div>
         <div data-reveal><h3><span class="vi">Kế hoạch 60% lao động chính thức</span><span class="en">60% permanent workforce plan</span></h3><p><span class="vi">Tính số người cần chuyển và chuẩn bị đề xuất trình lãnh đạo.</span><span class="en">Worked out the transfers and prepared the proposal for senior management.</span></p></div>
-        <div data-reveal><h3><span class="vi">Mẫu nhận yêu cầu SOP</span><span class="en">SOP request form</span></h3><p><span class="vi">Trước đây yêu cầu hay đến bằng miệng và thiếu thông tin. Giờ có một form điền đủ từ đầu.</span><span class="en">Requests used to arrive verbally and incomplete. Now one form collects everything up front.</span></p></div>
+        <div data-reveal><h3><span class="vi">Mẫu nhận yêu cầu SOP</span><span class="en">SOP request form</span></h3><p><span class="vi">Trước đây yêu cầu thường nói miệng, hay thiếu thông tin. Giờ mọi yêu cầu đi qua một form chung.</span><span class="en">Requests used to come verbally and were often incomplete. Now they all go through one form.</span></p></div>
       </div>
 
       <div class="story" data-reveal>
-        <h3><span class="vi">Mọi thứ bắt đầu từ <mark>năm 2023</mark></span><span class="en">It all started in <mark>2023</mark></span></h3>
+        <h3><span class="vi">Vì sao tôi theo mảng <mark>dữ liệu</mark></span><span class="en">How I got into <mark>data</mark></span></h3>
         <div>
-          <p class="vi">Năm đó công ty dồn các chi nhánh về nhà máy Củ Chi. Dữ liệu và quy trình rối tung, mà cũng không có ai chỉ cho. Tôi tự học, gỡ từng quy trình một, việc nào làm tay được thì chuyển dần lên hệ thống.</p>
-          <p class="en">That year the company moved its branches into the Cu Chi plant. Data and processes were a mess, and nobody was around to show me how to fix them. I taught myself, sorted out one process at a time and moved manual work onto systems.</p>
-          <p class="vi">Từ đó tôi biết mình muốn theo hướng dữ liệu và quy trình.</p>
-          <p class="en">That's when I knew I wanted to work in data and process.</p>
+          <p class="vi">Năm 2023, công ty gom các chi nhánh về nhà máy Củ Chi. Lúc đó dữ liệu và quy trình khá lộn xộn, cũng không có ai hướng dẫn. Tôi tự tìm hiểu, gỡ từng quy trình, chỗ nào làm tay được thì chuyển dần lên hệ thống.</p>
+          <p class="en">In 2023 the company merged its branches into the Cu Chi plant. Data and processes were pretty messy, and there was no one to guide us. I figured things out myself, fixed one process at a time and moved manual work into systems.</p>
+          <p class="vi">Làm một thời gian thì tôi nhận ra mình hợp với mảng dữ liệu và quy trình, và muốn đi tiếp theo hướng này.</p>
+          <p class="en">After a while I realised data and process work suits me, and I want to keep going in that direction.</p>
         </div>
       </div>
     </div>
@@ -745,7 +758,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
               <li><span class="vi">Phụ trách team Support Warehouse Operation: 3 clerk báo cáo trực tiếp, tôi giao việc và đánh giá KPI, thử việc.</span><span class="en">Lead the Support Warehouse Operation team: 3 clerks report to me, and I assign work and run KPI and probation reviews.</span></li>
               <li><span class="vi">Đầu mối giữa Leader, Supervisor và quản lý về nhân sự, ca và OT. Làm thay quản lý việc hành chính khi cần.</span><span class="en">Main contact between Leaders, Supervisors and managers on manpower, shifts and OT. I cover admin matters for the manager when needed.</span></li>
               <li><span class="vi">Quản lý dữ liệu chấm công, ca và OT của hơn 600 người để tính lương cho đúng.</span><span class="en">Manage attendance, shift and OT data for 600+ people so payroll comes out right.</span></li>
-              <li><span class="vi">Làm hệ thống Efficiency, các báo cáo Power BI và những công cụ ở trên.</span><span class="en">Built the Efficiency system, the Power BI reports and the tools above.</span></li>
+              <li><span class="vi">Xây hệ thống Efficiency, bộ báo cáo Power BI và các công cụ ở trên.</span><span class="en">Built the Efficiency system, the Power BI reports and the tools above.</span></li>
             </ul>
           </div>
         </div>
@@ -788,7 +801,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
 
       <div class="skills" data-reveal>
         <div><h3><span class="vi">Dữ liệu &amp; báo cáo</span><span class="en">Data &amp; reporting</span></h3><ul><li>Excel, Power Query</li><li>Power BI, DAX</li><li><span class="vi">Mô hình dữ liệu</span><span class="en">Data modeling</span></li><li><span class="vi">Quy tắc master data</span><span class="en">Master data rules</span></li></ul></div>
-        <div><h3><span class="vi">Tự động hoá &amp; web</span><span class="en">Automation &amp; web</span></h3><ul><li>Excel VBA, UserForms, ETL</li><li>Power Automate, Microsoft Forms</li><li>SharePoint, Teams</li><li>HTML/JavaScript, Firebase, PWA</li><li>AppSheet, Apps Script</li></ul></div>
+        <div><h3><span class="vi">Tự động hoá &amp; web</span><span class="en">Automation &amp; web</span></h3><ul><li>Excel VBA, UserForms, ETL</li><li>Power Automate, Microsoft Forms</li><li>SharePoint, Teams</li><li>Python</li><li>HTML, CSS, JavaScript</li><li>Firebase, PWA</li><li>AppSheet, Apps Script</li></ul></div>
         <div><h3><span class="vi">Vận hành kho</span><span class="en">Warehouse operations</span></h3><ul><li><span class="vi">Nhân lực, ca và OT</span><span class="en">Manpower, shifts and OT</span></li><li><span class="vi">Giao dịch ERP, đối soát WMS</span><span class="en">ERP transactions, WMS checks</span></li><li>PR/PO, scrap, chargeback</li><li><span class="vi">Chuẩn hoá quy trình nhiều site</span><span class="en">Multi-site standards</span></li></ul></div>
         <div><h3><span class="vi">Ngôn ngữ</span><span class="en">Languages</span></h3><ul><li><span class="vi">Tiếng Việt: bản ngữ</span><span class="en">Vietnamese: native</span></li><li><span class="vi">Tiếng Anh: dùng trong công việc</span><span class="en">English: working proficiency</span></li></ul></div>
       </div>
@@ -799,9 +812,9 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
     <div class="wrap contact-grid">
       <img src="avatar.jpg" alt="" width="190" height="190" data-reveal>
       <div data-reveal>
-        <h2><span class="vi">Cùng nói chuyện nhé</span><span class="en">Let's talk</span></h2>
-        <p class="vi">Muốn trao đổi về kho, số liệu hay tự động hoá thì email cho tôi. Cần CV đầy đủ tôi cũng gửi qua email.</p>
-        <p class="en">If you'd like to talk about warehouses, data or automation, send me an email. I can send my full CV that way too.</p>
+        <h2><span class="vi">Liên hệ</span><span class="en">Contact</span></h2>
+        <p class="vi">Nếu bạn cần trao đổi thêm hoặc muốn xem CV đầy đủ, cứ email cho tôi.</p>
+        <p class="en">If you'd like to talk more or see my full CV, just send me an email.</p>
         <div class="mail">
           <a id="mailLink" href="mailto:hoailuan0311@gmail.com">hoailuan0311@gmail.com</a>
           <button type="button" class="copy" id="copyMail"><span id="copyLabel"></span></button>
@@ -873,7 +886,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
   addEventListener('scroll',onScroll,{passive:true});onScroll();
 
   /* Ticker */
-  var TOOLS=['Excel VBA','Power Query','Power BI','DAX','Power Automate','SharePoint','Microsoft Forms','HTML/JavaScript','Firebase','AppSheet','Apps Script','ERP','WMS','AS400'];
+  var TOOLS=['Excel VBA','Power Query','Power BI','DAX','Power Automate','Python','SharePoint','Microsoft Forms','HTML','CSS','JavaScript','Firebase','AppSheet','Apps Script','ERP','WMS','AS400'];
   $('tick').innerHTML=TOOLS.concat(TOOLS,TOOLS,TOOLS).map(function(x){return '<span>'+x+'</span>'}).join('');
 
   /* Hero */
