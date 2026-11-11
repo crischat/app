@@ -532,14 +532,14 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
     $('#setBody').innerHTML = `
       <div class="grid2">
         <div class="card"><div class="cardhead"><h3>Gemini — nghe & chép lời (bắt buộc)</h3><span class="chip ${k.geminiKey ? 'on' : ''}">${k.geminiKey ? 'Đã có key' : 'Chưa có key'}</span></div>
-          <label class="field">Gemini API key<input type="password" id="cGKey" value="${esc(k.geminiKey)}" placeholder="Dán key từ aistudio.google.com/apikey" autocomplete="off"></label>
+          <label class="field">Gemini API key<input type="password" id="cGKey" value="${esc(k.geminiKey)}" placeholder="Dán key từ aistudio.google.com/apikey" autocomplete="off">${U.keyTools('cGKey')}</label>
           <label class="field mt">Mô hình chép lời<select id="cStt">${gOpts(c.sttModel, 'fast', 'Flash-Lite nhanh nhất')}</select><span class="muted">Nên dùng Flash-Lite/Flash. Tránh bản Pro hoặc tên mã lạ: chậm vì “suy nghĩ” lâu.</span></label>
           <div class="row wrap mt"><button class="btn" id="cGList">Tải danh sách mô hình</button><button class="btn" id="cGTest">Kiểm tra key</button></div>
           <p class="muted" style="font-size:12.5px">Key lưu trên trình duyệt, dùng chung với Master Data Pro. Gói miễn phí giới hạn số lần gọi/phút — buổi dài có thể bị chậm.</p></div>
         <div class="card"><h3>AI gợi ý câu trả lời</h3>
           <label class="field mt">Nhà cung cấp<select id="cProv"><option value="gemini" ${prov === 'gemini' ? 'selected' : ''}>Gemini</option><option value="claude" ${prov === 'claude' ? 'selected' : ''}>Claude</option></select></label>
           ${prov === 'claude' ? `
-          <label class="field mt">Claude API key<input type="password" id="cCKey" value="${esc(k.claudeKey)}" placeholder="sk-ant-…" autocomplete="off"></label>
+          <label class="field mt">Claude API key<input type="password" id="cCKey" value="${esc(k.claudeKey)}" placeholder="sk-ant-…" autocomplete="off">${U.keyTools('cCKey')}</label>
           <label class="field mt">Mô hình Claude<select id="cCModel">${AI.MODELS.map((m) => `<option value="${m.id}" ${m.id === c.sugClaudeModel ? 'selected' : ''}>${m.label}</option>`).join('')}</select><span class="muted">Cần nhanh trong phỏng vấn trực tiếp: Sonnet 5.5 hoặc Haiku 5.5 trả lời nhanh hơn Opus.</span></label>`
           : `<label class="field mt">Mô hình Gemini cho gợi ý<select id="cGModel">${gOpts(c.sugGeminiModel, 'smart', 'Flash')}</select></label>`}
           <div class="row mt"><button class="btn" id="cTestSug">Thử gợi ý</button></div></div>

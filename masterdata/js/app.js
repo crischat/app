@@ -727,13 +727,13 @@
         <div class="card"><div class="cardhead"><h3><svg class="ic"><use href="#i-ai"/></svg> Chuyên gia AI</h3><span class="chip ${ai.key ? 'on' : ''}">${ai.key ? 'Đang dùng ' + (ai.provider === 'gemini' ? 'Gemini' : 'Claude') : 'Chưa có key'}</span></div>
           <label class="field">Nhà cung cấp mặc định<select id="sProvider">${Object.entries(AI.PROVIDERS).map(([k, l]) => `<option value="${k}" ${k === ai.provider ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
           ${ai.provider === 'gemini' ? `
-          <label class="field mt">Gemini API key<input type="password" id="sGKey" value="${esc(ai.geminiKey)}" placeholder="Dán key Gemini (AI Studio / Google Cloud)" autocomplete="off"></label>
+          <label class="field mt">Gemini API key<input type="password" id="sGKey" value="${esc(ai.geminiKey)}" placeholder="Dán key Gemini (AI Studio / Google Cloud)" autocomplete="off">${U.keyTools('sGKey')}</label>
           <label class="field mt">Mô hình Gemini${geminiModelSelect('sGModel', ai)}</label>
           <label class="check mt"><input type="checkbox" id="sGBackup" ${s.backupGeminiKey ? 'checked' : ''}><span>Sao lưu Gemini key vào <b>Google Drive riêng</b> của tôi (để máy khác bấm “Khôi phục từ Drive” là có key)</span></label>
           <p class="muted" style="font-size:12.5px">Lấy key tại <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Nên giới hạn key chỉ cho “Generative Language API”. Gói miễn phí: Google có thể dùng dữ liệu gửi lên để cải thiện sản phẩm — tắt “Kèm 25 dòng mẫu” với dữ liệu nhạy cảm.</p>
           <div class="row wrap mt"><button class="btn" id="sSaveAI">Lưu</button><button class="btn" id="sGList">Tải danh sách mô hình</button><button class="btn" id="sTestAI">Kiểm tra key</button>${ai.geminiKey ? '<button class="btn ghost danger" id="sDelKey">Xoá key</button>' : ''}</div>`
           : `
-          <label class="field mt">Claude API key<input type="password" id="sKey" value="${esc(ai.claudeKey)}" placeholder="sk-ant-..." autocomplete="off"></label>
+          <label class="field mt">Claude API key<input type="password" id="sKey" value="${esc(ai.claudeKey)}" placeholder="sk-ant-..." autocomplete="off">${U.keyTools('sKey')}</label>
           <p class="muted" style="font-size:12.5px">Key chỉ lưu trên trình duyệt này — không đưa lên GitHub, không sao lưu lên Drive. Lấy key tại <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.</p>
           <label class="field mt">Mô hình mặc định<select id="sModel">${AI.MODELS.map((m) => `<option value="${m.id}" ${m.id === ai.model ? 'selected' : ''}>${m.label}</option>`).join('')}</select></label>
           <div class="row wrap mt"><button class="btn" id="sSaveAI">Lưu</button><button class="btn" id="sTestAI">Kiểm tra key</button>${ai.claudeKey ? '<button class="btn ghost danger" id="sDelKey">Xoá key</button>' : ''}</div>`}

@@ -193,5 +193,27 @@ window.MD = window.MD || {};
 
   U.cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
+  /* ---------- Nút Hiện / Sao chép cho ô API key ----------
+     Chỉ thao tác trên ô nhập trong trang (key đã lưu ở trình duyệt này), không gửi key đi đâu. */
+  U.keyTools = (inputId) => `<span class="row keytools" style="gap:6px;margin-top:6px">
+      <button type="button" class="btn sm" data-reveal="${inputId}">👁 Hiện</button>
+      <button type="button" class="btn sm" data-copykey="${inputId}">📋 Sao chép</button></span>`;
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-reveal],[data-copykey]'); if (!b) return;
+    e.preventDefault();
+    const inp = document.getElementById(b.dataset.reveal || b.dataset.copykey); if (!inp) return;
+    if (b.dataset.reveal) {
+      const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      b.textContent = show ? '🙈 Ẩn' : '👁 Hiện';
+      // tự ẩn lại sau 30 giây để không để lộ key trên màn hình (vd khi chia sẻ màn hình)
+      clearTimeout(inp._hideT); if (show) inp._hideT = setTimeout(() => { inp.type = 'password'; b.textContent = '👁 Hiện'; }, 30000);
+      return;
+    }
+    if (!inp.value.trim()) return U.toast('Ô key đang trống', 'info');
+    try { await navigator.clipboard.writeText(inp.value.trim()); U.toast('Đã sao chép key — dán xong nên xoá khỏi nơi tạm (chat, ghi chú)', 'ok', 5000); }
+    catch (er) { inp.type = 'text'; inp.select(); U.toast('Trình duyệt chặn sao chép tự động — key đã được chọn, bấm Ctrl+C', 'info', 6000); }
+  });
+
   MD.U = U;
 })(window.MD);
