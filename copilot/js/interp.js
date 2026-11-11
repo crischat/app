@@ -38,13 +38,14 @@
     return model;
   }
 
-  // Hai kiểu đặt cấu hình chép lời: theo ví dụ của tài liệu Live Translate (trong generationConfig)
-  // hoặc theo Live API chung (cấp setup). Thử kiểu đã nhớ trước, sai cấu trúc thì đổi kiểu.
+  // Vị trí bật chép lời chưa rõ: tài liệu Live Translate đặt trong generationConfig, Live API chung đặt ở cấp setup.
+  // 'both' gửi cả hai (máy chủ bỏ qua chỗ không dùng thì vẫn có chữ); bị báo sai cấu trúc thì thử 'setup', rồi 'gen'.
+  const VARIANTS = ['both', 'setup', 'gen'];
   function setupMsg(model, variant) {
     const gc = { responseModalities: ['AUDIO'], translationConfig: { targetLanguageCode: opts().target, echoTargetLanguage: false } };
     const setup = { model: 'models/' + model, generationConfig: gc };
-    if (variant === 'setup') { setup.inputAudioTranscription = {}; setup.outputAudioTranscription = {}; }
-    else { gc.inputAudioTranscription = {}; gc.outputAudioTranscription = {}; }
+    if (variant !== 'gen') { setup.inputAudioTranscription = {}; setup.outputAudioTranscription = {}; }
+    if (variant !== 'setup') { gc.inputAudioTranscription = {}; gc.outputAudioTranscription = {}; }
     return { setup };
   }
 
@@ -73,15 +74,19 @@
     if (!key) throw new Error('Chưa có Gemini key (tab Cài đặt).');
     S.model = S.model || await liveModel(key);
     const s = U.store.get('settings', {});
-    const order = s.liveTransVariant === 'setup' ? ['setup', 'gen'] : ['gen', 'setup'];
+    // ưu tiên kiểu bị ép (khi có giọng mà không có chữ), rồi kiểu đã nhớ, rồi thứ tự mặc định
+    const first = S.forceVariant || (VARIANTS.includes(s.liveTransVariant2) ? s.liveTransVariant2 : 'both');
+    const order = [first].concat(VARIANTS.filter((v) => v !== first));
+    S.forceVariant = null;
     let lastErr;
     for (const v of order) {
       try {
         const c = await openConn(key, S.model, v);
-        if (s.liveTransVariant !== v) U.store.set('settings', Object.assign(U.store.get('settings', {}), { liveTransVariant: v }));
+        S.variant = v;
+        if (s.liveTransVariant2 !== v) U.store.set('settings', Object.assign(U.store.get('settings', {}), { liveTransVariant2: v }));
         return c;
       } catch (e) {
-        lastErr = e;
+        lastErr = e; S.D.lastErr = e.message;
         if (!/unknown name|invalid json|cannot find field|invalid argument/i.test(e.message)) break; // lỗi khác (key, quyền, mô hình) -> không đổi kiểu
       }
     }
@@ -119,11 +124,17 @@
   }
 
   function onServer(m, c) {
+    const D = S.D; D.msgs++;
+    D.lastKeys = Object.keys(m).join(',') + (m.serverContent ? '{' + Object.keys(m.serverContent).join(',') + '}' : '');
+    if (m.error) D.lastErr = JSON.stringify(m.error).slice(0, 160);
     if (m.goAway && c === S.conn) rotate('làm mới phiên');
     const sc = m.serverContent; if (!sc || c !== S.conn) return;
-    if (sc.inputTranscription && sc.inputTranscription.text) addText('src', sc.inputTranscription.text);
-    if (sc.outputTranscription && sc.outputTranscription.text) addText('dst', sc.outputTranscription.text);
-    if (sc.modelTurn && sc.modelTurn.parts && opts().voice) sc.modelTurn.parts.forEach((p) => { if (p.inlineData && p.inlineData.data) playPcm(p.inlineData.data, p.inlineData.mimeType || ''); });
+    if (sc.inputTranscription && sc.inputTranscription.text) { D.inTx++; addText('src', sc.inputTranscription.text); }
+    if (sc.outputTranscription && sc.outputTranscription.text) { D.outTx++; addText('dst', sc.outputTranscription.text); }
+    if (sc.modelTurn && sc.modelTurn.parts) sc.modelTurn.parts.forEach((p) => {
+      if (p.text) { D.outTx++; addText('dst', p.text); } // phòng khi mô hình trả chữ trực tiếp
+      if (p.inlineData && p.inlineData.data) { D.audio++; if (opts().voice) playPcm(p.inlineData.data, p.inlineData.mimeType || ''); }
+    });
     if (sc.interrupted && S.outCtx) S.playAt = S.outCtx.currentTime;
   }
 
@@ -131,6 +142,7 @@
   const b64 = (i16) => { const u = new Uint8Array(i16.buffer, i16.byteOffset, i16.byteLength); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
   function sendChunk(c, i16) {
     c.ws.send(JSON.stringify({ realtimeInput: { audio: { data: b64(i16), mimeType: 'audio/pcm;rate=16000' } } }));
+    S.D.sent++;
   }
   function startCapture(stream) {
     let ctx;
@@ -143,7 +155,9 @@
     proc.onaudioprocess = (e) => {
       const d = e.inputBuffer.getChannelData(0);
       let sum = 0; for (let i = 0; i < d.length; i++) sum += d[i] * d[i];
-      const lv = $('#ipLv'); if (lv) lv.style.width = Math.min(100, Math.sqrt(sum / d.length) / 0.12 * 100) + '%';
+      const rms = Math.sqrt(sum / d.length);
+      S.D.level = rms; if (rms > 0.004) S.D.lastSoundAt = Date.now();
+      const lv = $('#ipLv'); if (lv) lv.style.width = Math.min(100, rms / 0.12 * 100) + '%';
       if (S.engine !== 'live') return;
       const n = Math.floor(d.length / ratio), out = new Int16Array(n);
       for (let i = 0; i < n; i++) { const x = Math.max(-1, Math.min(1, d[Math.floor(i * ratio)])); out[i] = x < 0 ? x * 0x8000 : x * 0x7fff; }
@@ -201,7 +215,9 @@
     const last = (arr, n) => arr.slice(-n).map((p, i, a) => `<p class="${i === a.length - 1 ? 'now' : ''}">${esc(p.text)}</p>`).join('');
     stage.style.setProperty('--ip-size', o.size + 'px');
     stage.innerHTML = `${o.showSrc ? `<div class="ip-src">${last(S.src, 2) || '<p class="muted">Chữ gốc hiện ở đây khi có người nói…</p>'}</div>` : ''}
-      <div class="ip-dst">${last(S.dst, 3) || `<p class="muted">Bản dịch ${o.target === 'vi' ? 'tiếng Việt' : 'tiếng Anh'} chạy ở đây</p>`}</div>`;
+      <div class="ip-dst">${last(S.dst, 3) || `<p class="muted">Bản dịch ${o.target === 'vi' ? 'tiếng Việt' : 'tiếng Anh'} chạy ở đây</p>`}</div>
+      <div class="ip-diag"></div>`;
+    renderDiag();
     const log = $('#ipLog');
     if (log) {
       const n = Math.max(S.src.length, S.dst.length);
@@ -238,7 +254,9 @@
     const o = opts();
     if (!MD.CP.keys().geminiKey) return U.toast('Cần Gemini API key — nhập ở tab Cài đặt.', 'err');
     try { S.stream = await getStream(o.source); } catch (e) { return U.toast(e.message || 'Chưa cấp quyền', 'err', 8000); }
-    Object.assign(S, { active: true, src: [], dst: [], srcStarts: [], lat: [], pending: [], fails: 0, reconnects: 0, lastSrcAt: 0, lastDstAt: 0, startedAt: Date.now(), id: U.uid(), engine: o.engine, conn: null, playAt: 0 });
+    Object.assign(S, { active: true, src: [], dst: [], srcStarts: [], lat: [], pending: [], fails: 0, reconnects: 0, lastSrcAt: 0, lastDstAt: 0, startedAt: Date.now(), id: U.uid(), engine: o.engine, conn: null, playAt: 0, tried: new Set(), forceVariant: null });
+    S.D = { sent: 0, msgs: 0, inTx: 0, outTx: 0, audio: 0, level: 0, lastSoundAt: 0, lastErr: '', lastKeys: '', warn: '' };
+    clearInterval(S.wd); S.wd = setInterval(watchdog, 1000);
     S.stream.getTracks().forEach((t) => t.addEventListener('ended', () => { if (S.active) { U.toast('Đã dừng chia sẻ — kết thúc dịch.', 'info'); stop(); } }));
     ensureOut(); // tạo bộ phát ngay trong lúc bấm nút (Chrome chặn tự phát âm thanh nếu tạo về sau)
     IP.render();
@@ -246,7 +264,7 @@
     if (S.engine === 'live') {
       status('đang kết nối…');
       try { await useConn(await connect()); }
-      catch (e) { U.toast('Không mở được Gemini Live: ' + e.message + ' — chuyển sang dịch theo câu ngắn.', 'err', 9000); switchToFallback(); }
+      catch (e) { S.D.lastErr = e.message; U.toast('Không mở được Gemini Live: ' + e.message + ' — chuyển sang dịch theo câu ngắn.', 'err', 9000); switchToFallback(); }
     } else switchToFallback();
     window.onbeforeunload = () => (S.active ? 'Đang dịch' : undefined);
   }
@@ -263,16 +281,51 @@
         MD.CP.sttCall(seg, 'them', lang).then((j) => {
           if (!S.active || !j.text) return;
           S.lat.push((Date.now() - seg.end) / 1000); if (S.lat.length > 8) S.lat.shift();
+          S.D.msgs++; S.D.inTx++; S.D.outTx++;
           addPair(j.text, j.translation || j.text); status();
-        }).catch((e) => { if (Date.now() - t0 < 60000) status('lỗi: ' + e.message.slice(0, 60)); });
+        }).catch((e) => { S.D.lastErr = e.message; if (Date.now() - t0 < 60000) status('lỗi: ' + e.message.slice(0, 60)); });
       }
     });
     status();
   }
 
+  /* =================== Chẩn đoán: tự phát hiện vì sao không ra chữ =================== */
+  const WARN = {
+    silent: '🔇 Không thu được âm thanh. Teams cài trên máy: Teams có thể đang phát ra một thiết bị KHÁC thiết bị mặc định của Windows (Chrome chỉ thu thiết bị mặc định) → trong Teams: Cài đặt → Thiết bị → Loa = thiết bị mặc định của hệ thống, hoặc đặt tai nghe làm thiết bị mặc định trong Windows. Teams web: nhớ bật “Chia sẻ cả âm thanh của thẻ”.',
+    audioNoText: '🔈 Gemini trả giọng dịch nhưng không kèm chữ — bật “🎧 Đọc bản dịch” để nghe trong lúc mình đổi cách bật chép lời.',
+    noReply: '⏳ Đã gửi âm thanh nhưng Gemini chưa trả gì — xem lỗi bên dưới, hoặc đổi Chế độ sang “Theo câu ngắn”.'
+  };
+  function watchdog() {
+    if (!S.active) return;
+    const D = S.D, now = Date.now(), up = now - S.startedAt;
+    let warn = '';
+    if (up > 8000 && now - Math.max(D.lastSoundAt, S.startedAt) > 8000) warn = 'silent';
+    else if (S.engine === 'live' && D.audio >= 8 && D.inTx + D.outTx === 0) warn = 'audioNoText';
+    else if (S.engine === 'live' && up > 15000 && D.sent > 80 && D.msgs === 0 && now - D.lastSoundAt < 3000) warn = 'noReply';
+    if (warn !== D.warn) {
+      D.warn = warn;
+      if (warn === 'silent') U.toast('Không thu được âm thanh từ Teams — xem hướng dẫn trong khung phụ đề.', 'err', 8000);
+    }
+    // có giọng mà không có chữ -> thử kiểu bật chép lời khác (mỗi kiểu một lần)
+    if (warn === 'audioNoText' && !S.rotating) {
+      S.tried.add(S.variant);
+      const next = VARIANTS.find((v) => !S.tried.has(v));
+      if (next) { S.forceVariant = next; D.audio = 0; rotate('đổi cách bật chép lời → ' + next); }
+    }
+    renderDiag();
+  }
+  function renderDiag() {
+    const D = S.D; if (!D) return;
+    const bars = '▮'.repeat(Math.min(8, Math.round(D.level / 0.12 * 8))).padEnd(8, '▯');
+    const html = !S.active ? '' : `<div>🔊 ${bars} · gửi ${D.sent} · nhận ${D.msgs} (gốc ${D.inTx} · dịch ${D.outTx} · giọng ${D.audio}) · ${S.engine === 'live' ? 'Live/' + (S.variant || '…') : 'câu ngắn'}</div>`
+      + (D.warn ? `<div class="ip-warn">${esc(WARN[D.warn])}</div>` : '')
+      + (D.lastErr ? `<div class="ip-err">Lỗi gần nhất: ${esc(D.lastErr)}</div>` : '');
+    [document, S.pip && S.pip.document].forEach((doc) => { if (!doc) return; const el = doc.querySelector('.ip-diag'); if (el) el.innerHTML = html; });
+  }
+
   function stop() {
     if (!S.active) return;
-    S.active = false; window.onbeforeunload = null;
+    S.active = false; window.onbeforeunload = null; clearInterval(S.wd);
     if (S.conn) { try { S.conn.ws.close(1000); } catch (e) { /* đã đóng */ } S.conn = null; }
     if (S.fb) { S.fb.stop(); S.fb = null; }
     if (S.proc) { S.proc.onaudioprocess = null; try { S.ctx.close(); } catch (e) { /* đã đóng */ } }
