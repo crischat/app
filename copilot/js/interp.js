@@ -124,6 +124,13 @@
     rotate('nối lại');
   }
 
+  // đoạn giọng có tiếng thật hay chỉ là im lặng (lấy mẫu thưa cho nhanh)
+  function pcmLoud(b64data) {
+    const bin = atob(b64data), n = bin.length >> 1; let sum = 0, k = 0;
+    for (let i = 0; i < n; i += 8, k++) { let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; sum += v * v; }
+    return k && Math.sqrt(sum / k) / 32768 >= 0.004;
+  }
+
   function onServer(m, c) {
     const D = S.D; D.msgs++;
     D.lastKeys = Object.keys(m).join(',') + (m.serverContent ? '{' + Object.keys(m.serverContent).join(',') + '}' : '');
@@ -134,7 +141,10 @@
     if (sc.outputTranscription && sc.outputTranscription.text) { D.outTx++; addText('dst', sc.outputTranscription.text); }
     if (sc.modelTurn && sc.modelTurn.parts) sc.modelTurn.parts.forEach((p) => {
       if (p.text) { D.outTx++; addText('dst', p.text); } // phòng khi mô hình trả chữ trực tiếp
-      if (p.inlineData && p.inlineData.data) { D.audio++; if (opts().voice) playPcm(p.inlineData.data, p.inlineData.mimeType || ''); }
+      if (p.inlineData && p.inlineData.data) {
+        D.audio++; if (pcmLoud(p.inlineData.data)) D.voiced = (D.voiced || 0) + 1;
+        if (voiceOn()) playPcm(p.inlineData.data, p.inlineData.mimeType || '');
+      }
     });
   }
 
@@ -160,11 +170,8 @@
       const lv = $('#ipLv'); if (lv) lv.style.width = Math.min(100, rms / 0.12 * 100) + '%';
       if (S.engine !== 'live') return;
       const n = Math.floor(d.length / ratio), out = new Int16Array(n);
-      // Chặn tiếng dội: với nguồn âm thanh hệ thống / mic, giọng dịch phát ra máy sẽ bị thu ngược lại.
-      // Trong lúc đang đọc dịch (+0,3 giây) gửi IM LẶNG thay vì âm thanh thật. Nguồn tab không bị dội nên không chặn.
-      const gate = opts().voice && opts().source !== 'tab' && (S.vplaying || S.vq.length || S.vlen || Date.now() < S.vEndAt + 300);
-      if (gate) S.D.gated = (S.D.gated || 0) + 1;
-      else for (let i = 0; i < n; i++) { const x = Math.max(-1, Math.min(1, d[Math.floor(i * ratio)])); out[i] = x < 0 ? x * 0x8000 : x * 0x7fff; }
+      // không bao giờ chặn âm thanh đầu vào (bản trước chặn khi đang đọc dịch -> mất ~90% lời nói)
+      for (let i = 0; i < n; i++) { const x = Math.max(-1, Math.min(1, d[Math.floor(i * ratio)])); out[i] = x < 0 ? x * 0x8000 : x * 0x7fff; }
       if (S.conn && S.conn.ready && S.conn.ws.readyState === 1) sendChunk(S.conn, out);
       else { S.pending.push(out); if (S.pending.length > 60) S.pending.shift(); } // giữ tối đa ~8 giây trong lúc nối lại
     };
@@ -182,10 +189,14 @@
     const lim = S.outCtx.createDynamicsCompressor(); lim.threshold.value = -8; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.1;
     lp.connect(lim); lim.connect(S.outCtx.destination); S.outIn = lp;
   }
+  const voiceOn = () => opts().voice && S.ownExcluded !== false;
   function playPcm(data, mime) {
     const rate = +((mime.match(/rate=(\d+)/) || [])[1] || 24000);
     const bin = atob(data), n = bin.length >> 1, i16 = new Int16Array(n);
-    for (let i = 0; i < n; i++) { const v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); i16[i] = v >= 0x8000 ? v - 0x10000 : v; }
+    let sum = 0;
+    for (let i = 0; i < n; i++) { const v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); i16[i] = v >= 0x8000 ? v - 0x10000 : v; sum += i16[i] * i16[i]; }
+    // Gemini gửi cả các đoạn im lặng giữa câu: không đưa vào hàng đợi (chỉ làm chậm giọng dịch)
+    if (Math.sqrt(sum / Math.max(1, n)) / 32768 < 0.004 && !S.vlen) return;
     S.vbuf.push(i16); S.vlen += n; S.vrate = rate;
     clearTimeout(S.vtimer);
     if (S.vlen > rate * 3) flushVoice(); else S.vtimer = setTimeout(flushVoice, 250);
@@ -353,7 +364,7 @@
     if (src === 'mic') return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     const st = await navigator.mediaDevices.getDisplayMedia({
       video: { frameRate: 1, displaySurface: src === 'screen' ? 'monitor' : 'browser' },
-      audio: { suppressLocalAudioPlayback: false, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+      audio: { suppressLocalAudioPlayback: false, restrictOwnAudio: true, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       systemAudio: 'include', selfBrowserSurface: 'exclude', surfaceSwitching: 'include', monitorTypeSurfaces: 'include'
     });
     if (!st.getAudioTracks().length) {
@@ -368,6 +379,11 @@
     const o = opts();
     if (!MD.CP.keys().geminiKey) return U.toast('Cần Gemini API key — nhập ở tab Cài đặt.', 'err');
     try { S.stream = await getStream(o.source); } catch (e) { return U.toast(e.message || 'Chưa cấp quyền', 'err', 8000); }
+    // Giọng dịch có bị thu ngược lại không? Tab: không (chỉ thu tab Teams). Mic: Chrome tự khử tiếng vọng.
+    // Âm thanh hệ thống: chỉ an toàn khi Chrome loại trừ được âm thanh của chính trang này (restrictOwnAudio).
+    const tr = S.stream.getAudioTracks()[0], st = (tr && tr.getSettings) ? tr.getSettings() : {};
+    S.ownExcluded = o.source !== 'screen' || st.restrictOwnAudio === true;
+    if (o.voice && !S.ownExcluded) U.toast('Chrome này chưa loại trừ được âm thanh của chính trang khỏi âm thanh hệ thống → tắt giọng dịch để tránh dội, chỉ chạy phụ đề. Muốn nghe giọng dịch: dùng Teams trên trình duyệt (nguồn tab).', 'info', 10000);
     Object.assign(S, { active: true, src: [], dst: [], srcStarts: [], lat: [], pending: [], fails: 0, reconnects: 0, lastSrcAt: 0, lastDstAt: 0, startedAt: Date.now(), id: U.uid(), engine: o.engine, conn: null, open: { src: { text: '' }, dst: { text: '' } }, tried: new Set(), forceVariant: null, evlog: [] });
     S.D = { sent: 0, msgs: 0, inTx: 0, outTx: 0, audio: 0, level: 0, lastSoundAt: 0, lastErr: '', lastKeys: '', warn: '' };
     clearInterval(S.wd); S.wd = setInterval(watchdog, 1000);
@@ -415,7 +431,7 @@
     const D = S.D, now = Date.now(), up = now - S.startedAt;
     let warn = '';
     if (up > 8000 && now - Math.max(D.lastSoundAt, S.startedAt) > 8000) warn = 'silent';
-    else if (S.engine === 'live' && D.audio >= 8 && D.inTx + D.outTx === 0) warn = 'audioNoText';
+    else if (S.engine === 'live' && (D.voiced || 0) >= 25 && D.inTx + D.outTx === 0) warn = 'audioNoText';
     else if (S.engine === 'live' && up > 15000 && D.sent > 80 && D.msgs === 0 && now - D.lastSoundAt < 3000) warn = 'noReply';
     if (warn !== D.warn) {
       D.warn = warn;
@@ -425,14 +441,14 @@
     if (warn === 'audioNoText' && !S.rotating) {
       S.tried.add(S.variant);
       const next = VARIANTS.find((v) => !S.tried.has(v));
-      if (next) { S.forceVariant = next; D.audio = 0; rotate('đổi cách bật chép lời → ' + next); }
+      if (next) { S.forceVariant = next; D.voiced = 0; rotate('đổi cách bật chép lời → ' + next); }
     }
     renderDiag();
   }
   function renderDiag() {
     const D = S.D; if (!D) return;
     const bars = '▮'.repeat(Math.min(8, Math.round(D.level / 0.12 * 8))).padEnd(8, '▯');
-    const html = !S.active ? '' : `<div>🔊 ${bars} · gửi ${D.sent} · nhận ${D.msgs} (gốc ${D.inTx} · dịch ${D.outTx} · giọng ${D.audio}${D.echo ? ' · lọc ' + D.echo + ' câu dội' : ''}${D.gated ? ' · ngắt nghe khi đọc dịch ' + (D.gated * 0.128).toFixed(0) + 's' : ''}) · ${S.engine === 'live' ? 'Live/' + (S.variant || '…') : 'câu ngắn'}</div>`
+    const html = !S.active ? '' : `<div>🔊 ${bars} · gửi ${D.sent} · nhận ${D.msgs} (gốc ${D.inTx} · dịch ${D.outTx} · giọng ${D.audio}${D.echo ? ' · lọc ' + D.echo + ' câu dội' : ''}${opts().voice ? (voiceOn() ? ' · đang đọc dịch' : ' · giọng dịch tắt (tránh dội)') : ''}) · ${S.engine === 'live' ? 'Live/' + (S.variant || '…') : 'câu ngắn'}</div>`
       + (D.warn ? `<div class="ip-warn">${esc(WARN[D.warn])}</div>` : '')
       + (D.lastErr ? `<div class="ip-err">Lỗi gần nhất: ${esc(D.lastErr)}</div>` : '');
     [document, S.pip && S.pip.document].forEach((doc) => { if (!doc) return; const el = doc.querySelector('.ip-diag'); if (el) el.innerHTML = html; });
@@ -494,7 +510,7 @@
           <label class="field inl" style="flex-direction:row;align-items:center;gap:6px">Tốc độ giọng<select id="ipVSpeed">${[1, 1.15, 1.25, 1.4, 1.6].map((x) => `<option value="${x}" ${+o.vspeed === x ? 'selected' : ''}>${x}x</option>`).join('')}</select></label>
           <label class="check"><input type="checkbox" id="ipShowSrc" ${o.showSrc ? 'checked' : ''}><span>Hiện dòng gốc</span></label>
         </div>
-        ${o.voice ? '<p class="muted" style="font-size:12.5px;margin:6px 0 0">Giọng dịch + nguồn “âm thanh hệ thống” hoặc micro: trong lúc đọc dịch app tạm ngắt nghe để không thu ngược giọng Việt (nếu người kia nói chen lúc đó, đoạn chen sẽ không được dịch). Muốn dịch liên tục 100%: tắt giọng dịch và chỉ xem phụ đề, hoặc dùng Teams trên trình duyệt (nguồn tab). Luôn đeo tai nghe và tắt mic Teams khi không nói.</p>' : ''}
+        ${o.voice ? '<p class="muted" style="font-size:12.5px;margin:6px 0 0">Giọng dịch không bao giờ làm ngắt phần nghe. Với nguồn “âm thanh hệ thống”, giọng dịch chỉ bật khi Chrome loại trừ được âm thanh của chính trang này (nếu không, app tự tắt giọng và chỉ chạy phụ đề để tránh dội). Nguồn tab (Teams trên trình duyệt) luôn nghe được giọng dịch. Luôn đeo tai nghe.</p>' : ''}
         <div class="row wrap mt">
           ${S.active ? '<button class="btn danger" id="ipStop">■ Dừng dịch</button>' : '<button class="btn primary" id="ipStart">▶ Bắt đầu dịch</button>'}
           <button class="btn" id="ipPip">📌 Phụ đề nổi trên Teams</button>
