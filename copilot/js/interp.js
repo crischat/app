@@ -12,14 +12,15 @@
     tab: 'Teams trên trình duyệt — chia sẻ tab có âm thanh',
     mic: 'Micro (thử nghiệm / họp trực tiếp)'
   };
-  const opts = () => Object.assign({ source: 'screen', target: 'vi', engine: 'live', voice: false, showSrc: true, size: 26 }, U.store.get(OKEY, {}));
+  const opts = () => Object.assign({ source: 'screen', target: 'vi', engine: 'live', voice: false, vspeed: 1.25, showSrc: true, size: 26 }, U.store.get(OKEY, {}));
   const saveOpts = (p) => U.store.set(OKEY, Object.assign(opts(), p));
 
   const S = {
     active: false, stream: null, ctx: null, proc: null, engine: 'live', model: '',
     conn: null, pending: [], fails: 0, reconnects: 0, rotating: false,
     src: [], dst: [], lastSrcAt: 0, lastDstAt: 0, srcStarts: [], lat: [],
-    outCtx: null, outIn: null, playAt: 0, fb: null, pip: null, startedAt: 0, id: ''
+    outCtx: null, outIn: null, fb: null, pip: null, startedAt: 0, id: '',
+    open: { src: { text: '' }, dst: { text: '' } }, vq: [], vbuf: [], vlen: 0, vrate: 24000, vplaying: null, D: {}
   };
 
   /* =================== Kết nối Gemini Live =================== */
@@ -135,7 +136,6 @@
       if (p.text) { D.outTx++; addText('dst', p.text); } // phòng khi mô hình trả chữ trực tiếp
       if (p.inlineData && p.inlineData.data) { D.audio++; if (opts().voice) playPcm(p.inlineData.data, p.inlineData.mimeType || ''); }
     });
-    if (sc.interrupted && S.outCtx) S.playAt = S.outCtx.currentTime;
   }
 
   /* =================== Thu âm thanh -> PCM 16 kHz =================== */
@@ -167,34 +167,66 @@
     S.ctx = ctx; S.proc = proc;
   }
 
-  /* =================== Phát giọng dịch (PCM 24 kHz) liền mạch =================== */
+  /* =================== Giọng dịch: nhanh hơn mà không méo =================== */
+  // Gom các mảnh PCM 24 kHz thành từng cụm (ngắt khi 250 ms không có mảnh mới, hoặc đủ 3 giây),
+  // rồi phát bằng <audio> có giữ cao độ (preservesPitch) ở tốc độ đã chọn. Dồn nhiều thì tự tăng tốc / bỏ bớt để đuổi kịp.
   function ensureOut() {
     if (S.outCtx) { if (S.outCtx.state === 'suspended') S.outCtx.resume(); return; }
     S.outCtx = new (window.AudioContext || window.webkitAudioContext)();
     // lọc âm cao + giới hạn đỉnh: chặn tiếng chói nếu mô hình sinh nhiễu
     const lp = S.outCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7500;
     const lim = S.outCtx.createDynamicsCompressor(); lim.threshold.value = -8; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.1;
-    lp.connect(lim); lim.connect(S.outCtx.destination); S.outIn = lp; S.playAt = 0;
+    lp.connect(lim); lim.connect(S.outCtx.destination); S.outIn = lp;
   }
-
   function playPcm(data, mime) {
     const rate = +((mime.match(/rate=(\d+)/) || [])[1] || 24000);
+    const bin = atob(data), n = bin.length >> 1, i16 = new Int16Array(n);
+    for (let i = 0; i < n; i++) { const v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); i16[i] = v >= 0x8000 ? v - 0x10000 : v; }
+    S.vbuf.push(i16); S.vlen += n; S.vrate = rate;
+    clearTimeout(S.vtimer);
+    if (S.vlen > rate * 3) flushVoice(); else S.vtimer = setTimeout(flushVoice, 250);
+  }
+  function flushVoice() {
+    if (!S.vlen) return;
+    const n = S.vlen, rate = S.vrate, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const w = (o, s) => { for (let i = 0; i < 4; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+    let o = 44; S.vbuf.forEach((c) => { for (let i = 0; i < c.length; i++, o += 2) v.setInt16(o, c[i], true); });
+    S.vbuf = []; S.vlen = 0;
+    S.vq.push(URL.createObjectURL(new Blob([buf], { type: 'audio/wav' })));
+    while (S.vq.length > 5) URL.revokeObjectURL(S.vq.shift()); // tụt quá xa -> bỏ cụm cũ nhất cho kịp lời đang nói
+    playNextVoice();
+  }
+  function playNextVoice() {
+    if (S.vplaying || !S.vq.length) return;
+    const url = S.vq.shift(), a = new Audio(url);
+    a.preservesPitch = true;
+    const base = +opts().vspeed || 1.25, backlog = S.vq.length;
+    a.playbackRate = Math.min(2, base * (backlog >= 3 ? 1.3 : backlog >= 1 ? 1.12 : 1));
     ensureOut();
-    const bin = atob(data), n = bin.length >> 1;
-    const buf = S.outCtx.createBuffer(1, n, rate), ch = buf.getChannelData(0);
-    for (let i = 0; i < n; i++) { let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; ch[i] = v / 0x8000; }
-    const s = S.outCtx.createBufferSource(); s.buffer = buf; s.connect(S.outIn);
-    const t = Math.max(S.outCtx.currentTime + 0.03, S.playAt);
-    s.start(t); S.playAt = t + buf.duration;
+    try { S.outCtx.createMediaElementSource(a).connect(S.outIn); } catch (e) { /* phát thẳng nếu không nối được */ }
+    S.vplaying = a;
+    const done = () => { URL.revokeObjectURL(url); if (S.vplaying === a) S.vplaying = null; playNextVoice(); };
+    a.onended = done; a.onerror = done;
+    a.play().catch(done);
+  }
+  function stopVoice() {
+    clearTimeout(S.vtimer); S.vbuf = []; S.vlen = 0;
+    if (S.vplaying) { try { S.vplaying.pause(); } catch (e) { /* bỏ qua */ } S.vplaying = null; }
+    (S.vq || []).forEach((u) => URL.revokeObjectURL(u)); S.vq = [];
   }
 
-  /* =================== Chữ: chia đoạn theo khoảng ngắt =================== */
-  const GAP = 1500; // ngừng nói > 1,5 giây -> sang đoạn mới
-  /* Gộp mảnh chữ mới vào đoạn hiện tại, chống lặp:
-     - mảnh y hệt mảnh trước (máy chủ gửi lại) hoặc đã nằm ở cuối đoạn -> bỏ
-     - mảnh là bản CỘNG DỒN (bắt đầu bằng cả đoạn hiện có) -> thay thế
-     - đuôi đoạn trùng đầu mảnh -> chỉ nối phần mới */
+  /* =================== Chữ: tách từng câu, chống lặp =================== */
+  const GAP = 1500; // ngừng > 1,5 giây -> chốt câu đang dở
   const norm = (s) => s.replace(/\s+/g, ' ').trim().toLowerCase();
+  const words = (s) => norm(s).replace(/[^\p{L}\p{N}\s']/gu, ' ').split(' ').filter(Boolean);
+  const VN = /[ăâđêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/i;
+  // câu nằm ở dòng GỐC nhưng lại là ngôn ngữ đích -> giọng dịch bị thu ngược lại, bỏ
+  const looksLikeTarget = (s) => (opts().target === 'vi' ? VN.test(s) : !VN.test(s) && words(s).length >= 3);
+  function overlap(a, b) { const B = new Set(b); let i = 0; new Set(a).forEach((w) => { if (B.has(w)) i++; }); return i / Math.min(new Set(a).size, B.size); }
+
+  // gộp mảnh mới vào câu đang dở: bỏ mảnh gửi lại, thay bản cộng dồn, nối phần chồng lấn
   function mergeFrag(cur, frag, lastFrag) {
     const nc = norm(cur), nf = norm(frag);
     if (!nf) return cur;
@@ -206,52 +238,100 @@
     }
     return cur + frag;
   }
-  // gộp các câu y hệt nhau đứng liền nhau: "A? A? A?" -> "A?"
-  function collapseRepeats(s) {
-    const parts = s.match(/[^.!?…]+[.!?…]*\s*/g) || [s], out = [];
-    for (const p of parts) { const k = norm(p); if (k.length > 3 && out.length && norm(out[out.length - 1]) === k) continue; out.push(p); }
-    return out.join('');
+
+  // chốt 1 câu: bỏ câu trùng / mảnh đuôi lặp; câu GẦN GIỐNG câu vừa rồi = bản sửa của máy chủ -> thay thế
+  function pushSentence(kind, text, at) {
+    text = text.replace(/\s+/g, ' ').trim(); if (!text) return;
+    if (kind === 'src' && looksLikeTarget(text)) { S.D.echo = (S.D.echo || 0) + 1; return; }
+    const arr = S[kind], wn = words(text);
+    if (!wn.length) return;
+    for (let j = arr.length - 1; j >= Math.max(0, arr.length - 2); j--) {
+      const p = arr[j], wp = words(p.text);
+      if (!wp.length) continue; // hàng bù trống
+      if (norm(p.text) === norm(text)) return;
+      if (wn.length <= 4 && wn.every((x) => wp.includes(x))) return;
+      if (wn.length >= 3 && wp.length >= 3 && overlap(wn, wp) >= 0.85) { p.text = text; return; }
+    }
+    arr.push({ text, at });
+    if (kind === 'src') S.srcStarts.push(at);
+    else { const st = S.srcStarts[arr.length - 1]; if (st) { S.lat.push((Date.now() - st) / 1000); if (S.lat.length > 8) S.lat.shift(); } }
   }
 
-  function addText(kind, text) {
-    const now = Date.now(), arr = S[kind], lastAt = kind === 'src' ? S.lastSrcAt : S.lastDstAt;
-    (S.evlog = S.evlog || []).push({ t: now - S.startedAt, k: kind, x: text }); if (S.evlog.length > 600) S.evlog.shift();
-    const fresh = !arr.length || now - lastAt > GAP;
-    if (fresh) {
-      arr.push({ text: text.trimStart(), at: now });
-      if (kind === 'src') S.srcStarts.push(now);
-      else { const st = S.srcStarts[arr.length - 1]; if (st) { S.lat.push((now - st) / 1000); if (S.lat.length > 8) S.lat.shift(); } }
-    } else {
-      const p = arr[arr.length - 1];
-      p.text = collapseRepeats(mergeFrag(p.text, text, p.lastFrag));
+  function addText(kind, frag) {
+    const now = Date.now(), o = S.open[kind]; S.lastFragAt = now;
+    (S.evlog = S.evlog || []).push({ t: now - S.startedAt, k: kind, x: frag }); if (S.evlog.length > 600) S.evlog.shift();
+    if (o.text && now - o.at > GAP) { pushSentence(kind, o.text, o.start); o.text = ''; }
+    if (!o.text) { o.text = frag.trimStart(); o.start = now; } else o.text = mergeFrag(o.text, frag, o.lastFrag);
+    o.at = now; o.lastFrag = frag;
+    // tách các câu đã có dấu kết thúc, phần dở giữ lại
+    let m;
+    while ((m = o.text.match(/^\s*([^.!?…]*?\p{L}[^.!?…]*[.!?…]+["')\]]?)(\s+|$)/u))) {
+      pushSentence(kind, m[1], o.start);
+      o.text = o.text.slice(m[0].length); o.start = now;
     }
-    arr[arr.length - 1].lastFrag = text;
-    if (kind === 'src') S.lastSrcAt = now; else S.lastDstAt = now;
     renderStage(); status();
+  }
+  function flushOpen(force) {
+    const now = Date.now();
+    ['src', 'dst'].forEach((k) => { const o = S.open[k]; if (o.text && (force || now - o.at > GAP)) { pushSentence(k, o.text, o.start); o.text = ''; } });
+  }
+  // Hết một lượt nói (cả hai bên im > 2,5 giây) mà số câu Anh/Việt lệch nhau -> bù hàng trống cho bên thiếu,
+  // để lượt sau bắt đầu thẳng hàng (lệch không kéo dài cả buổi)
+  function resync() {
+    if (!S.lastFragAt || Date.now() - S.lastFragAt < 2500 || S.open.src.text || S.open.dst.text) return;
+    const d = S.src.length - S.dst.length, at = Date.now();
+    if (d > 0) for (let i = 0; i < d; i++) S.dst.push({ text: '', at, pad: true });
+    if (d < 0) for (let i = 0; i < -d; i++) { S.src.push({ text: '', at, pad: true }); S.srcStarts.push(at); }
   }
   // dự phòng: mỗi câu ngắn trả về cùng lúc gốc + dịch
   function addPair(src, dst) {
     const now = Date.now();
-    if (src) { S.src.push({ text: src, at: now }); S.srcStarts.push(now); }
-    if (dst) S.dst.push({ text: dst, at: now });
+    if (src) pushSentence('src', src, now);
+    if (dst) pushSentence('dst', dst, now);
     renderStage();
   }
 
+  /* =================== Phụ đề song ngữ: mỗi câu 1 hàng (Anh trên, Việt dưới), cuộn xem lại =================== */
+  function rows() {
+    const out = [], os = S.open.src.text, od = S.open.dst.text;
+    const n = Math.max(S.src.length + (os ? 1 : 0), S.dst.length + (od ? 1 : 0));
+    for (let i = 0; i < n; i++) {
+      const s = S.src[i], d = S.dst[i];
+      out.push({ en: s ? s.text : (i === S.src.length ? os : ''), vi: d ? d.text : (i === S.dst.length ? od : ''), at: (s || d || {}).at || Date.now(), live: !d });
+    }
+    return out;
+  }
+  function stageIn(doc) {
+    const st = doc.getElementById('ipStage'); if (!st) return null;
+    if (!st.querySelector('.ip-rows')) {
+      st.innerHTML = '<div class="ip-rows"></div><button class="ip-jump" hidden>↓ Mới nhất</button><div class="ip-diag"></div>';
+      const box = st.querySelector('.ip-rows'), jump = st.querySelector('.ip-jump');
+      box.addEventListener('scroll', () => { if (box.scrollHeight - box.scrollTop - box.clientHeight < 40) jump.hidden = true; });
+      jump.addEventListener('click', () => { box.scrollTop = box.scrollHeight; jump.hidden = true; });
+    }
+    return st;
+  }
   function renderStage() {
-    const o = opts(), stage = S.pip ? S.pip.document.getElementById('ipStage') : $('#ipStage');
-    if (!stage) return;
-    const last = (arr, n) => arr.slice(-n).map((p, i, a) => `<p class="${i === a.length - 1 ? 'now' : ''}">${esc(p.text)}</p>`).join('');
-    stage.style.setProperty('--ip-size', o.size + 'px');
-    stage.innerHTML = `${o.showSrc ? `<div class="ip-src">${last(S.src, 2) || '<p class="muted">Chữ gốc hiện ở đây khi có người nói…</p>'}</div>` : ''}
-      <div class="ip-dst">${last(S.dst, 3) || `<p class="muted">Bản dịch ${o.target === 'vi' ? 'tiếng Việt' : 'tiếng Anh'} chạy ở đây</p>`}</div>
-      <div class="ip-diag"></div>`;
+    const o = opts(), list = rows();
+    const tm = (t) => new Date(t).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const html = list.slice(-200).map((r, i, a) => `<div class="ip-row ${i === a.length - 1 ? 'now' : ''}">
+        ${o.showSrc ? `<div class="ip-en"><time>${tm(r.at)}</time>${esc(r.en) || '<span class="muted">…</span>'}</div>` : ''}
+        <div class="ip-vi">${esc(r.vi) || '<span class="muted">… đang dịch</span>'}</div></div>`).join('')
+      || `<div class="ip-row"><div class="ip-vi muted">Phụ đề song ngữ hiện ở đây: mỗi câu một dòng ${o.target === 'vi' ? 'Anh' : 'Việt'} và một dòng ${o.target === 'vi' ? 'Việt' : 'Anh'}.</div></div>`;
+    [document, S.pip && S.pip.document].forEach((doc) => {
+      if (!doc) return;
+      const st = stageIn(doc); if (!st) return;
+      st.style.setProperty('--ip-size', o.size + 'px');
+      const box = st.querySelector('.ip-rows'), jump = st.querySelector('.ip-jump');
+      const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+      box.innerHTML = html;
+      // đang cuộn lên xem lại thì giữ nguyên, chỉ hiện nút "Mới nhất"
+      if (atBottom) box.scrollTop = box.scrollHeight; else jump.hidden = false;
+    });
     renderDiag();
     const log = $('#ipLog');
-    if (log) {
-      const n = Math.max(S.src.length, S.dst.length);
-      let h = ''; for (let i = 0; i < n; i++) h += `<div class="turn them"><div class="txt">${esc((S.dst[i] || {}).text || '…')}</div>${S.src[i] ? `<div class="tr">${esc(S.src[i].text)}</div>` : ''}</div>`;
-      log.innerHTML = h || '<p class="muted">Biên bản đầy đủ của buổi dịch.</p>';
-      log.scrollTop = log.scrollHeight;
+    if (log && log.closest('details') && log.closest('details').open) {
+      log.innerHTML = list.map((r) => `<div class="turn them"><div class="txt">${esc(r.vi || '…')}</div>${r.en ? `<div class="tr">${esc(r.en)}</div>` : ''}</div>`).join('') || '<p class="muted">Biên bản đầy đủ của buổi dịch.</p>';
     }
   }
 
@@ -282,7 +362,7 @@
     const o = opts();
     if (!MD.CP.keys().geminiKey) return U.toast('Cần Gemini API key — nhập ở tab Cài đặt.', 'err');
     try { S.stream = await getStream(o.source); } catch (e) { return U.toast(e.message || 'Chưa cấp quyền', 'err', 8000); }
-    Object.assign(S, { active: true, src: [], dst: [], srcStarts: [], lat: [], pending: [], fails: 0, reconnects: 0, lastSrcAt: 0, lastDstAt: 0, startedAt: Date.now(), id: U.uid(), engine: o.engine, conn: null, playAt: 0, tried: new Set(), forceVariant: null, evlog: [] });
+    Object.assign(S, { active: true, src: [], dst: [], srcStarts: [], lat: [], pending: [], fails: 0, reconnects: 0, lastSrcAt: 0, lastDstAt: 0, startedAt: Date.now(), id: U.uid(), engine: o.engine, conn: null, open: { src: { text: '' }, dst: { text: '' } }, tried: new Set(), forceVariant: null, evlog: [] });
     S.D = { sent: 0, msgs: 0, inTx: 0, outTx: 0, audio: 0, level: 0, lastSoundAt: 0, lastErr: '', lastKeys: '', warn: '' };
     clearInterval(S.wd); S.wd = setInterval(watchdog, 1000);
     S.stream.getTracks().forEach((t) => t.addEventListener('ended', () => { if (S.active) { U.toast('Đã dừng chia sẻ — kết thúc dịch.', 'info'); stop(); } }));
@@ -325,6 +405,7 @@
   };
   function watchdog() {
     if (!S.active) return;
+    const before = S.src.length + S.dst.length; flushOpen(); resync(); if (S.src.length + S.dst.length !== before) renderStage();
     const D = S.D, now = Date.now(), up = now - S.startedAt;
     let warn = '';
     if (up > 8000 && now - Math.max(D.lastSoundAt, S.startedAt) > 8000) warn = 'silent';
@@ -345,7 +426,7 @@
   function renderDiag() {
     const D = S.D; if (!D) return;
     const bars = '▮'.repeat(Math.min(8, Math.round(D.level / 0.12 * 8))).padEnd(8, '▯');
-    const html = !S.active ? '' : `<div>🔊 ${bars} · gửi ${D.sent} · nhận ${D.msgs} (gốc ${D.inTx} · dịch ${D.outTx} · giọng ${D.audio}) · ${S.engine === 'live' ? 'Live/' + (S.variant || '…') : 'câu ngắn'}</div>`
+    const html = !S.active ? '' : `<div>🔊 ${bars} · gửi ${D.sent} · nhận ${D.msgs} (gốc ${D.inTx} · dịch ${D.outTx} · giọng ${D.audio}${D.echo ? ' · lọc ' + D.echo + ' câu dội' : ''}) · ${S.engine === 'live' ? 'Live/' + (S.variant || '…') : 'câu ngắn'}</div>`
       + (D.warn ? `<div class="ip-warn">${esc(WARN[D.warn])}</div>` : '')
       + (D.lastErr ? `<div class="ip-err">Lỗi gần nhất: ${esc(D.lastErr)}</div>` : '');
     [document, S.pip && S.pip.document].forEach((doc) => { if (!doc) return; const el = doc.querySelector('.ip-diag'); if (el) el.innerHTML = html; });
@@ -358,6 +439,7 @@
     if (S.fb) { S.fb.stop(); S.fb = null; }
     if (S.proc) { S.proc.onaudioprocess = null; try { S.ctx.close(); } catch (e) { /* đã đóng */ } }
     if (S.stream) S.stream.getTracks().forEach((t) => t.stop());
+    stopVoice(); flushOpen(true);
     if (S.outCtx) { try { S.outCtx.close(); } catch (e) { /* đã đóng */ } S.outCtx = null; }
     // lưu biên bản vào Lịch sử
     if (S.src.length || S.dst.length) {
@@ -403,8 +485,10 @@
         </div>
         <div class="row wrap mt">
           <label class="check"><input type="checkbox" id="ipVoice" ${o.voice ? 'checked' : ''}><span>🎧 Đọc bản dịch vào tai nghe (giọng thông dịch)</span></label>
-          <label class="check"><input type="checkbox" id="ipShowSrc" ${o.showSrc ? 'checked' : ''}><span>Hiện chữ gốc</span></label>
+          <label class="field inl" style="flex-direction:row;align-items:center;gap:6px">Tốc độ giọng<select id="ipVSpeed">${[1, 1.15, 1.25, 1.4, 1.6].map((x) => `<option value="${x}" ${+o.vspeed === x ? 'selected' : ''}>${x}x</option>`).join('')}</select></label>
+          <label class="check"><input type="checkbox" id="ipShowSrc" ${o.showSrc ? 'checked' : ''}><span>Hiện dòng gốc</span></label>
         </div>
+        ${o.voice ? '<p class="muted" style="font-size:12.5px;margin:6px 0 0">Khi bật giọng dịch: đeo tai nghe và tắt mic Teams lúc không nói — giọng dịch lọt vào mic/âm thanh hệ thống sẽ bị thu ngược lại (app tự lọc khỏi dòng gốc, nhưng vẫn nên tránh).</p>' : ''}
         <div class="row wrap mt">
           ${S.active ? '<button class="btn danger" id="ipStop">■ Dừng dịch</button>' : '<button class="btn primary" id="ipStart">▶ Bắt đầu dịch</button>'}
           <button class="btn" id="ipPip">📌 Phụ đề nổi trên Teams</button>
@@ -444,7 +528,7 @@
     if (t.id === 'ipStart') return start();
     if (t.id === 'ipStop') return stop();
     if (t.id === 'ipPip') return openPip().catch((er) => U.toast('Không mở được cửa sổ nổi: ' + er.message, 'err'));
-    if (t.id === 'ipClear') { S.src = []; S.dst = []; S.srcStarts = []; return renderStage(); }
+    if (t.id === 'ipClear') { S.src = []; S.dst = []; S.srcStarts = []; S.open = { src: { text: '' }, dst: { text: '' } }; return renderStage(); }
     if (t.id === 'ipDl') {
       const n = Math.max(S.src.length, S.dst.length); if (!n) return U.toast('Chưa có nội dung', 'info');
       let txt = `Dịch cabin — ${new Date(S.startedAt || Date.now()).toLocaleString('vi-VN')}\n\n`;
@@ -454,7 +538,12 @@
   });
   document.addEventListener('change', (e) => {
     const id = e.target.id;
-    if (id === 'ipVoice' || id === 'ipShowSrc') { saveOpts({ voice: $('#ipVoice').checked, showSrc: $('#ipShowSrc').checked }); if (id === 'ipVoice' && S.active && $('#ipVoice').checked) ensureOut(); return renderStage(); }
+    if (id === 'ipVSpeed') return saveOpts({ vspeed: +e.target.value });
+    if (id === 'ipVoice' || id === 'ipShowSrc') {
+      saveOpts({ voice: $('#ipVoice').checked, showSrc: $('#ipShowSrc').checked });
+      if (id === 'ipVoice') { if ($('#ipVoice').checked) { if (S.active) ensureOut(); } else stopVoice(); return IP.render(); }
+      return renderStage();
+    }
     if (/^ip(Source|Target|Engine)$/.test(id)) readForm();
   });
   document.addEventListener('input', (e) => {
@@ -464,6 +553,6 @@
     renderStage();
   });
 
-  IP._test = { addText, setupMsg, S }; // kiểm tra tự động
+  IP._test = { addText, setupMsg, S, flushOpen, resync, playPcm }; // kiểm tra tự động
   MD.Interp = IP;
 })(window.MD);
