@@ -421,7 +421,7 @@
 
   /* =================== Chẩn đoán: tự phát hiện vì sao không ra chữ =================== */
   const WARN = {
-    silent: '🔇 Không thu được âm thanh. Teams cài trên máy: Teams có thể đang phát ra một thiết bị KHÁC thiết bị mặc định của Windows (Chrome chỉ thu thiết bị mặc định) → trong Teams: Cài đặt → Thiết bị → Loa = thiết bị mặc định của hệ thống, hoặc đặt tai nghe làm thiết bị mặc định trong Windows. Teams web: nhớ bật “Chia sẻ cả âm thanh của thẻ”.',
+    silent: '🔇 Chrome KHÔNG thu được âm thanh nào (thanh 🔊 trống). Teams cài trên máy thường phát ra “thiết bị liên lạc” (Default Communication Device) khác thiết bị Chrome thu. Cách chắc nhất: mở cuộc họp bằng Teams trên trình duyệt và chọn nguồn “chia sẻ tab”. Hoặc: Win+R → mmsys.cpl → Playback → chuột phải thiết bị bạn đang nghe Teams → Set as Default Device + Set as Default Communication Device, rồi trong Teams → Cài đặt → Thiết bị → Loa chọn đúng thiết bị đó.',
     audioNoText: '🔈 Gemini trả giọng dịch nhưng không kèm chữ — bật “🎧 Đọc bản dịch” để nghe trong lúc mình đổi cách bật chép lời.',
     noReply: '⏳ Đã gửi âm thanh nhưng Gemini chưa trả gì — xem lỗi bên dưới, hoặc đổi Chế độ sang “Theo câu ngắn”.'
   };
