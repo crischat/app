@@ -82,7 +82,7 @@
     for (const v of order) {
       try {
         const c = await openConn(key, S.model, v);
-        S.variant = v;
+        S.variant = v; S.D.lastErr = ''; // lỗi của các lần thử kiểu khác không còn ý nghĩa khi đã kết nối được
         if (s.liveTransVariant2 !== v) U.store.set('settings', Object.assign(U.store.get('settings', {}), { liveTransVariant2: v }));
         return c;
       } catch (e) {
@@ -190,14 +190,42 @@
 
   /* =================== Chữ: chia đoạn theo khoảng ngắt =================== */
   const GAP = 1500; // ngừng nói > 1,5 giây -> sang đoạn mới
+  /* Gộp mảnh chữ mới vào đoạn hiện tại, chống lặp:
+     - mảnh y hệt mảnh trước (máy chủ gửi lại) hoặc đã nằm ở cuối đoạn -> bỏ
+     - mảnh là bản CỘNG DỒN (bắt đầu bằng cả đoạn hiện có) -> thay thế
+     - đuôi đoạn trùng đầu mảnh -> chỉ nối phần mới */
+  const norm = (s) => s.replace(/\s+/g, ' ').trim().toLowerCase();
+  function mergeFrag(cur, frag, lastFrag) {
+    const nc = norm(cur), nf = norm(frag);
+    if (!nf) return cur;
+    if (nf.length >= 6 && nf === norm(lastFrag || '')) return cur;
+    if (nf.length >= 12 && nc.endsWith(nf)) return cur;
+    if (nc.length >= 2 && nf.length > nc.length && nf.startsWith(nc)) return frag.trimStart();
+    for (let k = Math.min(cur.length, frag.length); k >= 10; k--) {
+      if (cur.slice(-k).toLowerCase() === frag.slice(0, k).toLowerCase()) return cur + frag.slice(k);
+    }
+    return cur + frag;
+  }
+  // gộp các câu y hệt nhau đứng liền nhau: "A? A? A?" -> "A?"
+  function collapseRepeats(s) {
+    const parts = s.match(/[^.!?…]+[.!?…]*\s*/g) || [s], out = [];
+    for (const p of parts) { const k = norm(p); if (k.length > 3 && out.length && norm(out[out.length - 1]) === k) continue; out.push(p); }
+    return out.join('');
+  }
+
   function addText(kind, text) {
     const now = Date.now(), arr = S[kind], lastAt = kind === 'src' ? S.lastSrcAt : S.lastDstAt;
+    (S.evlog = S.evlog || []).push({ t: now - S.startedAt, k: kind, x: text }); if (S.evlog.length > 600) S.evlog.shift();
     const fresh = !arr.length || now - lastAt > GAP;
     if (fresh) {
       arr.push({ text: text.trimStart(), at: now });
       if (kind === 'src') S.srcStarts.push(now);
       else { const st = S.srcStarts[arr.length - 1]; if (st) { S.lat.push((now - st) / 1000); if (S.lat.length > 8) S.lat.shift(); } }
-    } else arr[arr.length - 1].text += text;
+    } else {
+      const p = arr[arr.length - 1];
+      p.text = collapseRepeats(mergeFrag(p.text, text, p.lastFrag));
+    }
+    arr[arr.length - 1].lastFrag = text;
     if (kind === 'src') S.lastSrcAt = now; else S.lastDstAt = now;
     renderStage(); status();
   }
@@ -254,7 +282,7 @@
     const o = opts();
     if (!MD.CP.keys().geminiKey) return U.toast('Cần Gemini API key — nhập ở tab Cài đặt.', 'err');
     try { S.stream = await getStream(o.source); } catch (e) { return U.toast(e.message || 'Chưa cấp quyền', 'err', 8000); }
-    Object.assign(S, { active: true, src: [], dst: [], srcStarts: [], lat: [], pending: [], fails: 0, reconnects: 0, lastSrcAt: 0, lastDstAt: 0, startedAt: Date.now(), id: U.uid(), engine: o.engine, conn: null, playAt: 0, tried: new Set(), forceVariant: null });
+    Object.assign(S, { active: true, src: [], dst: [], srcStarts: [], lat: [], pending: [], fails: 0, reconnects: 0, lastSrcAt: 0, lastDstAt: 0, startedAt: Date.now(), id: U.uid(), engine: o.engine, conn: null, playAt: 0, tried: new Set(), forceVariant: null, evlog: [] });
     S.D = { sent: 0, msgs: 0, inTx: 0, outTx: 0, audio: 0, level: 0, lastSoundAt: 0, lastErr: '', lastKeys: '', warn: '' };
     clearInterval(S.wd); S.wd = setInterval(watchdog, 1000);
     S.stream.getTracks().forEach((t) => t.addEventListener('ended', () => { if (S.active) { U.toast('Đã dừng chia sẻ — kết thúc dịch.', 'info'); stop(); } }));
@@ -382,6 +410,7 @@
           <button class="btn" id="ipPip">📌 Phụ đề nổi trên Teams</button>
           <button class="btn ghost" id="ipClear">Xoá màn hình</button>
           <button class="btn ghost" id="ipDl">⬇ Tải biên bản</button>
+          <button class="btn ghost" id="ipLog2" title="Các gói chữ Gemini gửi về (không có âm thanh) — gửi cho người hỗ trợ khi có lỗi">⬇ Nhật ký kỹ thuật</button>
           <div class="meter"><span>🔊</span><i><b id="ipLv"></b></i></div>
         </div>
         <p class="muted mt" id="ipStatus" style="font-size:12.5px"></p>
@@ -406,7 +435,12 @@
   }
 
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('#ipStart,#ipStop,#ipPip,#ipClear,#ipDl'); if (!t) return;
+    const t = e.target.closest('#ipStart,#ipStop,#ipPip,#ipClear,#ipDl,#ipLog2'); if (!t) return;
+    if (t.id === 'ipLog2') {
+      if (!(S.evlog || []).length) return U.toast('Chưa có dữ liệu', 'info');
+      const info = { model: S.model, variant: S.variant, engine: S.engine, diag: S.D, events: S.evlog };
+      return U.download(new Blob([JSON.stringify(info, null, 1)], { type: 'application/json' }), 'dich-cabin-nhat-ky.json');
+    }
     if (t.id === 'ipStart') return start();
     if (t.id === 'ipStop') return stop();
     if (t.id === 'ipPip') return openPip().catch((er) => U.toast('Không mở được cửa sổ nổi: ' + er.message, 'err'));
