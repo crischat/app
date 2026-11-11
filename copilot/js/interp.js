@@ -166,7 +166,7 @@
       const d = e.inputBuffer.getChannelData(0);
       let sum = 0; for (let i = 0; i < d.length; i++) sum += d[i] * d[i];
       const rms = Math.sqrt(sum / d.length);
-      S.D.level = rms; if (rms > 0.004) S.D.lastSoundAt = Date.now();
+      S.D.level = rms; if (rms > 0.004) { if (!S.D.lastSoundAt && opts().source === 'screen') U.store.set('interpPlain', !!S.plain); S.D.lastSoundAt = Date.now(); }
       const lv = $('#ipLv'); if (lv) lv.style.width = Math.min(100, rms / 0.12 * 100) + '%';
       if (S.engine !== 'live') return;
       const n = Math.floor(d.length / ratio), out = new Int16Array(n);
@@ -360,11 +360,11 @@
   }
 
   /* =================== Bắt đầu / dừng =================== */
-  async function getStream(src) {
+  async function getStream(src, plain) {
     if (src === 'mic') return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     const st = await navigator.mediaDevices.getDisplayMedia({
       video: { frameRate: 1, displaySurface: src === 'screen' ? 'monitor' : 'browser' },
-      audio: { suppressLocalAudioPlayback: false, restrictOwnAudio: true, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+      audio: Object.assign({ suppressLocalAudioPlayback: false, echoCancellation: false, noiseSuppression: false, autoGainControl: false }, plain ? {} : { restrictOwnAudio: true }),
       systemAudio: 'include', selfBrowserSurface: 'exclude', surfaceSwitching: 'include', monitorTypeSurfaces: 'include'
     });
     if (!st.getAudioTracks().length) {
@@ -374,18 +374,20 @@
     return st;
   }
 
-  async function start() {
+  // plain = thu KHÔNG kèm restrictOwnAudio (một số máy Chrome trả về luồng câm khi có ràng buộc này)
+  async function start(plainArg) {
     readForm();
     const o = opts();
+    const plain = typeof plainArg === 'boolean' ? plainArg : U.store.get('interpPlain', false) === true;
     if (!MD.CP.keys().geminiKey) return U.toast('Cần Gemini API key — nhập ở tab Cài đặt.', 'err');
-    try { S.stream = await getStream(o.source); } catch (e) { return U.toast(e.message || 'Chưa cấp quyền', 'err', 8000); }
+    try { S.stream = await getStream(o.source, plain); } catch (e) { return U.toast(e.message || 'Chưa cấp quyền', 'err', 8000); }
     // Giọng dịch có bị thu ngược lại không? Tab: không (chỉ thu tab Teams). Mic: Chrome tự khử tiếng vọng.
     // Âm thanh hệ thống: chỉ an toàn khi Chrome loại trừ được âm thanh của chính trang này (restrictOwnAudio).
     const tr = S.stream.getAudioTracks()[0], st = (tr && tr.getSettings) ? tr.getSettings() : {};
     S.ownExcluded = o.source !== 'screen' || st.restrictOwnAudio === true;
     if (o.voice && !S.ownExcluded) U.toast('Chrome này chưa loại trừ được âm thanh của chính trang khỏi âm thanh hệ thống → tắt giọng dịch để tránh dội, chỉ chạy phụ đề. Muốn nghe giọng dịch: dùng Teams trên trình duyệt (nguồn tab).', 'info', 10000);
-    Object.assign(S, { active: true, src: [], dst: [], srcStarts: [], lat: [], pending: [], fails: 0, reconnects: 0, lastSrcAt: 0, lastDstAt: 0, startedAt: Date.now(), id: U.uid(), engine: o.engine, conn: null, open: { src: { text: '' }, dst: { text: '' } }, tried: new Set(), forceVariant: null, evlog: [] });
-    S.D = { sent: 0, msgs: 0, inTx: 0, outTx: 0, audio: 0, level: 0, lastSoundAt: 0, lastErr: '', lastKeys: '', warn: '' };
+    Object.assign(S, { plain, active: true, src: [], dst: [], srcStarts: [], lat: [], pending: [], fails: 0, reconnects: 0, lastSrcAt: 0, lastDstAt: 0, startedAt: Date.now(), id: U.uid(), engine: o.engine, conn: null, open: { src: { text: '' }, dst: { text: '' } }, tried: new Set(), forceVariant: null, evlog: [] });
+    S.D = { sent: 0, msgs: 0, inTx: 0, outTx: 0, audio: 0, level: 0, lastSoundAt: 0, lastErr: '', lastKeys: '', warn: '', plain };
     clearInterval(S.wd); S.wd = setInterval(watchdog, 1000);
     S.stream.getTracks().forEach((t) => t.addEventListener('ended', () => { if (S.active) { U.toast('Đã dừng chia sẻ — kết thúc dịch.', 'info'); stop(); } }));
     ensureOut(); // tạo bộ phát ngay trong lúc bấm nút (Chrome chặn tự phát âm thanh nếu tạo về sau)
@@ -450,8 +452,9 @@
     const bars = '▮'.repeat(Math.min(8, Math.round(D.level / 0.12 * 8))).padEnd(8, '▯');
     const html = !S.active ? '' : `<div>🔊 ${bars} · gửi ${D.sent} · nhận ${D.msgs} (gốc ${D.inTx} · dịch ${D.outTx} · giọng ${D.audio}${D.echo ? ' · lọc ' + D.echo + ' câu dội' : ''}${opts().voice ? (voiceOn() ? ' · đang đọc dịch' : ' · giọng dịch tắt (tránh dội)') : ''}) · ${S.engine === 'live' ? 'Live/' + (S.variant || '…') : 'câu ngắn'}</div>`
       + (D.warn ? `<div class="ip-warn">${esc(WARN[D.warn])}</div>` : '')
+      + (D.warn === 'silent' && opts().source !== 'mic' ? `<div class="ip-warn"><button class="btn sm primary" id="ipRecap">🔁 Thu lại bằng cách khác</button> — Chrome sẽ hỏi chọn lại màn hình/tab; lần này mình thu ${S.plain ? 'CÓ' : 'KHÔNG'} kèm chế độ “loại trừ âm thanh của trang” (một số máy bị câm vì chế độ này).</div>` : '')
       + (D.lastErr ? `<div class="ip-err">Lỗi gần nhất: ${esc(D.lastErr)}</div>` : '');
-    [document, S.pip && S.pip.document].forEach((doc) => { if (!doc) return; const el = doc.querySelector('.ip-diag'); if (el) el.innerHTML = html; });
+    [document, S.pip && S.pip.document].forEach((doc) => { if (!doc) return; const el = doc.querySelector('.ip-diag'); if (el && el._h !== html) { el.innerHTML = html; el._h = html; } });
   }
 
   function stop() {
@@ -541,13 +544,14 @@
   }
 
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('#ipStart,#ipStop,#ipPip,#ipClear,#ipDl,#ipLog2'); if (!t) return;
+    const t = e.target.closest('#ipStart,#ipStop,#ipPip,#ipClear,#ipDl,#ipLog2,#ipRecap'); if (!t) return;
     if (t.id === 'ipLog2') {
       if (!(S.evlog || []).length) return U.toast('Chưa có dữ liệu', 'info');
       const info = { model: S.model, variant: S.variant, engine: S.engine, diag: S.D, events: S.evlog };
       return U.download(new Blob([JSON.stringify(info, null, 1)], { type: 'application/json' }), 'dich-cabin-nhat-ky.json');
     }
     if (t.id === 'ipStart') return start();
+    if (t.id === 'ipRecap') { const next = !S.plain; stop(); return start(next); }
     if (t.id === 'ipStop') return stop();
     if (t.id === 'ipPip') return openPip().catch((er) => U.toast('Không mở được cửa sổ nổi: ' + er.message, 'err'));
     if (t.id === 'ipClear') { S.src = []; S.dst = []; S.srcStarts = []; S.open = { src: { text: '' }, dst: { text: '' } }; return renderStage(); }
