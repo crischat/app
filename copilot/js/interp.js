@@ -160,7 +160,11 @@
       const lv = $('#ipLv'); if (lv) lv.style.width = Math.min(100, rms / 0.12 * 100) + '%';
       if (S.engine !== 'live') return;
       const n = Math.floor(d.length / ratio), out = new Int16Array(n);
-      for (let i = 0; i < n; i++) { const x = Math.max(-1, Math.min(1, d[Math.floor(i * ratio)])); out[i] = x < 0 ? x * 0x8000 : x * 0x7fff; }
+      // Chặn tiếng dội: với nguồn âm thanh hệ thống / mic, giọng dịch phát ra máy sẽ bị thu ngược lại.
+      // Trong lúc đang đọc dịch (+0,3 giây) gửi IM LẶNG thay vì âm thanh thật. Nguồn tab không bị dội nên không chặn.
+      const gate = opts().voice && opts().source !== 'tab' && (S.vplaying || S.vq.length || S.vlen || Date.now() < S.vEndAt + 300);
+      if (gate) S.D.gated = (S.D.gated || 0) + 1;
+      else for (let i = 0; i < n; i++) { const x = Math.max(-1, Math.min(1, d[Math.floor(i * ratio)])); out[i] = x < 0 ? x * 0x8000 : x * 0x7fff; }
       if (S.conn && S.conn.ready && S.conn.ws.readyState === 1) sendChunk(S.conn, out);
       else { S.pending.push(out); if (S.pending.length > 60) S.pending.shift(); } // giữ tối đa ~8 giây trong lúc nối lại
     };
@@ -207,7 +211,7 @@
     ensureOut();
     try { S.outCtx.createMediaElementSource(a).connect(S.outIn); } catch (e) { /* phát thẳng nếu không nối được */ }
     S.vplaying = a;
-    const done = () => { URL.revokeObjectURL(url); if (S.vplaying === a) S.vplaying = null; playNextVoice(); };
+    const done = () => { URL.revokeObjectURL(url); if (S.vplaying === a) S.vplaying = null; S.vEndAt = Date.now(); playNextVoice(); };
     a.onended = done; a.onerror = done;
     a.play().catch(done);
   }
@@ -223,7 +227,9 @@
   const words = (s) => norm(s).replace(/[^\p{L}\p{N}\s']/gu, ' ').split(' ').filter(Boolean);
   const VN = /[ăâđêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/i;
   // câu nằm ở dòng GỐC nhưng lại là ngôn ngữ đích -> giọng dịch bị thu ngược lại, bỏ
-  const looksLikeTarget = (s) => (opts().target === 'vi' ? VN.test(s) : !VN.test(s) && words(s).length >= 3);
+  // đo theo TỈ LỆ từ có dấu tiếng Việt, không bỏ cả câu tiếng Anh chỉ vì dính 1 chữ tiếng Việt
+  const vnRatio = (s) => { const w = words(s); return w.length ? w.filter((x) => VN.test(x)).length / w.length : 0; };
+  const looksLikeTarget = (s) => (opts().target === 'vi' ? vnRatio(s) >= 0.35 : vnRatio(s) < 0.1 && words(s).length >= 3);
   function overlap(a, b) { const B = new Set(b); let i = 0; new Set(a).forEach((w) => { if (B.has(w)) i++; }); return i / Math.min(new Set(a).size, B.size); }
 
   // gộp mảnh mới vào câu đang dở: bỏ mảnh gửi lại, thay bản cộng dồn, nối phần chồng lấn
@@ -426,7 +432,7 @@
   function renderDiag() {
     const D = S.D; if (!D) return;
     const bars = '▮'.repeat(Math.min(8, Math.round(D.level / 0.12 * 8))).padEnd(8, '▯');
-    const html = !S.active ? '' : `<div>🔊 ${bars} · gửi ${D.sent} · nhận ${D.msgs} (gốc ${D.inTx} · dịch ${D.outTx} · giọng ${D.audio}${D.echo ? ' · lọc ' + D.echo + ' câu dội' : ''}) · ${S.engine === 'live' ? 'Live/' + (S.variant || '…') : 'câu ngắn'}</div>`
+    const html = !S.active ? '' : `<div>🔊 ${bars} · gửi ${D.sent} · nhận ${D.msgs} (gốc ${D.inTx} · dịch ${D.outTx} · giọng ${D.audio}${D.echo ? ' · lọc ' + D.echo + ' câu dội' : ''}${D.gated ? ' · ngắt nghe khi đọc dịch ' + (D.gated * 0.128).toFixed(0) + 's' : ''}) · ${S.engine === 'live' ? 'Live/' + (S.variant || '…') : 'câu ngắn'}</div>`
       + (D.warn ? `<div class="ip-warn">${esc(WARN[D.warn])}</div>` : '')
       + (D.lastErr ? `<div class="ip-err">Lỗi gần nhất: ${esc(D.lastErr)}</div>` : '');
     [document, S.pip && S.pip.document].forEach((doc) => { if (!doc) return; const el = doc.querySelector('.ip-diag'); if (el) el.innerHTML = html; });
@@ -488,7 +494,7 @@
           <label class="field inl" style="flex-direction:row;align-items:center;gap:6px">Tốc độ giọng<select id="ipVSpeed">${[1, 1.15, 1.25, 1.4, 1.6].map((x) => `<option value="${x}" ${+o.vspeed === x ? 'selected' : ''}>${x}x</option>`).join('')}</select></label>
           <label class="check"><input type="checkbox" id="ipShowSrc" ${o.showSrc ? 'checked' : ''}><span>Hiện dòng gốc</span></label>
         </div>
-        ${o.voice ? '<p class="muted" style="font-size:12.5px;margin:6px 0 0">Khi bật giọng dịch: đeo tai nghe và tắt mic Teams lúc không nói — giọng dịch lọt vào mic/âm thanh hệ thống sẽ bị thu ngược lại (app tự lọc khỏi dòng gốc, nhưng vẫn nên tránh).</p>' : ''}
+        ${o.voice ? '<p class="muted" style="font-size:12.5px;margin:6px 0 0">Giọng dịch + nguồn “âm thanh hệ thống” hoặc micro: trong lúc đọc dịch app tạm ngắt nghe để không thu ngược giọng Việt (nếu người kia nói chen lúc đó, đoạn chen sẽ không được dịch). Muốn dịch liên tục 100%: tắt giọng dịch và chỉ xem phụ đề, hoặc dùng Teams trên trình duyệt (nguồn tab). Luôn đeo tai nghe và tắt mic Teams khi không nói.</p>' : ''}
         <div class="row wrap mt">
           ${S.active ? '<button class="btn danger" id="ipStop">■ Dừng dịch</button>' : '<button class="btn primary" id="ipStart">▶ Bắt đầu dịch</button>'}
           <button class="btn" id="ipPip">📌 Phụ đề nổi trên Teams</button>
