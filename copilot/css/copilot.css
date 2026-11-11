@@ -44,3 +44,15 @@
 .taglist span { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 1px 8px; font-size: 12px; }
 
 @media (max-width: 1000px) { .livegrid { grid-template-columns: 1fr; } .transcript { max-height: 50vh; } .livebar { position: static; } }
+
+/* ---------- Dịch cabin: khung phụ đề ---------- */
+.ip-stage { --ip-size: 26px; background: #0b1120; color: #f8fafc; border-radius: 14px; padding: 16px 20px; min-height: 160px; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; }
+.ip-stage p { margin: 2px 0; }
+.ip-stage .muted { color: #8191aa; font-size: 15px; }
+.ip-src { color: #94a3b8; font-size: calc(var(--ip-size) * 0.6); line-height: 1.4; }
+.ip-src p:not(.now) { opacity: .6; }
+.ip-dst { font-size: var(--ip-size); font-weight: 650; line-height: 1.35; }
+.ip-dst p:not(.now) { opacity: .55; font-size: .8em; }
+.ip-dst p.now { color: #fde68a; }
+body.ip-pip { margin: 0; background: #0b1120; }
+body.ip-pip .ip-stage { min-height: 100vh; border-radius: 0; box-sizing: border-box; }

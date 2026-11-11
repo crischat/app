@@ -29,7 +29,7 @@
     $$('.sidenav button').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
     $$('.tab').forEach((t) => t.classList.toggle('active', t.id === 'tab-' + name));
     $('#sidenav').classList.remove('open');
-    ({ live: renderStart, profile: renderProfile, prep: renderPrep, history: renderHistory, settings: renderSettings, mock: () => MD.Mock && MD.Mock.render() }[name] || (() => {}))();
+    ({ live: renderStart, profile: renderProfile, prep: renderPrep, history: renderHistory, settings: renderSettings, mock: () => MD.Mock && MD.Mock.render(), interp: () => MD.Interp && MD.Interp.render() }[name] || (() => {}))();
     try { history.replaceState(null, '', '#' + name); } catch (e) { /* bỏ qua */ }
   }
 
@@ -664,5 +664,5 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
 
   bind();
   const start = (location.hash || '').slice(1);
-  showTab(['live', 'mock', 'profile', 'prep', 'history', 'settings'].includes(start) ? start : 'live');
+  showTab(['live', 'interp', 'mock', 'profile', 'prep', 'history', 'settings'].includes(start) ? start : 'live');
 })(window.MD);

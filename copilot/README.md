@@ -16,6 +16,18 @@ Trợ lý phỏng vấn/cuộc gọi chạy theo thời gian thực trên trình
 - Ngữ cảnh gửi kèm gồm: CV, JD, kinh nghiệm bổ sung, câu trả lời đã chuẩn bị, phong cách trả lời, và tóm tắt 5 buổi gần nhất.
 - Khi kết thúc buổi, AI tóm tắt buổi và lưu vào Lịch sử. Các tóm tắt này thành "trí nhớ" cho các buổi sau.
 
+## Dịch cabin (Teams)
+
+Tab **Dịch cabin (Teams)** dịch liên tục giọng người đang nói, giống thông dịch viên cabin.
+
+- Bộ máy: mô hình **Gemini Live Translate** (`gemini-3.5-live-translate-preview`, dùng chung key Gemini). Âm thanh được đẩy liên tục từng khúc khoảng 0,13 giây qua WebSocket. Mô hình dịch **ngay khi người kia đang nói**, không chờ hết câu, và trả về chữ gốc, chữ dịch, giọng dịch.
+- Nguồn âm thanh: **Teams cài trên máy** (toàn màn hình + âm thanh hệ thống, chỉ Windows), **Teams trên trình duyệt** (chia sẻ tab có âm thanh), hoặc micro để thử.
+- Dịch sang tiếng Việt (nghe tiếng Anh) hoặc ngược lại. Phần nói đã là ngôn ngữ đích sẽ được bỏ qua.
+- **📌 Phụ đề nổi**: cửa sổ nhỏ luôn nằm trên cùng, đặt đè lên Teams (Chrome/Edge).
+- **🎧 Đọc bản dịch**: phát giọng thông dịch vào tai nghe (bắt buộc dùng tai nghe, nếu không mic Teams sẽ thu giọng này).
+- Mỗi kết nối Live chỉ sống khoảng 10–15 phút. App tự mở kết nối mới liền mạch khi máy chủ báo sắp đóng hoặc khi mạng rớt. Gemini Live lỗi liên tục (hết hạn mức, key chưa có quyền) thì app tự chuyển sang **dịch theo câu ngắn** (khoảng 2 giây một cụm).
+- Bấm Dừng thì biên bản được lưu vào Lịch sử; có thể tải file `.txt`.
+
 ## Phỏng vấn thử với AI
 
 Tab **Phỏng vấn thử với AI** dùng để luyện bằng giọng nói khi chưa có người tập cùng.
