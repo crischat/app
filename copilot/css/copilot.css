@@ -64,3 +64,12 @@ body.ip-pip .ip-rows { height: auto; flex: 1; }
 .ip-diag:empty { display: none; }
 .ip-warn { color: #fbbf24; font-weight: 600; }
 .ip-err { color: #f87171; }
+
+/* ---- Hỏi nhanh ---- */
+.qk { margin-bottom: 14px; }
+.qk summary { cursor: pointer; }
+.qk-ai { margin-top: 10px; padding: 12px 14px; border-left: 4px solid var(--accent, #0d9488); background: var(--surface2); border-radius: 8px; font-size: 1.05em; }
+.qk-hit { margin-top: 10px; padding: 10px 14px; border-left: 4px solid #6366f1; background: var(--surface2); border-radius: 8px; }
+.qk-q { font-weight: 600; margin: 4px 0; }
+.qk .pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; background: var(--surface); border: 1px solid var(--border); }
+.qk .err { color: #dc2626; }

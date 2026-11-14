@@ -660,7 +660,7 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
   })();
 
   // API nội bộ cho tab Phỏng vấn thử (mock.js)
-  MD.CP = { profile, cset, keys, sugProvider, sugOpts, SUG_SYS, md, sessions, saveSessions, sttCall, transcriptText, WHO, showTab, langName };
+  MD.CP = { profile, profileBlock, cset, keys, sugProvider, sugOpts, SUG_SYS, md, sessions, saveSessions, sttCall, transcriptText, WHO, showTab, langName };
 
   bind();
   const start = (location.hash || '').slice(1);
