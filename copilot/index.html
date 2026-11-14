@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../masterdata/css/app.css?v=1">
-<link rel="stylesheet" href="css/copilot.css?v=5">
+<link rel="stylesheet" href="css/copilot.css?v=6">
 <script>try{var t=localStorage.getItem('md_theme');if(t)document.documentElement.dataset.theme=JSON.parse(t);}catch(e){}</script>
 </head>
 <body>
@@ -102,6 +102,7 @@
           </div>
           <div class="card col">
             <div class="cardhead"><h3>Gợi ý trả lời</h3><span class="muted" id="sugState"></span></div>
+            <div id="prepHit"></div>
             <div class="suggest aiout" id="suggest"><p class="muted">Khi người phỏng vấn hỏi xong, gợi ý sẽ hiện ở đây.</p></div>
             <details class="mt" id="olderWrap"><summary>Gợi ý trước đó</summary><div id="older"></div></details>
             <details class="mt" id="shotWrap" hidden><summary>Ảnh màn hình gần nhất</summary><img id="shotImg" alt="Ảnh màn hình đã chụp" style="max-width:100%;border-radius:8px;margin-top:8px"></details>
@@ -165,7 +166,7 @@
 <script src="js/audio.js?v=2"></script>
 <script src="js/mock.js?v=8"></script>
 <script src="js/interp.js?v=12"></script>
-<script src="js/copilot.js?v=8"></script>
-<script src="js/quick.js?v=2"></script>
+<script src="js/copilot.js?v=9"></script>
+<script src="js/quick.js?v=3"></script>
 </body>
 </html>

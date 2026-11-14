@@ -199,6 +199,7 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
       t.lat = (Date.now() - seg.end) / 1000; // độ trễ chép lời tính từ lúc hết câu
       if (!t.text) L.turns = L.turns.filter((x) => x !== t);
       renderTranscript();
+      if (t.text && t.who === 'them' && MD.Quick) MD.Quick.onHeard(t.text, t.tr);
       if (t.text && t.who === 'them' && !t.sugFast && $('#autoSuggest').checked && L.active) {
         const isQ = /\?|\b(what|why|how|when|where|who|which|tell me|can you|could you|would you|do you|did you|have you|describe|walk me|explain)\b|\b(gì|sao|thế nào|như thế nào|bao giờ|ở đâu|ai|nào|không\?|hãy|kể|giới thiệu)\b/i.test(t.text);
         if (isQ || t.text.length > 40) { clearTimeout(L.sugTimer); L.sugTimer = setTimeout(() => suggest(), 700); }

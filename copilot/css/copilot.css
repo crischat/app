@@ -73,3 +73,4 @@ body.ip-pip .ip-rows { height: auto; flex: 1; }
 .qk-q { font-weight: 600; margin: 4px 0; }
 .qk .pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; background: var(--surface); border: 1px solid var(--border); }
 .qk .err { color: #dc2626; }
+#prepHit .prep-hit { margin: 0 0 10px; border-left-color: #16a34a; }

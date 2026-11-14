@@ -2,7 +2,7 @@
 (function (MD) {
   'use strict';
   const U = MD.U, AI = MD.AI, $ = U.$, esc = U.esc;
-  const STOP = new Set('a an the is are do does did you your we our i me my to of in on for and or what how why when where which who with about can could would will have has be this that it at as from tell us please em chi anh la co khong gi nao the va cua cho voi duoc minh ban'.split(' '));
+  const STOP = new Set('a an the is are do does did you your we our i me my to of in on for and or what how why when where which who with about can could would will have has be this that it at as from tell us please so little bit briefly just maybe some kind like okay ok well now let yeah really bit more could please em chi anh la co khong gi nao the va cua cho voi duoc minh ban'.split(' '));
   const toks = (s) => U.stripAccents(String(s).toLowerCase()).replace(/\(english\)/g, ' ').replace(/[^a-z0-9 ]+/g, ' ').split(' ').filter((w) => w.length > 1 && !STOP.has(w));
 
   // điểm khớp 0..1 giữa câu hỏi và từng câu đã chuẩn bị
@@ -75,6 +75,16 @@ ${MD.CP.profileBlock()}`;
     $('#qkClr').onclick = () => { if (ctl) ctl.abort(); $('#qkIn').value = ''; $('#qkHits').innerHTML = ''; $('#qkAI').hidden = true; $('#qkState').textContent = ''; $('#qkIn').focus(); };
   }
 
-  MD.Quick = { match, askAI, mount };
+  // Phiên trực tiếp: người phỏng vấn vừa hỏi -> hiện NGAY câu đã chuẩn bị nếu khớp (không chờ AI)
+  function onHeard(text, tr) {
+    const box = $('#prepHit'); if (!box) return;
+    const h = match(text)[0];
+    if (!h || h.s < 0.4) return; // không khớp đủ chắc: giữ nguyên, để AI gợi ý
+    box.innerHTML = `<div class="qk-hit prep-hit"><span class="pill">⚡ Đã chuẩn bị · khớp câu vừa nghe</span>
+      <div class="muted" style="margin-top:4px">🎧 ${esc(text)}${tr ? ' — ' + esc(tr) : ''}</div>
+      <div class="qk-q">${esc(h.x.q.replace(/^\(English\)\s*/, ''))}</div><div class="aiout">${MD.CP.md(h.x.a)}</div></div>`;
+  }
+
+  MD.Quick = { match, askAI, mount, onHeard };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
 })(window.MD);
