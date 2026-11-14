@@ -159,6 +159,7 @@ ${profileBlock()}${memoryBlock()}`;
     const t = { id: ++L.seq, who, start: seg.start, end: seg.end, text: '', tr: '', pending: true };
     L.turns.push(t); L.turns.sort((a, b) => a.start - b.start);
     renderTranscript();
+    if (who === 'them' && MD.Quick) MD.Quick.beginTurn(t.id); // cửa sổ nổi: mở mục câu hỏi mới ngay khi người kia nói xong
     // Gợi ý siêu tốc: người phỏng vấn vừa nói xong -> gửi thẳng âm thanh cho Gemini soạn gợi ý,
     // chạy SONG SONG với bước chép lời thay vì chờ chép lời xong mới gợi ý.
     if (who === 'them' && L.active && $('#autoSuggest').checked && cset().fastSuggest && sugProvider() === 'gemini' && seg.reason !== 'max' && seg.voiceMs >= 900) {
@@ -199,7 +200,7 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
       t.lat = (Date.now() - seg.end) / 1000; // độ trễ chép lời tính từ lúc hết câu
       if (!t.text) L.turns = L.turns.filter((x) => x !== t);
       renderTranscript();
-      if (t.text && t.who === 'them' && MD.Quick) MD.Quick.onHeard(t.text, t.tr);
+      if (t.who === 'them' && MD.Quick) { if (t.text) MD.Quick.onHeard(t.text, t.tr, t.id); else MD.Quick.dropTurn(t.id); }
       if (t.text && t.who === 'them' && !t.sugFast && $('#autoSuggest').checked && L.active) {
         const isQ = /\?|\b(what|why|how|when|where|who|which|tell me|can you|could you|would you|do you|did you|have you|describe|walk me|explain)\b|\b(gì|sao|thế nào|như thế nào|bao giờ|ở đâu|ai|nào|không\?|hãy|kể|giới thiệu)\b/i.test(t.text);
         if (isQ || t.text.length > 40) { clearTimeout(L.sugTimer); L.sugTimer = setTimeout(() => suggest(), 700); }
@@ -207,6 +208,7 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
     } catch (e) {
       if (/429|hạn mức/.test(e.message) && job.tries < 3) { job.tries++; $('#sugState').textContent = 'Gemini đang giới hạn tốc độ, thử lại…'; await new Promise((r) => setTimeout(r, 4000 * job.tries)); return transcribe(job); }
       t.pending = false; t.text = ''; t.err = e.message;
+      if (t.who === 'them' && MD.Quick) MD.Quick.dropTurn(t.id);
       renderTranscript();
       U.toast('Chép lời lỗi: ' + e.message, 'err', 6000);
     }
@@ -228,7 +230,7 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
   /* ---------- Gợi ý ---------- */
   function sugOpts() {
     const prov = sugProvider(), c = cset();
-    return { provider: prov, model: prov === 'claude' ? c.sugClaudeModel : (c.sugGeminiModel || undefined), purpose: 'smart', think: 'low', effort: 'low', maxTokens: 6000, cacheSystem: true };
+    return { provider: prov, model: prov === 'claude' ? c.sugClaudeModel : (c.sugGeminiModel || undefined), purpose: 'smart', think: prov === 'gemini' ? 'off' : 'low', effort: 'low', maxTokens: 6000, cacheSystem: true };
   }
 
   const langName = (l) => { const k = String(l || '').toLowerCase(); return /^en|english|anh/.test(k) ? 'tiếng Anh' : /^vi|viet/.test(k) ? 'tiếng Việt' : ''; };
