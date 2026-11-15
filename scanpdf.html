@@ -10381,6 +10381,23 @@ window.__ZX_READY = (function () {
 </style>
 </head>
 <body>
+<script id="srcGuard">
+/* Chặn nhẹ: chuột phải, F12, Ctrl+Shift+I/J/C/K, Ctrl+U, Ctrl+S.
+   Chỉ để người dùng thường không mở mã nguồn — KHÔNG phải bảo mật thật (repo công khai). */
+(function () {
+  document.addEventListener('contextmenu', function (e) {
+    if (e.target.closest && e.target.closest('input,textarea,[contenteditable]')) return;
+    e.preventDefault();
+  });
+  document.addEventListener('keydown', function (e) {
+    var k = (e.key || '').toLowerCase(), c = e.ctrlKey || e.metaKey;
+    if (e.key === 'F12' || (c && e.shiftKey && 'ijck'.indexOf(k) >= 0) || (c && (k === 'u' || k === 's')) || (e.metaKey && e.altKey && 'ijc'.indexOf(k) >= 0)) {
+      e.preventDefault(); e.stopPropagation(); return false;
+    }
+  }, true);
+})();
+</script>
+
 <div class="wrap">
   <h1>Rename ASN from PDF</h1>
   <div class="sub">Công cụ chuyển đổi PDF sang hình ảnh &amp; gộp hình ảnh thành PDF. Vui lòng liên hệ Cris nếu xãy ra lỗi.</div>
