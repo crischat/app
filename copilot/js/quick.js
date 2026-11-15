@@ -64,7 +64,7 @@ ${MD.CP.profileBlock()}`;
     el.className = 'card qk'; el.id = 'quickAsk'; el.open = true;
     el.innerHTML = `<summary><b>⚡ Hỏi nhanh</b> <span class="muted">— gõ/dán câu hỏi: hiện câu đã chuẩn bị; không có thì Enter để AI trả lời ngay</span></summary>
       <div class="row mt" style="gap:8px"><input type="text" id="qkIn" placeholder="vd: How good is your SQL?  (Enter = hỏi AI)" style="flex:1">
-      <button class="btn primary" id="qkAsk">✨ Hỏi AI</button><button class="btn" id="qkClr">Xoá</button><button class="btn" id="qkPip" title="Cửa sổ nhỏ luôn nổi trên Teams">🪟 Cửa sổ nổi</button></div>
+      <button class="btn primary" id="qkAsk">✨ Hỏi AI</button><button class="btn" id="qkClr">Xoá</button><button class="btn" id="qkPip" title="Cửa sổ nhỏ luôn nổi trên Teams">🪟 Cửa sổ nổi</button><button class="btn" id="qkHide" title="Che toàn bộ trang + đóng cửa sổ nổi (Ctrl+Shift+H). Bấm đúp để hiện lại">🙈 Ẩn tất cả</button></div>
       <div class="muted" id="qkState" style="margin-top:4px"></div>
       <div class="aiout qk-ai" id="qkAI" hidden></div>
       <div id="qkHits"></div>`;
@@ -74,6 +74,7 @@ ${MD.CP.profileBlock()}`;
     $('#qkIn').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); const q = $('#qkIn').value.trim(); if (q) askAI(q); } });
     $('#qkAsk').onclick = () => { const q = $('#qkIn').value.trim(); if (q) askAI(q); };
     $('#qkPip').onclick = openPip;
+    $('#qkHide').onclick = () => toggleCover(true);
     $('#qkClr').onclick = () => { if (ctl) ctl.abort(); $('#qkIn').value = ''; $('#qkHits').innerHTML = ''; $('#qkAI').hidden = true; $('#qkAI').dataset.text = ''; $('#qkState').textContent = ''; $('#qkIn').focus(); };
   }
 
@@ -137,6 +138,7 @@ ${MD.CP.profileBlock()}`;
     .paste{display:flex;gap:6px;padding:6px 8px;border-bottom:1px solid #1f2937}
     .paste textarea{flex:1;font:13px system-ui;min-height:2.6em;max-height:7em;resize:vertical;background:#0b1220;color:#e5e7eb;border:1px solid #334155;border-radius:8px;padding:6px}
     button{font:12px system-ui;border:1px solid #334155;background:#1e293b;color:#e5e7eb;border-radius:8px;padding:4px 10px;cursor:pointer}
+    button.hide{background:#7c2d12;border-color:#9a3412;color:#fff;font-weight:600}
     button.pri{background:#2563eb;border-color:#2563eb;color:#fff;font-weight:600}
     .main{flex:1;overflow:auto;padding:8px}
     .lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
@@ -236,7 +238,7 @@ ${MD.CP.profileBlock()}`;
     d.title = 'Copilot — hỏi & đáp';
     d.head.innerHTML = `<meta charset="utf-8"><style>${PIP_CSS}</style>`;
     d.body.innerHTML = `<div class="bar"><b>Cỡ chữ</b><input type="range" id="pfs" min="8" max="24" step="1"><span id="pfsv"></span>
-        <span style="flex:1"></span><button id="pclr">Xoá</button></div>
+        <span style="flex:1"></span><button id="pclr" title="Xoá lịch sử câu hỏi">Xoá</button><button class="hide" id="phide" title="Ẩn ngay khi cần chia sẻ màn hình (phím Esc)">🙈 Ẩn</button></div>
       <div class="paste"><textarea id="pq" placeholder="Dán câu hỏi copy từ Teams (Ctrl+V) — tự hỏi luôn"></textarea><button class="pri" id="pask">Hỏi</button></div>
       <div class="main" id="pm"></div>`;
     const setFs = (v) => { v = Math.min(24, Math.max(8, +v || 15)); d.body.style.setProperty('--fs', v + 'px'); d.getElementById('pfsv').textContent = v + 'px'; U.store.set(FSKEY, v); };
@@ -249,10 +251,25 @@ ${MD.CP.profileBlock()}`;
     d.getElementById('pask').onclick = go;
     d.getElementById('pclr').onclick = () => { if (ctl) ctl.abort(); P.hist = []; const b = $('#qkAI'); if (b) { b.hidden = true; b.innerHTML = ''; b.dataset.text = ''; } pipRender(); pq.focus(); };
     watchBoxes(); pipRender();
+    d.getElementById('phide').onclick = hidePip;
+    d.addEventListener('keydown', (e) => { if (e.key === 'Escape') hidePip(); });
     w.addEventListener('pagehide', () => { P.win = null; });
     if (!floating) U.toast('Trình duyệt này chưa hỗ trợ cửa sổ luôn nổi — đã mở cửa sổ thường. Dùng Chrome/Edge bản mới để nổi trên Teams.', 'info', 7000);
   }
 
-  MD.Quick = { match, askAI, mount, onHeard, beginTurn, dropTurn, openPip, pasteAsk, _P: P };
+  // Ẩn hoàn toàn khi phải chia sẻ màn hình: đóng cửa sổ nổi (lịch sử vẫn giữ, mở lại bằng nút 🪟)
+  function hidePip() { if (P.win && !P.win.closed) P.win.close(); P.win = null; }
+  // Che cả trang Copilot (Ctrl+Shift+H hoặc nút 🙈): dùng khi lỡ phải chia sẻ toàn màn hình
+  function toggleCover(force) {
+    let c = document.getElementById('qkCover');
+    const on = force != null ? force : !c;
+    if (on) {
+      hidePip();
+      if (!c) { c = document.createElement('div'); c.id = 'qkCover'; c.title = 'Bấm đúp hoặc Ctrl+Shift+H để hiện lại'; c.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#fff'; c.ondblclick = () => toggleCover(false); document.body.appendChild(c); }
+    } else if (c) c.remove();
+  }
+  document.addEventListener('keydown', (e) => { if (e.ctrlKey && e.shiftKey && (e.key === 'H' || e.key === 'h')) { e.preventDefault(); toggleCover(); } });
+
+  MD.Quick = { hidePip, toggleCover,  match, askAI, mount, onHeard, beginTurn, dropTurn, openPip, pasteAsk, _P: P };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
 })(window.MD);
