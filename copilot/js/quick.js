@@ -237,7 +237,7 @@ ${MD.CP.profileBlock()}`;
     }
     P.win = w;
     const d = w.document;
-    d.title = 'Copilot — hỏi & đáp';
+    d.title = 'Ghi chú';
     d.head.innerHTML = `<meta charset="utf-8"><style>${PIP_CSS}</style>`;
     d.body.innerHTML = `<div class="bar"><b>Cỡ chữ</b><input type="range" id="pfs" min="8" max="24" step="1"><span id="pfsv"></span>
         <span style="flex:1"></span><button id="pclr" title="Xoá lịch sử câu hỏi">Xoá</button><button class="hide" id="phide" title="Ẩn ngay khi cần chia sẻ màn hình (phím Esc)">🙈 Ẩn</button></div>
