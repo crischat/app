@@ -433,6 +433,59 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
   html{scroll-behavior:auto}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
+
+/* ===== Lớp hiệu ứng 2026-11 ===== */
+/* Hero: quầng sáng trôi chậm phía sau */
+.aurora{position:absolute;inset:-20% -10% auto -10%;height:140%;z-index:0;pointer-events:none;filter:blur(60px);opacity:.55}
+.aurora i{position:absolute;border-radius:50%;mix-blend-mode:screen;animation:drift 22s ease-in-out infinite alternate}
+.aurora i:nth-child(1){width:46vw;height:46vw;left:-6%;top:4%;background:radial-gradient(circle,#2F5BD3 0,transparent 65%)}
+.aurora i:nth-child(2){width:38vw;height:38vw;right:-4%;top:-8%;background:radial-gradient(circle,rgba(221,227,28,.55) 0,transparent 62%);animation-duration:26s;animation-delay:-6s}
+.aurora i:nth-child(3){width:34vw;height:34vw;left:34%;top:38%;background:radial-gradient(circle,#6D3FD0 0,transparent 64%);animation-duration:30s;animation-delay:-12s}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(6vw,4vh) scale(1.12)}100%{transform:translate(-4vw,-3vh) scale(.95)}}
+.hero .pic{transition:transform .5s cubic-bezier(.2,.75,.2,1)}
+
+/* Số thứ tự cho tiêu đề mỗi phần + gạch chân tự vẽ */
+main{counter-reset:sec}
+.sec-head h2{position:relative}
+.sec-head h2::before{counter-increment:sec;content:counter(sec,decimal-leading-zero);display:block;font:700 13px/1 var(--f-mono);letter-spacing:.12em;color:var(--accent);margin-bottom:12px}
+.sec-head h2::after{content:"";display:block;width:84px;height:5px;border-radius:5px;margin-top:16px;background:linear-gradient(90deg,var(--accent),var(--lime));transform:scaleX(0);transform-origin:0 50%;transition:transform 1s cubic-bezier(.2,.75,.2,1) .15s}
+.sec-head.fx-in h2::after{transform:scaleX(1)}
+
+/* Thẻ: ánh sáng theo con trỏ + nghiêng nhẹ */
+.fx-card{position:relative;isolation:isolate;transform-style:preserve-3d;will-change:transform}
+.fx-card::before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:radial-gradient(380px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--accent) 16%,transparent),transparent 60%)}
+.fx-card:hover::before{opacity:1}
+.lc.fx-card:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));box-shadow:0 18px 40px -22px rgba(17,27,58,.45)}
+
+/* Nút: vệt sáng lướt qua */
+.btn{position:relative;overflow:hidden;isolation:isolate}
+.btn::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;z-index:-1;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-18deg);transition:left .6s}
+.btn:hover::after{left:120%}
+
+/* Menu: đánh dấu phần đang xem */
+.nav a.on{color:var(--on-navy)}
+.nav a.on::after{transform:scaleX(1)}
+
+/* Nút lên đầu trang có vòng tiến độ */
+#toTop{position:fixed;right:18px;bottom:18px;z-index:40;width:48px;height:48px;border-radius:50%;border:0;background:var(--navy);color:var(--on-navy);display:grid;place-items:center;box-shadow:0 10px 26px -10px rgba(0,0,0,.5);opacity:0;transform:translateY(16px) scale(.9);pointer-events:none;transition:opacity .3s,transform .3s}
+#toTop.show{opacity:1;transform:none;pointer-events:auto}
+#toTop svg{position:absolute;inset:0;width:48px;height:48px;transform:rotate(-90deg)}
+#toTop circle{fill:none;stroke-width:3}
+#toTop .trk{stroke:var(--navy-line)}
+#toTop .val{stroke:var(--lime);stroke-linecap:round;stroke-dasharray:138.2;stroke-dashoffset:138.2}
+#toTop b{position:relative;font-size:18px;line-height:1}
+
+/* Hiện dần có làm mờ */
+.fx-blur{animation:blurIn .9s cubic-bezier(.2,.75,.2,1) both}
+@keyframes blurIn{from{opacity:0;filter:blur(8px);transform:translateY(18px)}to{opacity:1;filter:none;transform:none}}
+
+@media (prefers-reduced-motion:reduce){
+  .aurora i,.fx-blur{animation:none}
+  .sec-head h2::after{transform:none;transition:none}
+  .btn::after{display:none}
+}
+@media (max-width:760px){.aurora{opacity:.4}}
 </style>
 </head>
 <body>
@@ -532,9 +585,9 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
         </div>
         <div class="lc" data-reveal>
           <h3><span class="vi">Chứng từ ASN nhà cung cấp</span><span class="en">Supplier ASN documents</span></h3>
-          <div class="ba"><div class="b4"><span class="vi">Đổi tên ảnh bằng tay</span><span class="en">Photos renamed by hand</span></div><svg viewBox="0 0 26 12" aria-hidden="true"><path d="M0 6h24M19 1l5 5-5 5"/></svg><div class="af"><span class="vi">100 ảnh trong ~30 giây</span><span class="en">100 images in ~30 sec</span></div></div>
-          <p class="vi">Mỗi ca có khoảng 800–1.000 phiếu. Có công cụ rồi thì một bạn clerk được chuyển sang làm việc khác.</p>
-          <p class="en">Around 800–1,000 slips per shift. With the tool in place, one clerk could move to other work.</p>
+          <div class="ba"><div class="b4"><span class="vi">Chụp từng phiếu, đổi tên từng ảnh</span><span class="en">Photo each slip, rename one by one</span></div><svg viewBox="0 0 26 12" aria-hidden="true"><path d="M0 6h24M19 1l5 5-5 5"/></svg><div class="af"><span class="vi">Scan 1 lần, 100 trang ~30 giây</span><span class="en">Scan once, 100 pages in ~30 sec</span></div></div>
+          <p class="vi">Mỗi phiếu có mã QR ở góc trên bên phải và phải được lưu đúng tên theo mã đó. Trước đây clerk chụp từng phiếu, đưa lên OneDrive rồi đổi tên từng ảnh. Giờ chỉ cần gom phiếu bỏ máy photo scan thành một file. Mỗi ca khoảng 800–1.000 phiếu, và một bạn clerk được chuyển sang làm việc khác.</p>
+          <p class="en">Each slip has a QR code in the top right corner, and the file has to be saved under that code. Clerks used to photograph every slip, upload it to OneDrive and rename the photos one by one. Now they put the stack through the copier and scan it into one file. That is around 800–1,000 slips per shift, and one clerk could move to other work.</p>
         </div>
         <div class="lc" data-reveal>
           <h3><span class="vi">Chargeback DNR / scrap</span><span class="en">DNR / scrap chargeback</span></h3>
@@ -553,6 +606,12 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
           <div class="ba"><div class="b4"><span class="vi">Quy định từ lãnh đạo</span><span class="en">Rules from management</span></div><svg viewBox="0 0 26 12" aria-hidden="true"><path d="M0 6h24M19 1l5 5-5 5"/></svg><div class="af"><span class="vi">Báo cáo OT 3 ngày cuốn chiếu</span><span class="en">3-day rolling OT report</span></div></div>
           <p class="vi">Tăng ca trên 2 tiếng phải có người duyệt và đăng ký trước 2 ngày. Tôi đưa hai quy định này vào báo cáo để theo dõi.</p>
           <p class="en">Overtime above 2 hours needs approval and has to be planned 2 days ahead. I built both rules into the report so they can be tracked.</p>
+        </div>
+        <div class="lc" data-reveal>
+          <h3><span class="vi">Báo cáo mở chậm</span><span class="en">Slow reports</span></h3>
+          <div class="ba"><div class="b4"><span class="vi">Tải ~7 phút, hay bị treo</span><span class="en">~7 min to load, often froze</span></div><svg viewBox="0 0 26 12" aria-hidden="true"><path d="M0 6h24M19 1l5 5-5 5"/></svg><div class="af"><span class="vi">Còn vài giây</span><span class="en">A few seconds</span></div></div>
+          <p class="vi">Dữ liệu càng nhiều thì file càng nặng. Tôi bỏ các cột không dùng, lọc bớt dữ liệu cũ, tách file lớn theo tháng và chuyển phần tính toán từ công thức Excel sang Power BI cho nó tự làm mới.</p>
+          <p class="en">The more data we had, the heavier the file got. I dropped columns nobody used, filtered out old history, split the big file by month and moved the calculations out of Excel formulas into a Power BI refresh.</p>
         </div>
       </div>
     </div>
@@ -642,18 +701,18 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
         <div data-reveal>
           <span class="label kicker"><span class="vi">Công cụ · Chứng từ</span><span class="en">Tool · Documents</span></span>
           <h3>Rename ASN from PDF</h3>
-          <p class="vi">Thả file PDF scan vào, công cụ tách thành ảnh, đọc mã QR trên từng phiếu rồi tự đặt tên theo mã. Có thêm tab gộp ảnh thành PDF.</p>
-          <p class="en">Drop in a scanned PDF. The tool splits it into images, reads the QR code on each slip and names each file from it. A second tab merges images into a PDF.</p>
+          <p class="vi">Clerk gom phiếu bỏ máy photo, scan thành một file PDF rồi thả vào đây. Công cụ tách từng trang, đọc mã QR ở góc phiếu và lưu mỗi trang đúng tên theo mã. Ngoài ra còn tab gộp ảnh thành PDF và tab chỉnh sửa PDF. Chạy ngay trên trình duyệt, không cần cài gì.</p>
+          <p class="en">Clerks put the slips through the copier, scan them into one PDF and drop it in here. The tool splits the pages, reads the QR code in the corner of each slip and saves every page under that code. There are also tabs for merging images into a PDF and for editing PDFs. It runs in the browser, nothing to install.</p>
           <ul class="pts">
             <li><span class="vi">Có 4 chế độ, trong đó có chế độ riêng cho giấy than mờ và mực lem.</span><span class="en">4 modes, including one for faint carbon copies and smudged ink.</span></li>
             <li><span class="vi">Tự tăng tương phản, làm đậm nét vùng QR trước khi quét.</span><span class="en">Boosts contrast and darkens the QR area before scanning.</span></li>
             <li><span class="vi">Trang nào không đọc được thì giữ tên theo số trang, để người dùng dễ tìm lại.</span><span class="en">Pages it can't read keep their page number, so they're easy to find.</span></li>
           </ul>
-          <div class="chips"><span class="chip">pdf.js</span><span class="chip">jsQR</span><span class="chip">ZXing</span><span class="chip">JSZip</span><span class="chip">jsPDF</span></div>
+          <div class="chips"><span class="chip">pdf.js</span><span class="chip">jsQR</span><span class="chip">ZXing</span><span class="chip">JSZip</span><span class="chip">jsPDF</span><span class="chip">pdf-lib</span></div>
         </div>
         <div class="demo" data-reveal>
           <div class="demo-bar">
-            <span class="label"><span class="vi">Mô phỏng: một lô 100 ảnh</span><span class="en">Simulation: a batch of 100 images</span></span>
+            <span class="label"><span class="vi">Mô phỏng: một file scan 100 trang</span><span class="en">Simulation: one scanned file, 100 pages</span></span>
             <button type="button" class="mini" id="asnRun"><span class="vi">▶ Chạy (nhanh gấp 10)</span><span class="en">▶ Run (10× speed)</span></button>
           </div>
           <div class="demo-body">
@@ -670,7 +729,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
             </div>
             <div class="log" id="asnLog"></div>
           </div>
-          <p class="demo-note"><span class="vi">Mô phỏng với mã phiếu tự tạo, tính theo mốc 100 ảnh trong khoảng 30 giây. Số phiếu không đọc được chỉ để minh hoạ.</span><span class="en">A simulation with invented slip codes, timed at 100 images in about 30 seconds. The unreadable count is just for illustration.</span></p>
+          <p class="demo-note"><span class="vi">Mô phỏng với mã phiếu tự tạo, tính theo mốc 100 trang trong khoảng 30 giây. Số phiếu không đọc được chỉ để minh hoạ.</span><span class="en">A simulation with invented slip codes, timed at 100 pages in about 30 seconds. The unreadable count is just for illustration.</span></p>
         </div>
       </article>
 
@@ -740,6 +799,8 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
           <p class="en">In 2023 the company merged its branches into the Cu Chi plant. Data and processes were pretty messy, and there was no one to guide us. I figured things out myself, fixed one process at a time and moved manual work into systems.</p>
           <p class="vi">Làm một thời gian thì tôi nhận ra mình hợp với mảng dữ liệu và quy trình, và muốn đi tiếp theo hướng này.</p>
           <p class="en">After a while I realised data and process work suits me, and I want to keep going in that direction.</p>
+          <p class="vi">Việc tôi muốn làm tiếp là dữ liệu ở cấp nhà máy: WMS, MES, kết nối với ERP, để số liệu đúng ngay từ lúc nhập và người ở xưởng bớt phải làm tay.</p>
+          <p class="en">Next I'd like to work on data at plant level, things like WMS, MES and the links to ERP, so the numbers are right from the moment they're entered and people on the floor do less by hand.</p>
         </div>
       </div>
     </div>
@@ -1731,6 +1792,82 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-betw
   });
 
   setLang(lang());
+})();
+</script>
+
+<script id="fxLayer">
+/* Lớp hiệu ứng: quầng sáng hero, thẻ theo con trỏ, menu theo phần đang xem, nút lên đầu trang */
+(function(){
+  'use strict';
+  var CALM = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var FINE = matchMedia('(hover:hover) and (pointer:fine)').matches;
+
+  // Hero aurora
+  var hero = document.querySelector('.hero');
+  if (hero && !hero.querySelector('.aurora')) {
+    var a = document.createElement('div'); a.className = 'aurora'; a.setAttribute('aria-hidden', 'true');
+    a.innerHTML = '<i></i><i></i><i></i>'; hero.insertBefore(a, hero.firstChild);
+  }
+  // Ảnh hero nghiêng theo chuột
+  var pic = document.querySelector('.hero .pic');
+  if (hero && pic && FINE && !CALM) {
+    hero.addEventListener('pointermove', function (e) {
+      var r = hero.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      pic.style.transform = 'perspective(900px) rotateY(' + (x * 7).toFixed(2) + 'deg) rotateX(' + (-y * 6).toFixed(2) + 'deg) translate3d(' + (x * 10).toFixed(1) + 'px,' + (y * 8).toFixed(1) + 'px,0)';
+    });
+    hero.addEventListener('pointerleave', function () { pic.style.transform = ''; });
+  }
+
+  // Thẻ: ánh sáng theo con trỏ, thẻ kết quả nghiêng nhẹ
+  var cards = document.querySelectorAll('.lc,.ruler-box,.story,.demo,.how [data-reveal],.project > div:first-child');
+  cards.forEach(function (c) {
+    c.classList.add('fx-card');
+    if (!FINE) return;
+    var tilt = c.classList.contains('lc') && !CALM;
+    c.addEventListener('pointermove', function (e) {
+      var r = c.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+      c.style.setProperty('--mx', x + 'px'); c.style.setProperty('--my', y + 'px');
+      if (tilt) c.style.transform = 'perspective(800px) rotateX(' + ((.5 - y / r.height) * 5).toFixed(2) + 'deg) rotateY(' + ((x / r.width - .5) * 5).toFixed(2) + 'deg) translateY(-3px)';
+    });
+    c.addEventListener('pointerleave', function () { if (tilt) c.style.transform = ''; });
+  });
+
+  // Tiêu đề phần: vẽ gạch chân khi cuộn tới
+  if (window.IntersectionObserver) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('fx-in'); io.unobserve(e.target); } });
+    }, { threshold: .4 });
+    document.querySelectorAll('.sec-head').forEach(function (h) { io.observe(h); });
+
+    // Menu sáng theo phần đang xem
+    var links = {}; document.querySelectorAll('.nav a[href^="#"]').forEach(function (l) { links[l.getAttribute('href').slice(1)] = l; });
+    var spy = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        Object.keys(links).forEach(function (k) { links[k].classList.toggle('on', k === e.target.id); });
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    Object.keys(links).forEach(function (id) { var s = document.getElementById(id); if (s) spy.observe(s); });
+  } else {
+    document.querySelectorAll('.sec-head').forEach(function (h) { h.classList.add('fx-in'); });
+  }
+
+  // Nút lên đầu trang
+  var b = document.createElement('button');
+  b.id = 'toTop'; b.type = 'button'; b.setAttribute('aria-label', 'Lên đầu trang / Back to top');
+  b.innerHTML = '<svg viewBox="0 0 48 48" aria-hidden="true"><circle class="trk" cx="24" cy="24" r="22"/><circle class="val" cx="24" cy="24" r="22"/></svg><b>↑</b>';
+  document.body.appendChild(b);
+  var val = b.querySelector('.val');
+  b.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: CALM ? 'auto' : 'smooth' }); });
+  var tick = false;
+  function upd() {
+    tick = false;
+    var h = document.documentElement, max = h.scrollHeight - h.clientHeight, f = max > 0 ? h.scrollTop / max : 0;
+    b.classList.toggle('show', h.scrollTop > 600);
+    val.style.strokeDashoffset = (138.2 * (1 - f)).toFixed(1);
+  }
+  window.addEventListener('scroll', function () { if (!tick) { tick = true; requestAnimationFrame(upd); } }, { passive: true });
+  upd();
 })();
 </script>
 </body>
