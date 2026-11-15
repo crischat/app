@@ -37,16 +37,16 @@ ${MD.CP.profileBlock()}`;
     showHits(q);
     const c = cur(); if (!c || c.src !== 'paste' || c.q !== q) addPaste(q);
     const box = $('#qkAI'), st = $('#qkState'), t0 = Date.now(); let first = 0;
-    box.hidden = false; box.innerHTML = '<p class="muted">Đang hỏi…</p>'; st.textContent = '';
+    box.hidden = false; box.innerHTML = '<p class="muted">Đang hỏi…</p>'; box.dataset.text = ''; st.textContent = '';
     try {
       const r = await AI.call([{ role: 'user', content: [{ type: 'text', text: 'Câu hỏi: ' + q }] }], {
         provider: k.geminiKey ? 'gemini' : 'claude', purpose: 'fast', think: 'off', effort: 'low', maxTokens: 1200, cacheSystem: true,
         model: k.geminiKey ? undefined : MD.CP.cset().sugClaudeModel,
         system: SYS(), signal: my.signal,
-        onText: (t) => { if (my !== ctl) return; if (!first) first = Date.now(); box.innerHTML = fmt(t); }
+        onText: (t) => { if (my !== ctl) return; if (!first) first = Date.now(); box.dataset.text = t; box.innerHTML = fmt(t); }
       });
       if (my !== ctl) return;
-      box.innerHTML = fmt(r.text);
+      box.dataset.text = r.text; box.innerHTML = fmt(r.text);
       st.textContent = `${first ? 'chữ đầu ' + ((first - t0) / 1000).toFixed(1) + 's · ' : ''}xong ${((Date.now() - t0) / 1000).toFixed(1)}s · ${r.model || ''}`;
     } catch (e) { if (e.name !== 'AbortError') { box.innerHTML = `<p class="err">Lỗi: ${esc(e.message)}</p>`; } }
   }
@@ -74,7 +74,7 @@ ${MD.CP.profileBlock()}`;
     $('#qkIn').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); const q = $('#qkIn').value.trim(); if (q) askAI(q); } });
     $('#qkAsk').onclick = () => { const q = $('#qkIn').value.trim(); if (q) askAI(q); };
     $('#qkPip').onclick = openPip;
-    $('#qkClr').onclick = () => { if (ctl) ctl.abort(); $('#qkIn').value = ''; $('#qkHits').innerHTML = ''; $('#qkAI').hidden = true; $('#qkState').textContent = ''; $('#qkIn').focus(); };
+    $('#qkClr').onclick = () => { if (ctl) ctl.abort(); $('#qkIn').value = ''; $('#qkHits').innerHTML = ''; $('#qkAI').hidden = true; $('#qkAI').dataset.text = ''; $('#qkState').textContent = ''; $('#qkIn').focus(); };
   }
 
   /* =================== Lịch sử hỏi-đáp cho cửa sổ nổi ===================
@@ -154,20 +154,43 @@ ${MD.CP.profileBlock()}`;
     .old[open]>summary{margin-bottom:6px}
     .listen{color:#fbbf24}`;
   const fsGet = () => Math.min(24, Math.max(8, +U.store.get(FSKEY, 15) || 15));
+  // chữ gốc (markdown) của khung gợi ý AI ở trang chính
   function aiHtml(src) {
     const box = src === 'paste' ? $('#qkAI') : $('#suggest');
     if (!box || box.hidden) return '';
-    const t = box.textContent;
-    if (t.length < 80 && /Khi người phỏng vấn hỏi xong|Đang soạn gợi ý|Đang hỏi/.test(t)) return '';
-    return box.innerHTML;
+    const t = box.dataset.text || '';
+    if (/^\s*S(K(I(P)?)?)?\s*$/i.test(t)) return '';
+    return t;
   }
-  function qBlock(e, lbl) {
+  // Cửa sổ nổi chỉ cần: bản dịch câu hỏi + phần "Trả lời". Bỏ Ý chính / Dẫn chứng / Nếu bị hỏi tiếp / Lưu ý.
+  const STOP_SEC = /Ý chính|Dẫn chứng|Nếu bị hỏi|Lưu ý|Gợi ý thêm/i;
+  function splitAI(raw) {
+    const lines = String(raw || '').replace(/\r/g, '').split('\n');
+    let vi = '', ans = [], inAns = false, found = false;
+    for (const ln of lines) {
+      const plain = ln.replace(/\*\*/g, '');
+      if (/Câu hỏi\s*:/i.test(plain) && !inAns) { const m = plain.split(/\s[—–-]\s/); if (m.length > 1) vi = m[m.length - 1].trim(); continue; }
+      if (/^\s*VN\s*:/i.test(plain) && !inAns) { vi = plain.replace(/^\s*VN\s*:\s*/i, '').trim(); continue; }
+      if (/Trả lời/i.test(plain) && /:/.test(plain) && !inAns) {
+        inAns = true; found = true;
+        const rest = plain.slice(plain.indexOf(':') + 1).trim(); if (rest) ans.push(rest);
+        continue;
+      }
+      if (inAns && STOP_SEC.test(plain) && /:/.test(plain)) { inAns = false; continue; }
+      if (inAns) ans.push(ln);
+    }
+    return { vi, ans: found ? ans.join('\n').trim() : '' };
+  }
+  function qBlock(e, lbl, vi) {
     const body = e.q ? esc(e.q) : (e.src === 'live' ? '<span class="listen">🎧 đang chép lời…</span>' : '');
-    return `<div class="q"><div class="lbl">${lbl}${e.src === 'paste' ? ' (dán tay)' : ''}</div><div class="en">${body}</div>${e.tr ? `<div class="vi">${esc(e.tr)}</div>` : ''}</div>`;
+    const tr = e.tr || vi;
+    return `<div class="q"><div class="lbl">${lbl}</div><div class="en">${body}</div>${tr ? `<div class="vi">${esc(tr)}</div>` : ''}</div>`;
   }
-  function aBlock(e, ai) {
-    return (e.prep ? `<div class="a prep"><div class="lbl">✅ Trả lời đã chuẩn bị</div>${MD.CP.md(e.prep.a)}</div>` : '')
-      + (ai ? `<div class="a ai"><div class="lbl">✨ Gợi ý AI</div>${ai}</div>` : '');
+  // 1 khung trả lời: câu đã chuẩn bị nếu khớp, không thì phần trả lời của AI
+  function aBlock(e, ans) {
+    if (e.prep) return `<div class="a prep"><div class="lbl">💬 Trả lời</div>${MD.CP.md(e.prep.a)}</div>`;
+    if (ans) return `<div class="a ai"><div class="lbl">💬 Trả lời</div>${MD.CP.md(ans)}</div>`;
+    return e.q ? '<div class="mut">⏳ đang soạn câu trả lời…</div>' : '';
   }
   function pipRender() {
     if (!P.win || P.win.closed) return;
@@ -177,9 +200,10 @@ ${MD.CP.profileBlock()}`;
     // giữ trạng thái mở/đóng của các câu trước khi vẽ lại
     const shut = new Set([...m.querySelectorAll('details.old:not([open])')].map((d) => d.dataset.at));
     const older = P.hist.slice(0, -1).reverse();
-    m.innerHTML = qBlock(c, '❓ Câu hỏi mới nhất') + aBlock(c, aiHtml(c.src))
-      + older.map((e, i) => `<details class="old" data-at="${e.at}"${shut.has(String(e.at)) ? '' : ' open'}><summary><span class="n">▸ Câu trước ${i + 1}</span>${esc(e.q || '…')}</summary>
-          ${e.tr ? `<div class="mut" style="font-style:italic;margin-bottom:4px">${esc(e.tr)}</div>` : ''}${aBlock(e, e.ai)}</details>`).join('');
+    const s = splitAI(aiHtml(c.src));
+    m.innerHTML = qBlock(c, '❓ Câu hỏi', s.vi) + aBlock(c, s.ans)
+      + older.map((e, i) => { const o = splitAI(e.ai); const tr = e.tr || o.vi; return `<details class="old" data-at="${e.at}"${shut.has(String(e.at)) ? '' : ' open'}><summary><span class="n">▸ Câu trước ${i + 1}</span>${esc(e.q || '…')}</summary>
+          ${tr ? `<div class="mut" style="font-style:italic;margin-bottom:4px">${esc(tr)}</div>` : ''}${aBlock(e, o.ans)}</details>`; }).join('');
   }
   // theo dõi khung gợi ý ở trang chính để cửa sổ nổi cập nhật theo luồng chữ
   let obs = null;
@@ -193,7 +217,7 @@ ${MD.CP.profileBlock()}`;
     const e = addPaste(q);
     const inp = $('#qkIn'); if (inp) inp.value = q;
     const h = match(q)[0];
-    if (h && h.s >= 0.75) { const b = $('#qkAI'); if (ctl) ctl.abort(); if (b) { b.hidden = true; b.innerHTML = ''; } e.ai = null; pipRender(); } // khớp rất chắc: khỏi gọi AI
+    if (h && h.s >= 0.75) { const b = $('#qkAI'); if (ctl) ctl.abort(); if (b) { b.hidden = true; b.innerHTML = ''; b.dataset.text = ''; } e.ai = null; pipRender(); } // khớp rất chắc: khỏi gọi AI
     else askAI(q);
   }
   async function openPip() {
@@ -223,7 +247,7 @@ ${MD.CP.profileBlock()}`;
     pq.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); } });
     pq.addEventListener('paste', () => setTimeout(() => { if (pq.value.trim()) go(); }, 30)); // dán xong là hỏi luôn
     d.getElementById('pask').onclick = go;
-    d.getElementById('pclr').onclick = () => { if (ctl) ctl.abort(); P.hist = []; const b = $('#qkAI'); if (b) { b.hidden = true; b.innerHTML = ''; } pipRender(); pq.focus(); };
+    d.getElementById('pclr').onclick = () => { if (ctl) ctl.abort(); P.hist = []; const b = $('#qkAI'); if (b) { b.hidden = true; b.innerHTML = ''; b.dataset.text = ''; } pipRender(); pq.focus(); };
     watchBoxes(); pipRender();
     w.addEventListener('pagehide', () => { P.win = null; });
     if (!floating) U.toast('Trình duyệt này chưa hỗ trợ cửa sổ luôn nổi — đã mở cửa sổ thường. Dùng Chrome/Edge bản mới để nổi trên Teams.', 'info', 7000);
