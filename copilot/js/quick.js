@@ -3,7 +3,7 @@
   'use strict';
   const U = MD.U, AI = MD.AI, $ = U.$, esc = U.esc;
   const STOP = new Set('a an the is are do does did you your we our i me my to of in on for and or what how why when where which who with about can could would will have has be this that it at as from tell us please so little bit briefly just maybe some kind like okay ok well now let yeah really bit more could please em chi anh la co khong gi nao the va cua cho voi duoc minh ban'.split(' '));
-  const toks = (s) => U.stripAccents(String(s).toLowerCase()).replace(/\(english\)/g, ' ').replace(/[^a-z0-9 ]+/g, ' ').split(' ').filter((w) => w.length > 1 && !STOP.has(w));
+  const toks = (s) => U.stripAccents(String(s).toLowerCase()).replace(/\(english\)/g, ' ').replace(/\bm[\s-]?code\b/g, ' mcode ').replace(/\bpower\s?query\b/g, ' powerquery mcode ').replace(/[^a-z0-9 ]+/g, ' ').split(' ').filter((w) => w.length > 1 && !STOP.has(w));
 
   // điểm khớp 0..1 giữa câu hỏi và từng câu đã chuẩn bị
   function match(q) {
@@ -14,7 +14,9 @@
         if (xt.has(w)) { s += 1; return; }
         for (const y of xt) if (y.length > 3 && w.length > 3 && y.slice(0, 4) === w.slice(0, 4)) { s += 0.6; break; }
       });
-      return { x, s: s / Math.sqrt(t.length * Math.max(3, xt.size)) };
+      // cùng đúng bộ từ khoá thì cộng điểm; hoà điểm thì ưu tiên câu ngắn hơn (cụ thể hơn)
+      const same = xt.size === t.length && t.every((w) => xt.has(w));
+      return { x, s: s / Math.sqrt(t.length * Math.max(3, xt.size)) + (same ? 0.3 : 0) - xt.size * 0.001 };
     }).filter((r) => r.s > 0.3).sort((a, b) => b.s - a.s).slice(0, 3);
   }
 
