@@ -46,7 +46,7 @@ h3 { font-size: 15px; font-weight: 650; }
 .topbar { position: sticky; top: 0; z-index: 30; height: var(--top-h); display: flex; align-items: center; gap: 16px; padding: 0 18px; background: var(--surface); border-bottom: 1px solid var(--border); }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); min-width: 0; }
 .brand b { display: block; font-size: 15px; } .brand small { display: block; font-size: 11.5px; color: var(--muted); }
-.logo { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-weight: 800; color: #fff; background: linear-gradient(135deg, #1d4ed8, #7c3aed); }
+.logo { width: 34px; font-size: 13px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-weight: 800; color: #fff; background: linear-gradient(135deg, #1d4ed8, #7c3aed); }
 .dsbar { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; justify-content: center; }
 .dsbar select { max-width: 460px; width: 100%; }
 .topactions { display: flex; gap: 8px; align-items: center; }
@@ -294,3 +294,8 @@ label.field span.muted { font-weight: 400; font-size: 12px; }
 .sb-ol { padding-left: 20px; line-height: 1.65; margin: 6px 0; }
 .sb-act { margin-top: 22px; align-items: center; }
 @media (max-width: 860px) { .sb-rep { grid-template-columns: 1fr; } .sb-row { grid-template-columns: 90px 1fr 54px 40px; } }
+.sb-meta { margin-top: 4px; }
+.sb-meta th { position: static; width: 170px; white-space: nowrap; }
+.sb-exec { border-left: 4px solid var(--accent); }
+.sb-exec h3, .sb-review h3, .sb-cfg h3 { margin: 0 0 6px; }
+.sb-review { border-left: 4px solid #7c3aed; }

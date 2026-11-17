@@ -1,4 +1,4 @@
-# Master Data Pro
+# Cris's Assistant Analyst
 
 Web app phân tích chất lượng dữ liệu, chạy 100% trên trình duyệt (GitHub Pages).
 Địa chỉ: **https://crischat.github.io/app/masterdata/**

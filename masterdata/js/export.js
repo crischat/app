@@ -15,7 +15,7 @@
     const wb = XLSX.utils.book_new();
     const g = A.grade(res.score);
     const sum = [
-      ['BÁO CÁO CHẤT LƯỢNG DỮ LIỆU — Master Data Pro'], [],
+      ["BÁO CÁO CHẤT LƯỢNG DỮ LIỆU — Cris's Assistant Analyst"], [],
       ['Tệp / bảng', ds.name], ['Thời điểm', new Date().toLocaleString('vi-VN')],
       ['Miền dữ liệu', domainLabel(res.domain)], ['Số dòng', res.rows], ['Số cột', res.cols],
       ['Điểm chất lượng', res.score + '/100 (' + g.g + ' — ' + g.t + ')'],
@@ -186,7 +186,7 @@ ${res.checks.map((c) => `<tr><td>${A.CATS[c.cat].label}</td><td>${U.esc(c.check)
 </tbody></table>
 ${sections}
 ${prof ? `<section><h2>Hồ sơ cột</h2><table><thead><tr><th>Cột</th><th>Vai trò</th><th>Kiểu</th><th>% đầy</th><th>Giá trị khác</th><th>Phổ biến</th></tr></thead><tbody>${prof}</tbody></table></section>` : ''}
-<footer>Tạo bởi Master Data Pro · crischat.github.io/app/masterdata</footer>
+<footer>Tạo bởi Cris's Assistant Analyst · crischat.github.io/app/masterdata</footer>
 </div></body></html>`;
   };
 

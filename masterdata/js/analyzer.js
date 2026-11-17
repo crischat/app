@@ -947,5 +947,6 @@
     return pairs;
   };
 
+  A.canonKey = canonKey;
   MD.Analyzer = A;
 })(window.MD);
