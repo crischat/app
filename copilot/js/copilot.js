@@ -107,7 +107,7 @@ ${profileBlock()}${memoryBlock()}`;
     none: '<b>Không chia sẻ</b> → chỉ nghe mic; mọi lời nói (kể cả người kia nếu loa phát ra) đều ghi là <b>Tôi</b>. Dùng ô “Gõ câu hỏi” để nhờ gợi ý.'
   };
   function renderStart() {
-    $('#stepShare').innerHTML = SHARE_STEP[$('#sessSource').value];
+    $('#stepShare').innerHTML = SHARE_STEP[$('#sessSource').value.split(':')[0]] + (/^screen/.test($('#sessSource').value) ? ' <b>Lưu ý:</b> app phải phát tiếng ra loa/tai nghe mặc định của Windows (Win+R → mmsys.cpl → đặt cùng thiết bị cho Default Device và Default Communication Device).' : '');
     const k = keys();
     $('#keyState').innerHTML = k.geminiKey ? '<b style="color:var(--ok)">✓ đã có</b>' : '<b style="color:var(--bad)">chưa có — vào tab Cài đặt</b>';
     if (!$('#sessTitle').value) { const p = profile(); $('#sessTitle').value = [p.role, p.company].filter(Boolean).join(' — ') || ''; }
@@ -122,7 +122,7 @@ ${profileBlock()}${memoryBlock()}`;
       L.mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     } catch (e) { return U.toast('Không được cấp quyền micro: ' + e.message, 'err', 7000); }
     L.tab = null;
-    const src = $('#sessSource').value;
+    const src = $('#sessSource').value.split(':')[0];
     if (src !== 'none') {
       if (!navigator.mediaDevices.getDisplayMedia) { U.toast('Trình duyệt không hỗ trợ chia sẻ màn hình — chỉ dùng mic.', 'err'); }
       else {

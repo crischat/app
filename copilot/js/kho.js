@@ -90,7 +90,7 @@
         <button class="btn primary" id="khConn">☁ Kết nối Drive</button>
         <label class="kh-f">① Hồ sơ gốc<select id="khGoc"><option value="">(bấm Kết nối Drive)</option></select></label>
         <label class="kh-f">② Vị trí phỏng vấn<select id="khVt"><option value="">— Không chọn vị trí —</option></select></label>
-        <label class="kh-f kh-lang">Ngôn ngữ trả lời<select id="khLang">
+        <label class="kh-f kh-lang">Gợi ý trả lời bằng<select id="khLang">
           <option value="en" ${lang === 'en' ? 'selected' : ''}>🇬🇧 Tiếng Anh</option>
           <option value="vi" ${lang === 'vi' ? 'selected' : ''}>🇻🇳 Tiếng Việt</option>
           <option value="bi" ${lang === 'bi' ? 'selected' : ''}>🇬🇧🇻🇳 Song ngữ</option></select></label>

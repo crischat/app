@@ -66,8 +66,19 @@
         <p class="muted" style="margin:0 0 12px">Mở cuộc gọi (Google Meet, Teams, Zoom…) và đeo tai nghe để mic không thu lại tiếng người phỏng vấn.</p>
         <div class="formgrid">
           <label class="field">Tên buổi<input type="text" id="sessTitle" placeholder="vd: Phỏng vấn Data Analyst — Công ty ABC"></label>
-          <label class="field">Ngôn ngữ chính<select id="sessLang"><option value="auto">Tự nhận diện</option><option value="en">Tiếng Anh</option><option value="vi">Tiếng Việt</option></select></label>
-          <label class="field">Nguồn tiếng người kia<select id="sessSource"><option value="tab">Tab trình duyệt — Meet / Teams web (khuyên dùng)</option><option value="screen">Toàn màn hình + âm thanh hệ thống — Teams / Zoom app (Windows)</option><option value="none">Không — chỉ dùng mic</option></select></label>
+          <label class="field">Người kia nói tiếng gì <span class="muted">(để chép lời)</span><select id="sessLang"><option value="auto">Tự nhận diện</option><option value="en">Tiếng Anh</option><option value="vi">Tiếng Việt</option></select></label>
+          <label class="field">Cuộc gọi đang dùng <span class="muted">(lấy tiếng người kia)</span><select id="sessSource">
+            <optgroup label="Mở trên trình duyệt (Chrome/Edge) — ổn định nhất">
+              <option value="tab:meet">Google Meet (trình duyệt)</option>
+              <option value="tab:teams">Microsoft Teams (trình duyệt)</option>
+              <option value="tab:zoom">Zoom (trình duyệt)</option>
+              <option value="tab:other">Trang web gọi khác (tab trình duyệt)</option></optgroup>
+            <optgroup label="App cài trên máy tính Windows">
+              <option value="screen:teams">Microsoft Teams (app)</option>
+              <option value="screen:zoom">Zoom (app)</option>
+              <option value="screen:zalo">Zalo PC (app)</option>
+              <option value="screen:other">App khác (âm thanh hệ thống)</option></optgroup>
+            <option value="none">Không — chỉ dùng mic</option></select></label>
         </div>
         <ol class="steps mt" id="permSteps">
           <li><b>Micro</b> → giọng của <b>Tôi</b>. Trình duyệt sẽ hỏi quyền dùng mic.</li>
@@ -167,8 +178,8 @@
 <script src="js/audio.js?v=2"></script>
 <script src="js/mock.js?v=8"></script>
 <script src="js/interp.js?v=12"></script>
-<script src="js/copilot.js?v=12"></script>
+<script src="js/copilot.js?v=13"></script>
 <script src="js/quick.js?v=11"></script>
-<script src="js/kho.js?v=1"></script>
+<script src="js/kho.js?v=2"></script>
 </body>
 </html>
