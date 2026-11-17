@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=8">
+<link rel="stylesheet" href="css/app.css?v=9">
 <script>try{var t=localStorage.getItem('md_theme');if(t)document.documentElement.dataset.theme=JSON.parse(t);}catch(e){}</script>
 </head>
 <body>
@@ -56,6 +56,7 @@
 <div class="layout">
   <nav class="sidenav" id="sidenav">
     <button data-tab="upload" class="active"><svg><use href="#i-upload"/></svg><span>Nạp dữ liệu</span></button>
+    <button data-tab="study"><svg><use href="#i-report"/></svg><span>Phân tích chuyên sâu</span></button>
     <button data-tab="overview"><svg><use href="#i-dash"/></svg><span>Tổng quan</span></button>
     <button data-tab="data"><svg><use href="#i-chart"/></svg><span>Báo cáo dữ liệu</span></button>
     <button data-tab="issues"><svg><use href="#i-bug"/></svg><span>Danh sách lỗi</span><em id="navIssues"></em></button>
@@ -102,6 +103,11 @@
           <div class="row"><label class="muted" for="headerRowInput">Dòng tiêu đề</label><input type="number" min="1" id="headerRowInput" class="w80"><button class="btn" id="headerRowApply">Áp dụng</button></div></div>
         <div class="tablewrap tall"><table class="tbl compact" id="previewTable"></table></div>
       </div>
+    </section>
+
+    <section class="tab" id="tab-study">
+      <div class="pagehead"><h1>Phân tích chuyên sâu</h1><p>Dữ liệu là gì → lỗi ở đâu → làm lại thế nào → phân tích ra sao → nên làm báo cáo Power BI, Excel hay PowerPoint.</p></div>
+      <div id="studyBody" class="empty-state">Nạp một file dạng bảng ở tab <b>Nạp dữ liệu</b> để bắt đầu.</div>
     </section>
 
     <!-- ============ TỔNG QUAN ============ -->
@@ -218,6 +224,21 @@
 <script src="js/ai.js?v=10"></script>
 <script src="js/samples.js?v=8"></script>
 <script src="js/dashboard.js?v=8"></script>
-<script src="js/app.js?v=20"></script>
+<script src="js/study.js?v=1"></script>
+<script src="js/app.js?v=21"></script>
+<script id="srcGuard">
+(function () {
+  document.addEventListener('contextmenu', function (e) {
+    if (e.target.closest && e.target.closest('input,textarea,[contenteditable]')) return;
+    e.preventDefault();
+  });
+  document.addEventListener('keydown', function (e) {
+    var k = (e.key || '').toLowerCase(), c = e.ctrlKey || e.metaKey;
+    if (e.key === 'F12' || (c && e.shiftKey && 'ijck'.indexOf(k) >= 0) || (c && (k === 'u' || k === 's')) || (e.metaKey && e.altKey && 'ijcu'.indexOf(k) >= 0)) {
+      e.preventDefault(); e.stopPropagation(); return false;
+    }
+  }, true);
+})();
+</script>
 </body>
 </html>

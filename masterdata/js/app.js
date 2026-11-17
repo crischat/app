@@ -34,7 +34,7 @@
   }
   function render(name) {
     try {
-      ({ upload: renderUpload, overview: renderOverview, data: renderData, issues: renderIssues, profile: renderProfile, clean: renderClean,
+      ({ upload: renderUpload, study: () => MD.Study && MD.Study.render(cur(), curRes()), overview: renderOverview, data: renderData, issues: renderIssues, profile: renderProfile, clean: renderClean,
         reconcile: renderReconcile, rules: renderRules, ai: renderAI, report: renderReport, history: renderHistory, settings: renderSettings }[name] || (() => {}))();
     } catch (e) { console.error(e); U.toast('Lỗi hiển thị: ' + e.message, 'err'); }
   }
@@ -85,7 +85,7 @@
     if (list.length) S.active = (list.find((d) => d.kind === 'table') || list[0]).id;
     S.page = 0; S.f.row = null;
     refreshTop();
-    if (go) showTab('overview'); else render(S.tab);
+    if (go) showTab(curRes() && curRes().kind === 'table' ? 'study' : 'overview'); else render(S.tab);
     if (cfg.autoDrive && D.hasToken() && S.active) saveToDrive(S.active).catch((e) => U.toast(e.message, 'err'));
   }
 
@@ -772,6 +772,7 @@
 
   /* =================== Gắn sự kiện =================== */
   function bind() {
+    if (MD.Study) MD.Study.bind(cur, curRes);
     $('#sidenav').addEventListener('click', (e) => { const b = e.target.closest('button[data-tab]'); if (b) showTab(b.dataset.tab); });
     $('#navToggle').addEventListener('click', () => $('#sidenav').classList.toggle('open'));
     $('#dsSelect').addEventListener('change', (e) => setActive(e.target.value));

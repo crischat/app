@@ -8,6 +8,7 @@ Web app phân tích chất lượng dữ liệu, chạy 100% trên trình duyệ
 | Tab | Việc làm được |
 |---|---|
 | Nạp dữ liệu | Excel (.xlsx/.xls/.xlsb/.ods), CSV/TSV, JSON, **Google Sheets** (link), **PDF** (có lớp chữ), **Word** (.docx), **PowerPoint** (.pptx). Mỗi sheet/bảng thành 1 bảng riêng; phần chữ của tài liệu thành bảng "văn bản". Có thể chỉnh dòng tiêu đề. |
+| Phân tích chuyên sâu | Kiểu sổ tay dự án: dữ liệu thật ra là gì (đơn vị đếm, chỉ số chính, mốc đạt) → bảng lỗi kèm cách xử lý → các bước làm lại và số dòng còn lại → phát hiện (thiếu ở đâu, thiếu cái gì, xu hướng/hiệu ứng cơ cấu, làm lại) → nên làm Power BI, Excel hay PowerPoint (kèm Power Query, DAX, công thức Excel, dàn ý slide) → giới hạn. Tải HTML, nhờ AI viết lời kể. |
 | Tổng quan | Điểm chất lượng 0–100, 5 chiều (Đầy đủ, Hợp lệ, Duy nhất, Nhất quán, Chính xác), biểu đồ lỗi theo nhóm, mức độ, cột; lỗi theo từng mục; khuyến nghị. |
 | Báo cáo dữ liệu | Báo cáo nội dung file: lọc theo khoảng ngày (7 ngày, tháng, quý, năm…), lọc nhiều giá trị theo Team/Trạng thái/Phòng ban…, tìm kiếm; KPI tổng/trung bình; biểu đồ xu hướng (tách theo nhóm), phân bổ, tỷ trọng, Top 10; bảng tổng hợp nhóm × nhóm; bảng dữ liệu đã lọc (sắp xếp, xuất Excel). Bấm cột biểu đồ để lọc nhanh. |
 | Danh sách lỗi | Lọc theo mức độ, nhóm, loại kiểm tra, cột, tìm kiếm; bấm dòng để xem bản ghi đầy đủ; xuất Excel. |
