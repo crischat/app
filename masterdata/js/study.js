@@ -370,7 +370,7 @@
       const bg = o.repeat.byGroup, lo = bg[0], hi = bg[bg.length - 1];
       F.push({ t: 'Đo lường lặp lại cho thấy cải thiện, nhưng phân bổ chưa đồng đều giữa các nhóm', n: `${pc(o.repeat.impRate, 0)} đối tượng có kết quả lần gần nhất cao hơn lần đầu (bình quân ${o.repeat.gain >= 0 ? '+' : ''}${fmt(o.repeat.gain)}).${lo && hi && lo !== hi ? ` Tỷ lệ được đo lại: “${lo.v}” ${pc(lo.rate)} so với “${hi.v}” ${pc(hi.rate)}.` : ''}` });
     }
-    if (!F.length) F.push({ t: 'Chưa đủ thông tin để xác định phát hiện', n: 'Chọn chỉ số đo lường và ít nhất một chiều phân tích ở phần Cấu hình, hoặc dùng “AI rà soát cấu hình”.' });
+    if (!F.length) F.push({ t: 'Chưa đủ thông tin để xác định phát hiện', n: 'Chọn chỉ số đo lường và ít nhất một chiều phân tích ở phần Cấu hình, hoặc bấm “Refresh”.' });
     return { list: F, tl };
   }
 
@@ -510,7 +510,7 @@
         <label class="field">Ngưỡng đạt (${c.primary >= 0 ? esc(H[c.primary]) : 'chỉ số'} ≥)<input id="skThr" data-sk type="number" placeholder="${o.thr != null ? 'tự nhận diện: ' + o.thr : 'không áp dụng'}" value="${esc(c.thr)}"></label>
       </div>
       <div class="sb-dims mt"><span class="muted">Chiều phân tích:</span> ${c.dimPool.slice(0, 16).map((j) => `<label class="check"><input type="checkbox" data-skdim="${j}" ${c.dims.includes(j) ? 'checked' : ''}> ${esc(H[j])}</label>`).join('')}</div>
-      <div class="row wrap mt sb-airow"><button class="btn" id="sbReview"><svg class="ic"><use href="#i-ai"/></svg> AI rà soát cấu hình</button><span class="muted">${ai && ai.key ? `Sử dụng ${ai.provider === 'gemini' ? 'Gemini' : 'Claude'} (thay đổi tại tab Cài đặt). Chỉ gửi tên cột, thống kê và giá trị phổ biến — không gửi toàn bộ dữ liệu.` : 'Chưa có API key — nhập Gemini hoặc Claude key tại tab <a href="#settings" data-go="settings">Cài đặt &amp; Drive</a>.'}</span></div>
+      <div class="row wrap mt sb-airow"><button class="btn" id="sbReview"><svg class="ic"><use href="#i-history"/></svg> Refresh</button><span class="muted">${ai && ai.key ? 'Làm mới để nhận diện lại tên và vai trò các cột.' : 'Làm mới để nhận diện lại tên và vai trò các cột (cần cấu hình tại tab <a href="#settings" data-go="settings">Cài đặt &amp; Drive</a>).'}</span></div>
     </div>
 
     ${ST[key].review ? reviewCard(ST[key].review) : ''}
@@ -607,15 +607,15 @@
 
     <div class="card row wrap sb-act">
       <button class="btn primary" id="sbDl"><svg class="ic"><use href="#i-down"/></svg> Xuất báo cáo phân tích (HTML)</button>
-      <button class="btn" id="sbAI"><svg class="ic"><use href="#i-ai"/></svg> AI soạn báo cáo tóm tắt</button>
-      <span class="muted">AI chỉ nhận các chỉ số tổng hợp, không nhận dữ liệu gốc.</span>
+      <button class="btn" id="sbAI"><svg class="ic"><use href="#i-report"/></svg> Call Cris tóm tắt</button>
+      <span class="muted">Tóm tắt nhanh từ các chỉ số tổng hợp ở trên.</span>
     </div>
     <div class="card mt aiout" id="sbAIOut" ${ST[key].ai ? '' : 'hidden'}>${ST[key].ai && window.marked ? marked.parse(ST[key].ai) : ''}</div>`;
   }
 
   function reviewCard(r) {
     const li = (a) => (a && a.length ? `<ul class="sb-list">${a.map((x) => `<li>${esc(typeof x === 'string' ? x : [x.what, x.cols && '(' + x.cols + ')', x.fix && '→ ' + x.fix].filter(Boolean).join(' '))}</li>`).join('')}</ul>` : '');
-    return `<div class="card mt sb-review"><h3>Kết quả AI rà soát</h3>
+    return `<div class="card mt sb-review"><h3>Kết quả làm mới</h3>
       ${r.story ? `<p><b>${esc(r.dataType || 'Dữ liệu')}:</b> ${esc(r.story)}</p>` : ''}
       ${r.applied && r.applied.length ? `<p class="muted">Đã điều chỉnh: ${esc(r.applied.join(' · '))}</p>` : '<p class="muted">Giữ nguyên cấu hình tự nhận diện.</p>'}
       ${r.extraIssues && r.extraIssues.length ? `<b>Vấn đề dữ liệu bổ sung</b>${li(r.extraIssues)}` : ''}
@@ -635,7 +635,7 @@
 
   async function review(ds, res) {
     const AI = MD.AI, s = AI.settings();
-    if (!s.key) { U.toast('Chưa có API key — nhập Gemini hoặc Claude key tại tab Cài đặt', 'err', 6000); return; }
+    if (!s.key) { U.toast('Chưa cấu hình — vào tab Cài đặt & Drive', 'err', 6000); return; }
     const st = ST[ds.id], c = st.cfg, H = HX(ds, c), o = st.o;
     const cur = { entity: H[c.entity] || null, mode: o.mode, primary: H[c.primary] || null, agg: o.agg, date: H[c.date] || null, target: H[c.target] || null, threshold: o.thr, dims: c.dims.map((j) => H[j]) };
     const prompt = `Bạn là chuyên gia phân tích dữ liệu doanh nghiệp (BI/Excel). Dưới đây là hồ sơ các cột của file "${ds.name}" (${ds.rows.length} dòng), không phải toàn bộ dữ liệu:
@@ -659,11 +659,11 @@ Hãy rà soát và trả về DUY NHẤT một JSON hợp lệ (không markdown)
 "questions":["2-3 điểm cần xác nhận với chủ sở hữu dữ liệu"],
 "warnings":["các điểm dễ diễn giải sai, nếu có"]}
 Chỉ sử dụng đúng tên cột có trong danh sách. Viết tiếng Việt, văn phong chuyên nghiệp, ngắn gọn.`;
-    U.loading(true, 'AI đang rà soát cấu hình…');
+    U.loading(true, 'Đang làm mới…');
     try {
       const r = await AI.call([{ role: 'user', content: prompt }], { json: true, purpose: 'smart' });
       const txt = (r.text || '').replace(/```json|```/g, '');
-      const m = txt.match(/\{[\s\S]*\}/); if (!m) throw new Error('AI không trả về JSON hợp lệ');
+      const m = txt.match(/\{[\s\S]*\}/); if (!m) throw new Error('Không đọc được kết quả, vui lòng thử lại');
       const j = JSON.parse(m[0]);
       const idx = (name) => (name ? ds.headers.findIndex((x) => nk(x) === nk(name)) : -1);
       const applied = [];
@@ -686,8 +686,8 @@ Chỉ sử dụng đúng tên cột có trong danh sách. Viết tiếng Việt,
         if (d.length && nd.join() !== c.dims.join()) { c.dims = nd; d.forEach((k) => { if (!c.dimPool.includes(k)) c.dimPool.push(k); }); applied.push('Chiều: ' + d.map((k) => ds.headers[k]).join(', ')); }
       }
       st.review = Object.assign({}, j, { applied });
-      U.toast(applied.length ? `AI đã điều chỉnh ${applied.length} thiết lập` : 'AI xác nhận cấu hình hiện tại', 'ok', 5000);
-    } catch (e) { U.toast('AI lỗi: ' + e.message, 'err', 8000); }
+      U.toast(applied.length ? `Đã cập nhật ${applied.length} thiết lập` : 'Cấu hình hiện tại đã phù hợp', 'ok', 5000);
+    } catch (e) { U.toast('Không làm mới được: ' + e.message, 'err', 8000); }
     U.loading(false);
     render(ds, res);
   }
@@ -718,8 +718,8 @@ Chỉ sử dụng đúng tên cột có trong danh sách. Viết tiếng Việt,
 
   async function runAI(ds, res) {
     const AI = MD.AI; const s = AI.settings();
-    if (!s.key) { U.toast('Chưa có API key — nhập tại tab Cài đặt', 'err'); return; }
-    U.loading(true, 'AI đang soạn báo cáo tóm tắt…');
+    if (!s.key) { U.toast('Chưa cấu hình — vào tab Cài đặt & Drive', 'err'); return; }
+    U.loading(true, 'Cris đang tóm tắt…');
     try {
       const r = await AI.call([{ role: 'user', content: `Dưới đây là kết quả phân tích một bộ dữ liệu (JSON, chỉ số tổng hợp):\n${summaryJSON(ds, res)}\n\nSoạn báo cáo tóm tắt bằng tiếng Việt, văn phong chuyên nghiệp, ngắn gọn, gồm:\n1. Tóm tắt điều hành (2–3 câu).\n2. Các phát hiện chính (tối đa 4), mỗi phát hiện: tiêu đề dạng kết luận + số liệu minh chứng.\n3. Khuyến nghị hành động (3–5 ý, nêu rõ đối tượng áp dụng và chỉ số đo lường).\n4. Rủi ro & giới hạn của dữ liệu.\n5. Các câu hỏi người xem báo cáo có thể đặt ra và gợi ý trả lời ngắn.\nKhông đưa ra số liệu ngoài dữ liệu đã cung cấp.` }]);
       ST[ds.id].ai = r.text;
