@@ -376,7 +376,11 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
   function renderProfile() {
     const p = profile();
     $('#profileBody').innerHTML = `
-      <div class="card"><div class="formgrid">
+      <div class="card"><div class="cardhead"><h3>☁ Hồ sơ trên Google Drive</h3><span class="muted">${D.hasToken() ? 'Đã kết nối' : 'Sẽ hỏi đăng nhập khi bấm'}</span></div>
+        <p class="muted" style="margin-top:0">Lưu nhiều hồ sơ (hồ sơ gốc, từng vị trí) vào <b>${esc(D.rootName())}/Interview Copilot/Hồ sơ/</b>. Đổi máy chỉ cần kết nối Google rồi bấm <b>Dùng</b>.</p>
+        <div class="row wrap"><button class="btn primary" id="pDrvSave">Lưu hồ sơ này lên Drive</button><button class="btn" id="pDrvList">Xem hồ sơ trên Drive</button></div>
+        <div id="pDrvBox" class="mt"></div></div>
+      <div class="card mt"><div class="formgrid">
         <label class="field">Tên của tôi<input type="text" id="pName" value="${esc(p.name)}" placeholder="vd: Nguyen Van A (Cris)"></label>
         <label class="field">Vị trí ứng tuyển<input type="text" id="pRole" value="${esc(p.role)}" placeholder="vd: Senior Data Analyst"></label>
         <label class="field">Công ty<input type="text" id="pCompany" value="${esc(p.company)}"></label>
@@ -517,6 +521,22 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
     await D.upload(new Blob([JSON.stringify(snapshot())], { type: 'application/json' }), 'copilot-state.json', f.id, 'application/json', ex && ex.id);
     if (!silent) U.toast('Đã sao lưu hồ sơ + lịch sử lên Drive ✓', 'ok');
   }
+  async function profileFolder() { const f = await copilotFolder(); return D.ensureFolder('Hồ sơ', f.id); }
+  async function driveSaveProfile(p, name) {
+    if (!D.hasToken()) await D.connect('');
+    const f = await profileFolder();
+    const fn = U.safeName(name.replace(/\.json$/i, '')) + '.json';
+    const ex = await D.findFile(fn, f.id);
+    const body = JSON.stringify({ app: 'Interview Copilot', version: 1, savedAt: new Date().toISOString(), profile: p }, null, 2);
+    return D.upload(new Blob([body], { type: 'application/json' }), fn, f.id, 'application/json', ex && ex.id);
+  }
+  async function drawDriveProfiles() {
+    if (!D.hasToken()) await D.connect('');
+    const f = await profileFolder();
+    const list = (await D.listFolder(f.id)).filter((x) => /\.json$/i.test(x.name)).sort((a, b) => (b.modifiedTime || '').localeCompare(a.modifiedTime || ''));
+    $('#pDrvBox').innerHTML = list.length ? `<table class="tbl"><thead><tr><th>Hồ sơ</th><th>Cập nhật</th><th></th></tr></thead><tbody>${list.map((x) => `<tr><td>${esc(x.name.replace(/\.json$/i, ''))}</td><td>${x.modifiedTime ? new Date(x.modifiedTime).toLocaleString('vi-VN') : ''}</td><td><button class="btn sm primary" data-pdload="${esc(x.id)}" data-pdname="${esc(x.name.replace(/\.json$/i, ''))}">Dùng</button></td></tr>`).join('')}</tbody></table>`
+      : '<p class="muted">Chưa có hồ sơ nào trên Drive. Bấm “Lưu hồ sơ này lên Drive”.</p>';
+  }
   async function driveRestore() {
     if (!D.hasToken()) await D.connect('');
     const f = await copilotFolder();
@@ -592,6 +612,13 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
       const d = t.dataset;
       if (d.go) { e.preventDefault(); return showTab(d.go); }
       if (d.qadel) { const p = readProfileForm(); p.qa.splice(+d.qadel, 1); saveProfile(p); return renderProfile(); }
+      if (d.pdload) {
+        if (!confirm(`Dùng hồ sơ “${d.pdname}”? Hồ sơ đang mở trên máy này sẽ được thay thế (lịch sử các buổi vẫn giữ).`)) return;
+        U.loading(true, 'Đang tải hồ sơ…');
+        try { const st = JSON.parse(await D.readText(d.pdload)); if (!st || !st.profile) throw new Error('File không phải hồ sơ Copilot'); saveProfile(st.profile); renderProfile(); U.toast('Đã dùng hồ sơ: ' + d.pdname, 'ok'); }
+        catch (er) { U.toast(er.message, 'err', 7000); }
+        U.loading(false); return;
+      }
       if (d.hmd) { const s = sessions()[+d.hmd]; return U.download(new Blob([sessionMd(s)], { type: 'text/markdown' }), U.safeName(s.title + '.md')); }
       if (d.hdrive) { U.loading(true, 'Đang lưu lên Drive…'); try { await driveSaveSession(sessions()[+d.hdrive]); } catch (er) { U.toast(er.message, 'err', 7000); } U.loading(false); return; }
       if (d.hdel) { if (confirm('Xoá buổi này khỏi trình duyệt?')) { const l = sessions(); l.splice(+d.hdel, 1); saveSessions(l); renderHistory(); } return; }
@@ -602,6 +629,16 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
         case 'btnShot': return readScreen();
         case 'btnAnalyze': return analyze();
         case 'pSave': saveProfile(readProfileForm()); return U.toast('Đã lưu hồ sơ', 'ok');
+        case 'pDrvSave': {
+          const p = readProfileForm(); saveProfile(p);
+          const def = 'Hồ sơ - ' + (p.role || 'Gốc');
+          const nm = prompt('Tên hồ sơ trên Drive (trùng tên sẽ ghi đè bản cũ):', def); if (!nm) return;
+          U.loading(true, 'Đang lưu lên Drive…');
+          try { const r = await driveSaveProfile(p, nm); U.toast('Đã lưu “' + r.name + '” lên Drive ✓', 'ok'); await drawDriveProfiles(); }
+          catch (er) { U.toast(er.message, 'err', 7000); }
+          U.loading(false); return;
+        }
+        case 'pDrvList': U.loading(true, 'Đang đọc Drive…'); try { await drawDriveProfiles(); } catch (er) { U.toast(er.message, 'err', 7000); } U.loading(false); return;
         case 'pTpl': {
           const el = $('#pExp');
           if (/## THÔNG TIN NGOÀI LỀ/.test(el.value)) return U.toast('Mẫu đã có trong ô này', 'info');
