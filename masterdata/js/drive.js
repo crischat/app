@@ -17,7 +17,7 @@
     const id = D.clientId();
     if (!id) throw new Error('Chưa cấu hình Google OAuth Client ID (tab Cài đặt).');
     client = google.accounts.oauth2.initTokenClient({
-      client_id: id, scope: SCOPES,
+      client_id: id, scope: SCOPES + (window.MD_DRIVE_EXTRA ? ' ' + window.MD_DRIVE_EXTRA : ''),
       callback: (resp) => {
         if (resp.error) { pending && pending.reject(new Error(resp.error_description || resp.error)); pending = null; return; }
         token = resp.access_token; tokenExp = Date.now() + (resp.expires_in - 60) * 1000;
@@ -99,6 +99,13 @@
   D.findFile = async (name, parentId) => {
     const q = `name='${qEsc(name)}' and trashed=false and '${parentId}' in parents`;
     const r = await api('https://www.googleapis.com/drive/v3/files?fields=files(id,name,modifiedTime,webViewLink)&q=' + encodeURIComponent(q));
+    return r.files && r.files[0];
+  };
+
+  /* Tìm thư mục theo tên ở bất kỳ đâu trong Drive (cần quyền đọc Drive) */
+  D.findFolderAnywhere = async (name) => {
+    const q = `name='${qEsc(name)}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const r = await api('https://www.googleapis.com/drive/v3/files?fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc&q=' + encodeURIComponent(q));
     return r.files && r.files[0];
   };
 

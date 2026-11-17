@@ -33,11 +33,26 @@
     try { history.replaceState(null, '', '#' + name); } catch (e) { /* bỏ qua */ }
   }
 
+  /* =================== Ngôn ngữ trả lời: en | vi | bi (song ngữ) =================== */
+  const answerLang = () => { const v = U.store.get('copilot_lang', 'en'); return ['en', 'vi', 'bi'].includes(v) ? v : 'en'; };
+  function answerOf(x) {
+    const l = answerLang();
+    if (l === 'vi') return x.a_vi || x.a;
+    if (l === 'bi') return x.a_vi ? x.a + '\n\n🇻🇳 ' + x.a_vi.replace(/\n/g, '\n') : x.a;
+    return x.a;
+  }
+  function langRule() {
+    const l = answerLang();
+    if (l === 'vi') return 'NGÔN NGỮ: buổi này trả lời bằng TIẾNG VIỆT (xưng "em"), kể cả khi câu hỏi bằng tiếng Anh.';
+    if (l === 'bi') return 'NGÔN NGỮ: SONG NGỮ — phần "Trả lời (nói theo)" viết tiếng Anh đơn giản trước, ngay dưới mỗi gạch đầu dòng thêm dòng dịch tiếng Việt bắt đầu bằng "🇻🇳".';
+    return 'NGÔN NGỮ: buổi này trả lời bằng TIẾNG ANH đơn giản (câu ngắn, từ dễ đọc), kể cả khi câu hỏi bằng tiếng Việt.';
+  }
+
   /* =================== Prompt =================== */
   const WHO = { me: 'Tôi', them: 'Người phỏng vấn', note: 'Ghi chú' };
   function profileBlock() {
     const p = profile();
-    const qa = p.qa.filter((x) => x.q && x.a).map((x) => `- Hỏi: ${x.q}\n  Đáp: ${x.a}`).join('\n');
+    const qa = p.qa.filter((x) => x.q && x.a).map((x) => `- Hỏi: ${x.q}${x.q_vi ? ' / ' + x.q_vi : ''}\n  Đáp: ${answerOf(x)}`).join('\n');
     return `# HỒ SƠ ỨNG VIÊN ("Tôi")
 Tên: ${p.name || '(chưa nhập)'} · Vị trí ứng tuyển: ${p.role || '(chưa nhập)'} · Công ty: ${p.company || '(chưa nhập)'}
 
@@ -66,7 +81,7 @@ ${p.style}`;
 Nhiệm vụ: khi người phỏng vấn vừa hỏi, đưa ra gợi ý để Tôi trả lời NGAY — đọc lướt trong 10 giây.
 Quy tắc:
 - Chỉ dùng sự thật có trong HỒ SƠ và các buổi trước. KHÔNG bịa kinh nghiệm, số liệu, tên dự án. Nếu hồ sơ không có thông tin, gợi ý cách trả lời trung thực hoặc để chỗ trống [điền …].
-- NGÔN NGỮ: phần "Trả lời (nói theo)" dùng ĐÚNG ngôn ngữ của câu hỏi mới nhất — hỏi tiếng Anh thì trả lời tiếng Anh, hỏi tiếng Việt thì trả lời tiếng Việt (quy tắc này ưu tiên hơn phong cách trong hồ sơ). Phần "Ý chính" luôn bằng tiếng Việt. Câu ngắn, tự nhiên như văn nói, ưu tiên STAR khi kể kinh nghiệm.
+- ${langRule()} Phần "Ý chính" luôn bằng tiếng Việt. Câu ngắn, tự nhiên như văn nói, ưu tiên STAR khi kể kinh nghiệm.
 - Câu hỏi cá nhân / ngoài lề (lương, lý do nghỉ việc, điểm yếu, sở thích, gia đình, thời gian đi làm…): dùng đúng mục "THÔNG TIN NGOÀI LỀ" và kinh nghiệm bổ sung; giữ nhất quán với những gì Tôi đã nói trước đó trong buổi và các buổi trước.
 - Nếu lượt mới nhất không phải câu hỏi (chào hỏi, giới thiệu, nói chuyện phiếm), gợi ý 1–2 câu đáp lại phù hợp.
 - Nếu có ảnh màn hình (đề bài, code, slide), đọc và dùng nó.
@@ -251,13 +266,13 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
     if (fast) {
       content.push({ type: 'audio', mime: fast.audio.mime, data: fast.audio.b64 });
       req += `Đoạn âm thanh kèm theo là lượt nói MỚI NHẤT của Người phỏng vấn (chưa có trong bản ghi). Hãy nghe kỹ.
-- Nếu đó là câu hỏi hoặc yêu cầu cần Tôi trả lời: gợi ý theo đúng định dạng, trả lời bằng đúng ngôn ngữ người phỏng vấn dùng trong đoạn âm thanh.
+- Nếu đó là câu hỏi hoặc yêu cầu cần Tôi trả lời: gợi ý theo đúng định dạng. ${langRule()}
 - Nếu chỉ là câu xã giao/đệm ngắn không cần trả lời (vd "alo", "ok", "ừ", "để chị xem", tiếng ồn): chỉ trả về đúng một chữ SKIP.`;
     } else {
       const last = L.turns.filter((x) => x.who === 'them' && x.text).pop();
       const ln = langName(last && last.lang);
       req += manual ? `Câu hỏi cần trả lời (người dùng gõ tay): ${manual}` : 'Hãy gợi ý cho lượt mới nhất của Người phỏng vấn.';
-      if (ln && !manual) req += `\nCâu hỏi mới nhất bằng ${ln} → phần "Trả lời (nói theo)" viết bằng ${ln}.`;
+      req += `\n${ln && !manual ? '(Câu hỏi mới nhất bằng ' + ln + '.) ' : ''}${langRule()}`;
     }
     if ($('#withScreen').checked && L.tab) {
       try { const f = await AU.grabFrame($('#screenVideo')); L.lastShot = f; showShot(f); content.push({ type: 'image', mime: f.mime, data: f.b64 }); req += '\n(Kèm ảnh màn hình cuộc gọi hiện tại.)'; } catch (e) { /* không có hình */ }
@@ -700,7 +715,7 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
   })();
 
   // API nội bộ cho tab Phỏng vấn thử (mock.js)
-  MD.CP = { profile, profileBlock, cset, keys, sugProvider, sugOpts, SUG_SYS, md, sessions, saveSessions, sttCall, transcriptText, WHO, showTab, langName };
+  MD.CP = { profile, saveProfile, answerLang, answerOf, langRule, profileBlock, cset, keys, sugProvider, sugOpts, SUG_SYS, md, sessions, saveSessions, sttCall, transcriptText, WHO, showTab, langName };
 
   bind();
   const start = (location.hash || '').slice(1);

@@ -9,7 +9,7 @@
   function match(q) {
     const t = toks(q); if (!t.length) return [];
     return MD.CP.profile().qa.filter((x) => x.q && x.a).map((x) => {
-      const xt = new Set(toks(x.q)); let s = 0;
+      const xt = new Set(toks(x.q + ' ' + (x.q_vi || ''))); let s = 0;
       t.forEach((w) => {
         if (xt.has(w)) { s += 1; return; }
         for (const y of xt) if (y.length > 3 && w.length > 3 && y.slice(0, 4) === w.slice(0, 4)) { s += 0.6; break; }
@@ -24,7 +24,8 @@
 Trả lời đúng định dạng, không thêm gì khác:
 **VN:** <dịch câu hỏi sang tiếng Việt, 1 dòng>
 **Trả lời (nói theo):**
-- <2–4 câu ngắn, đơn giản, dễ đọc to, ngôi thứ nhất, cùng ngôn ngữ với câu hỏi; dùng số liệu thật trong hồ sơ nếu hợp>
+- <2–4 câu ngắn, đơn giản, dễ đọc to, ngôi thứ nhất; dùng số liệu thật trong hồ sơ nếu hợp>
+${MD.CP.langRule()}
 **Lưu ý:** <1 dòng tiếng Việt>
 Chỉ dùng sự thật trong hồ sơ; KHÔNG bịa kinh nghiệm. Nếu hồ sơ không có: trả lời trung thực + việc tương tự đã làm + sẵn sàng học.
 
@@ -56,7 +57,7 @@ ${MD.CP.profileBlock()}`;
   function showHits(q) {
     const hits = match(q);
     $('#qkHits').innerHTML = hits.map((h, i) => `<div class="qk-hit"><span class="pill">${i === 0 ? 'Đã chuẩn bị · khớp nhất' : 'Gần giống'}</span>
-      <div class="qk-q">${esc(h.x.q.replace(/^\(English\)\s*/, ''))}</div><div class="aiout">${MD.CP.md(h.x.a)}</div></div>`).join('');
+      <div class="qk-q">${esc(h.x.q.replace(/^\(English\)\s*/, ''))}</div><div class="aiout">${MD.CP.md(MD.CP.answerOf(h.x))}</div></div>`).join('');
     return hits;
   }
 
@@ -120,7 +121,7 @@ ${MD.CP.profileBlock()}`;
     const box = $('#prepHit');
     if (box && e === cur()) box.innerHTML = !e.prep ? '' : `<div class="qk-hit prep-hit"><span class="pill">⚡ Đã chuẩn bị · khớp câu vừa nghe</span>
       <div class="muted" style="margin-top:4px">🎧 ${esc(e.q)}${e.tr ? ' — ' + esc(e.tr) : ''}</div>
-      <div class="qk-q">${esc(e.prep.q.replace(/^\(English\)\s*/, ''))}</div><div class="aiout">${MD.CP.md(e.prep.a)}</div></div>`;
+      <div class="qk-q">${esc(e.prep.q.replace(/^\(English\)\s*/, ''))}</div><div class="aiout">${MD.CP.md(MD.CP.answerOf(e.prep))}</div></div>`;
     pipRender();
   }
   function addPaste(q) {
@@ -192,7 +193,7 @@ ${MD.CP.profileBlock()}`;
   }
   // 1 khung trả lời: câu đã chuẩn bị nếu khớp, không thì phần trả lời của AI
   function aBlock(e, ans) {
-    if (e.prep) return `<div class="a prep"><div class="lbl">💬 Trả lời</div>${MD.CP.md(e.prep.a)}</div>`;
+    if (e.prep) return `<div class="a prep"><div class="lbl">💬 Trả lời</div>${MD.CP.md(MD.CP.answerOf(e.prep))}</div>`;
     if (ans) return `<div class="a ai"><div class="lbl">💬 Trả lời</div>${MD.CP.md(ans)}</div>`;
     return e.q ? '<div class="mut">⏳ đang soạn câu trả lời…</div>' : '';
   }

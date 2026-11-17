@@ -74,3 +74,14 @@ body.ip-pip .ip-rows { height: auto; flex: 1; }
 .qk .pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; background: var(--surface); border: 1px solid var(--border); }
 .qk .err { color: #dc2626; }
 #prepHit .prep-hit { margin: 0 0 10px; border-left-color: #16a34a; }
+
+/* ---- Kho hồ sơ (Drive) ---- */
+.kh { margin-bottom: 14px; }
+.kh-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.kh-f { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--muted, #64748b); flex: 1 1 220px; min-width: 0; }
+.kh-f select { font-weight: 500; }
+.kh-lang { flex: 0 1 170px; }
+.kh-state { margin-top: 8px; font-size: 13px; color: var(--muted, #64748b); }
+.kh-state.ok { color: #15803d; }
+.kh-state.warn { color: #b45309; }
+.kh-state.err { color: #dc2626; }
