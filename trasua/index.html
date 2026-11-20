@@ -130,16 +130,43 @@ ul{padding-left:18px} li{margin:3px 0}
 .bank{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0;font-family:"JetBrains Mono",monospace}
 #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:30;width:max-content;max-width:calc(100% - 32px)}
 .toastbox{background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;box-shadow:0 6px 20px #0004;font-weight:500}
-@media (max-width:600px){#top{gap:4px 12px;padding:8px 12px}.brand{width:100%}#main{padding:10px 12px 40px}.sl{width:100%}}
+#stage{margin:12px 16px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+#stage2d svg{display:block;width:100%;height:auto;max-height:52vh}
+#stage3d{height:min(56vh,520px);position:relative}#stage3d canvas{display:block;touch-action:none}
+.fig{cursor:pointer}.fig:hover text:first-of-type{filter:drop-shadow(0 0 6px #ffb703)}
+.viewbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.dwg svg{width:100%;height:auto;display:block;background:#fff;border-radius:8px;border:1px solid var(--line)}
+.dwgh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.bp text{font-family:"Be Vietnam Pro",sans-serif;fill:#2e2218}
+.bp .halo{stroke:#fff;stroke-width:10px;paint-order:stroke;stroke-linejoin:round}.bp.site .lbl{font-size:110px}.bp.site .lbl.sm{font-size:95px}.bp.site .lbl.xs{font-size:76px}.bp.site .dim text{font-size:95px}.bp.site .dim line{stroke-width:8}.bp .lbl{font-size:52px}.bp .lbl.sm{font-size:44px}.bp .lbl.xs{font-size:34px}.bp .b{font-weight:700}
+.bp .dim line{stroke:#a0522d;stroke-width:4}.bp .dim text{fill:#a0522d;font-size:44px;font-weight:600}
+.bp .cab{fill:#7a4a2a;stroke:#3d2414;stroke-width:5}.bp .inox,.bp .post{fill:#cfd4d9;stroke:#7d858c;stroke-width:3}
+.bp .glass{fill:#9fd3ea;fill-opacity:.3;stroke:#5a9bb8;stroke-width:4}.bp .pot{fill:#eef7fa;fill-opacity:.7;stroke:#7d9aa6;stroke-width:4}
+.bp .potc{stroke:#5b4636;stroke-width:4}.bp .sign{fill:#d1495b;stroke:#7a2230;stroke-width:4}.bp .signt{fill:#fff;font-size:130px;font-weight:800}
+.bp .decal{fill:#fff3df}.bp .menut{fill:#7a4a2a;font-size:80px;font-weight:800}.bp .menul{fill:#7a4a2a;font-size:50px;font-weight:600}
+.bp .qr{fill:#fff;stroke:#2e2218;stroke-width:6}.bp .wheel{fill:#222}.bp .ground{stroke:#7d6a57;stroke-width:6}
+.bp .zone{stroke:#7d6a57;stroke-width:4;stroke-dasharray:24 14;fill:none}.bp .item{fill:#f1e5d3;stroke:#7d6a57;stroke-width:3}
+.bp .icebin{fill:#dff3fb;stroke:#5a9bb8;stroke-width:4}.bp .tray{fill:#e6e8ea;stroke:#7d858c;stroke-width:3}
+.bp .door{fill:#8d5a37;stroke:#3d2414;stroke-width:4}.bp .handle{fill:#cfd4d9}
+.bp .person circle,.bp .person rect{fill:#d9cbb8;stroke:#7d6a57;stroke-width:3}
+.bp .area{fill:#f4eee4;stroke:#7d6a57;stroke-width:8;stroke-dasharray:40 20}.bp .road{fill:#5a5b60}.bp .wall{fill:#8d99ae}
+.bp .umb{fill:#d1495b;fill-opacity:.12;stroke:#d1495b;stroke-width:6;stroke-dasharray:30 20}.bp .tbl2{fill:#c9a27e;stroke:#7d6a57;stroke-width:4}
+.bp .wait{fill:#ffe8b5;fill-opacity:.6;stroke:#d99a1e;stroke-width:5;stroke-dasharray:30 18}.bp .stool{fill:#d62828;fill-opacity:.7}
+.bp .board{fill:#2e2e2e}.bp .bin{fill:#2d6a4f;fill-opacity:.8}.bp .bike{fill:#e6e8ea;stroke:#7d858c;stroke-width:4;stroke-dasharray:20 12}
+@media print{#top,#tabs,#stage,#toast,.noprint,.dwgh button{display:none!important}body{background:#fff}.card{break-inside:avoid;border:none}.grid2{grid-template-columns:1fr}}
+@media (max-width:600px){#stage{margin:10px 12px 0}#top{gap:4px 12px;padding:8px 12px}.brand{width:100%}#main{padding:10px 12px 40px}.sl{width:100%}}
 </style>
 </head>
 <body>
 <header id="top"></header>
 <nav id="tabs"></nav>
+<section id="stage" style="display:none"><div id="stage2d"></div><div id="stage3d"></div></section>
 <main id="main"></main>
 <div id="modal"></div>
 <div id="toast"></div>
-<script src="data.js?v=1"></script>
-<script src="game.js?v=1"></script>
+<script src="data.js?v=2"></script>
+<script src="game.js?v=2"></script>
+<script src="scene.js?v=2"></script>
+<script>boot();</script>
 </body>
 </html>

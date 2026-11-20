@@ -15,9 +15,11 @@ const DR = Object.fromEntries(DRINKS.map(d => [d.id, d]));
 const TP = Object.fromEntries(TOPPINGS.map(t => [t.id, t]));
 const SAVE = 'trasua_sim_v1';
 const DAY0 = 5 * 60; // 5:00 bắt đầu chuẩn bị
+const teaLife = () => S.settings.teaLifeH * 60, topLife = () => S.settings.topLifeH * 60;
+const lifeTxt = m => m >= 1440 ? (Math.round(m / 144) / 10).toLocaleString('vi-VN') + ' ngày' : Math.round(m / 6) / 10 + ' tiếng';
 
 let S = null, D = null;
-const UI = { tab: 'ban', modal: null, toast: null, dirty: true, simResult: null };
+const UI = { tab: 'ban', modal: null, toast: null, dirty: true, simResult: null, view: (() => { try { return localStorage.getItem('trasua_view') || '2d'; } catch (e) { return '2d'; } })(), labels3d: true };
 
 // ================= Lưu / tải =================
 function newState() {
@@ -36,6 +38,7 @@ function save() { try { localStorage.setItem(SAVE, JSON.stringify(S)); } catch (
 function load() {
   try { S = JSON.parse(localStorage.getItem(SAVE)); } catch (e) { S = null; }
   if (!S || S.v !== 1) S = newState();
+  S.settings = { ...DEFAULT_SETTINGS, ...S.settings };
   if (S.phase === 'open') { // tải lại giữa ngày → quay về đầu ngày
     if (S.snap) { const snap = JSON.parse(S.snap); S = snap; }
     S.phase = 'prep';
@@ -134,10 +137,13 @@ function openDay() {
   S.phase = 'open';
   D = {
     t: DAY0, running: true, speed: 1, sched: genCustomers(ctxFor(S.day), S.settings.appOn), cust: [],
-    pots: Object.fromEntries(Object.keys(TEAS).map(k => [k, []])), tb: Object.fromEntries(TOPPINGS.filter(t => t.cook).map(t => [t.id, []])),
+    pots: Object.fromEntries(Object.keys(TEAS).map(k => [k, (S.carry && S.carry.pots[k]) || []])), tb: Object.fromEntries(TOPPINGS.filter(t => t.cook).map(t => [t.id, (S.carry && S.carry.tb[t.id]) || []])),
     deliveries: [], cup: null, sel: null, log: [], L: newLedger(), arrivalsClosed: false,
   };
   log('🌅 5:00 — dọn xe, ủ trà, nấu trân châu. 6:00 khách bắt đầu tới.');
+  const left = Object.values(D.pots).flat().length + Object.values(D.tb).flat().length;
+  if (left) log('🧊 Lấy từ tủ mát: ' + left + ' bình trà / mẻ trân châu còn hạn từ hôm trước', 'ok');
+  S.carry = null;
   save(); dirty();
 }
 function log(msg, cls = '') { D.log.unshift({ t: D.t, msg, cls }); if (D.log.length > 60) D.log.pop(); }
@@ -181,12 +187,12 @@ function step() {
   }
   for (const tea in D.pots) for (const b of D.pots[tea]) {
     if (!b.ready && b.readyAt <= t) { b.ready = true; log('🫖 Bình ' + TEAS[tea].name + ' đã ủ xong (' + Math.round(b.ml) + 'ml)', 'ok'); dirty(); }
-    if (b.ready && b.exp <= t) { addWaste('Trà quá 5 tiếng', b.ml * b.cpm); log('🗑️ Đổ ' + Math.round(b.ml) + 'ml trà ' + TEAS[tea].name + ' quá hạn', 'bad'); b.ml = 0; b.dead = true; dirty(); }
+    if (b.ready && b.exp <= t) { addWaste('Trà quá hạn', b.ml * b.cpm); log('🗑️ Đổ ' + Math.round(b.ml) + 'ml trà ' + TEAS[tea].name + ' quá hạn', 'bad'); b.ml = 0; b.dead = true; dirty(); }
   }
   for (const tea in D.pots) D.pots[tea] = D.pots[tea].filter(b => !b.dead);
   for (const id in D.tb) for (const b of D.tb[id]) {
     if (!b.ready && b.readyAt <= t) { b.ready = true; log('🍡 ' + TP[id].name + ' đã nấu xong (' + b.n + ' phần)', 'ok'); dirty(); }
-    if (b.ready && b.exp <= t) { addWaste('Topping quá 4 tiếng', b.n * b.cpp); log('🗑️ Bỏ ' + b.n + ' phần ' + TP[id].name + ' quá hạn (bị cứng)', 'bad'); b.dead = true; dirty(); }
+    if (b.ready && b.exp <= t) { addWaste('Topping quá hạn', b.n * b.cpp); log('🗑️ Bỏ ' + b.n + ' phần ' + TP[id].name + ' quá hạn (bị cứng)', 'bad'); b.dead = true; dirty(); }
   }
   for (const id in D.tb) D.tb[id] = D.tb[id].filter(b => !b.dead);
   for (const c of D.cust) {
@@ -406,10 +412,10 @@ A.handoff = id => {
 // ---- bếp sau ----
 A.brew = v => {
   const [tea, half] = v.split(':'), T = TEAS[tea], f = half === '1' ? 0.5 : 1, g = T.gram * f;
-  if (D.pots[tea].length >= 3) return toast('Tối đa 3 bình mỗi vị');
+  if (D.pots[tea].length >= 4) return toast('Tối đa 4 bình mỗi vị');
   if (S.stock[T.item] < g) return toast('Hết ' + ITEMS[T.item].name);
   const cost = use(T.item, g), ml = POT.yield * f;
-  D.pots[tea].push({ ml, cpm: cost / ml, readyAt: D.t + POT.brewMin, exp: D.t + POT.brewMin + POT.lifeMin, ready: false });
+  D.pots[tea].push({ ml, cpm: cost / ml, readyAt: D.t + POT.brewMin, exp: D.t + POT.brewMin + teaLife(), ready: false });
   log('🫖 Bắt đầu ủ ' + (f < 1 ? 'nửa bình ' : 'bình ') + T.name + ' (' + g + 'g trà + ' + POT.water * f / 1000 + 'L nước), xong lúc ' + hhmm(D.t + POT.brewMin)); dirty();
 };
 A.cook = v => {
@@ -417,7 +423,7 @@ A.cook = v => {
   if (Object.values(D.tb).flat().some(b => !b.ready)) return toast('Bếp đang nấu 1 nồi rồi (chỉ có 1 bếp ga)');
   if (S.stock[ck.item] < dry) return toast('Hết ' + ITEMS[ck.item].name);
   const cost = use(ck.item, dry), n = Math.round(ck.yield * f);
-  D.tb[id].push({ n, cpp: cost / n, readyAt: D.t + ck.min, exp: D.t + ck.min + t.life, ready: false });
+  D.tb[id].push({ n, cpp: cost / n, readyAt: D.t + ck.min, exp: D.t + ck.min + topLife(), ready: false });
   log('🍳 Nấu ' + dry + 'g ' + t.name + ' → ' + n + ' phần, xong lúc ' + hhmm(D.t + ck.min)); dirty();
 };
 // ---- đóng ca ----
@@ -430,9 +436,14 @@ A.close = () => {
 function closeDay(auto) {
   for (const c of [...D.cust]) leave(c, 'không được phục vụ vì quán đóng cửa');
   if (D.cup) A.discard();
-  for (const tea in D.pots) for (const b of D.pots[tea]) addWaste('Trà dư cuối ngày', b.ml * b.cpm);
-  for (const id in D.tb) for (const b of D.tb[id]) addWaste('Topping dư cuối ngày', b.n * b.cpp);
-  if (S.stock.da > 0) { addWaste('Đá tan cuối ngày', S.stock.da * uc('da')); S.stock.da = 0; }
+  // Trà & topping còn hạn: cất tủ mát dùng tiếp hôm sau (giờ quy về ngày mới)
+  const shift = b => ({ ...b, ready: true, readyAt: b.readyAt - 1440, exp: b.exp - 1440 });
+  S.carry = { pots: {}, tb: {} };
+  for (const tea in D.pots) S.carry.pots[tea] = D.pots[tea].map(shift).filter(b => b.exp > DAY0 && b.ml > 1);
+  for (const id in D.tb) S.carry.tb[id] = D.tb[id].map(shift).filter(b => b.exp > DAY0 && b.n > 0);
+  for (const tea in D.pots) for (const b of D.pots[tea]) if (b.exp - 1440 <= DAY0) addWaste('Trà quá hạn', b.ml * b.cpm);
+  for (const id in D.tb) for (const b of D.tb[id]) if (b.exp - 1440 <= DAY0) addWaste('Topping quá hạn', b.n * b.cpp);
+  if (S.stock.da > 0) { const melt = S.stock.da * S.settings.iceMelt; addWaste('Đá tan qua đêm', melt * uc('da')); S.stock.da -= melt; }
   for (const dl of D.deliveries) S.stock[dl.item] += dl.qty;
   const L = D.L, fx = fixedPerDay(), fixed = fx.rent + fx.util + fx.dep + fx.labor;
   S.money -= fx.rent + fx.util + fx.labor; // khấu hao không trừ tiền mặt
@@ -473,10 +484,11 @@ function suggest() {
     need.da += r.da * ic.ice * cups / N; need[r.cup] += cups / N; if (d.khoai) need.bot_khoai += d.khoai[it.size] * cups / N;
     it.tops.forEach(t => topN[t] = (topN[t] || 0) + cups / N);
   }
-  for (const tea in TEAS) if (teaMl[tea] > 0) need[TEAS[tea].item] += Math.max(Math.ceil(teaMl[tea] / (POT.yield / 2)), 3) * TEAS[tea].gram / 2;
+  const minB = life => life >= 1000 ? 1 : 3; // hạn ngắn thì phải ủ/nấu nhiều lần trong ngày
+  for (const tea in TEAS) { const have = ((S.carry && S.carry.pots[tea]) || []).reduce((a, b) => a + b.ml, 0), ml = teaMl[tea] - have; if (ml > 0) need[TEAS[tea].item] += Math.max(Math.ceil(ml / (POT.yield / 2)), minB(teaLife())) * TEAS[tea].gram / 2; }
   for (const t of TOPPINGS) {
     const n = topN[t.id] || 0; if (!n) continue;
-    if (t.cook) need[t.cook.item] += Math.max(Math.ceil(n / (t.cook.yield / 2)), 3) * t.cook.dry / 2;
+    if (t.cook) { const have = ((S.carry && S.carry.tb[t.id]) || []).reduce((a, b) => a + b.n, 0), m = n - have; if (m > 0) need[t.cook.item] += Math.max(Math.ceil(m / (t.cook.yield / 2)), minB(topLife())) * t.cook.dry / 2; }
     else need[t.ready.item] += n * t.ready.gram;
   }
   const packs = {}; let cost = 0;
@@ -490,23 +502,25 @@ function suggest() {
 // ================= Mô phỏng nhanh N ngày =================
 function simulate(days, svcMin, accuracy, appOn) {
   const st = S, rows = []; let rating = st.rating;
+  const pots = Object.fromEntries(Object.keys(TEAS).map(k => [k, { ml: 0, exp: 0, cpm: 0 }]));
+  const tb = Object.fromEntries(TOPPINGS.filter(t => t.cook).map(t => [t.id, { n: 0, exp: 0, cpp: 0 }]));
+  let iceLeft = 0;
   for (let d = 1; d <= days; d++) {
+    const off = (d - 1) * 1440; // thời gian tuyệt đối để trà/topping giữ qua ngày
     const date = dayDate(st.day + d - 1), weather = rollWeather();
     const ctx = { day: st.history.length + d, date, dow: date.getDay(), weather, rating, price: st.price };
     const cs = genCustomers(ctx, appOn);
     const L = { rev: 0, gross: 0, cogs: 0, waste: 0, fee: 0, cups: 0, lost: 0, ice: 0 };
-    const pots = Object.fromEntries(Object.keys(TEAS).map(k => [k, { ml: 0, exp: 0, cpm: 0 }]));
-    const tb = Object.fromEntries(TOPPINGS.filter(t => t.cook).map(t => [t.id, { n: 0, exp: 0, cpp: 0 }]));
     let free = 6 * 60, sc = 0, scn = 0;
     for (const c of cs) {
       const seg = SEGMENTS[c.seg];
-      const start = Math.max(c.t, free);
+      const start = Math.max(c.t, free), abs = off + start;
       if (c.seg !== 'app' && start - c.t > seg.patQ + 2) { L.lost += c.items.length; rating = rating * .96 + 1.5 * .04; continue; }
       free = start + c.items.length * svcMin * (R() > accuracy ? 2 : 1);
       for (const it of c.items) {
         const d = DR[it.drink], r = RECIPE[it.size], ic = ICES.find(x => x.id === it.ice), T = TEAS[d.tea];
         const ml = teaNeed(it.drink, it.size) * (1 + ic.teaPlus), p = pots[d.tea];
-        if (p.ml < ml || p.exp < start) { L.waste += p.ml * p.cpm; const cost = T.gram / 2 * uc(T.item); p.ml = POT.yield / 2; p.cpm = cost / p.ml; p.exp = start + POT.lifeMin; }
+        if (p.ml < ml || p.exp < abs) { if (p.exp < abs) L.waste += p.ml * p.cpm; const cost = T.gram / 2 * uc(T.item); const keep = p.exp >= abs ? p.ml : 0; p.cpm = (cost + keep * p.cpm) / (POT.yield / 2 + keep); p.ml = POT.yield / 2 + keep; p.exp = abs + teaLife(); }
         let cost = ml * p.cpm; p.ml -= ml;
         cost += r.kem * uc('kem_beo') + r.sua * uc('sua_dac') + r.duong * it.sugar / 100 * uc('duong') + r.da * ic.ice * uc('da') + uc(r.cup) + (d.khoai ? d.khoai[it.size] * uc('bot_khoai') : 0);
         L.ice += r.da * ic.ice;
@@ -514,7 +528,7 @@ function simulate(days, svcMin, accuracy, appOn) {
           const t = TP[tid];
           if (t.cook) {
             const b = tb[tid];
-            if (b.n < 1 || b.exp < start) { L.waste += b.n * b.cpp; const n = t.cook.yield / 2; b.cpp = t.cook.dry / 2 * uc(t.cook.item) / n; b.n = n; b.exp = start + t.life; }
+            if (b.n < 1 || b.exp < abs) { if (b.exp < abs) L.waste += b.n * b.cpp; const n = t.cook.yield / 2; b.cpp = t.cook.dry / 2 * uc(t.cook.item) / n; b.n = n; b.exp = abs + topLife(); }
             b.n--; cost += b.cpp;
           } else cost += topCost(tid);
         }
@@ -526,9 +540,11 @@ function simulate(days, svcMin, accuracy, appOn) {
       }
       const wait = free - c.t, s = clamp(5 - Math.max(0, wait - 6) * 0.25, 1, 5); rating = rating * .96 + s * .04;
     }
-    for (const k in pots) L.waste += pots[k].ml * pots[k].cpm;
-    for (const k in tb) L.waste += tb[k].n * tb[k].cpp;
-    const bags = Math.ceil(L.ice / ITEMS.da.pack) || 1; L.waste += bags * st.itemPrice.da - L.ice * uc('da');
+    const endAbs = off + 1440 + DAY0;
+    for (const k in pots) if (pots[k].exp < endAbs) { L.waste += pots[k].ml * pots[k].cpm; pots[k].ml = 0; }
+    for (const k in tb) if (tb[k].exp < endAbs) { L.waste += tb[k].n * tb[k].cpp; tb[k].n = 0; }
+    const needIce = Math.max(0, L.ice - iceLeft), bags = Math.ceil(needIce / ITEMS.da.pack);
+    iceLeft = iceLeft + bags * ITEMS.da.pack - L.ice; const melt = iceLeft * st.settings.iceMelt; L.waste += melt * uc('da'); iceLeft -= melt;
     const fx = fixedPerDay(), fixed = fx.rent + fx.util + fx.dep + fx.labor;
     rows.push({ d, date: dateStr(date), dow: date.getDay(), weather, ...L, fixed, profit: L.rev - L.cogs - L.waste - fixed, rating });
   }
@@ -557,10 +573,11 @@ function speech(c) {
 function render() {
   UI.dirty = false;
   $('#top').innerHTML = renderTop();
-  const tabs = [['ban', '🧋 Bán hàng'], ['kho', '📦 Kho & nhập hàng'], ['congthuc', '📋 Định lượng & giá vốn'], ['baocao', '📊 Báo cáo'], ['mophong', '🔮 Mô phỏng nhanh'], ['caidat', '⚙️ Cài đặt']];
+  const tabs = [['ban', '🧋 Bán hàng'], ['kho', '📦 Kho & nhập hàng'], ['congthuc', '📋 Định lượng & giá vốn'], ['baocao', '📊 Báo cáo'], ['banve', '🛠️ Bản vẽ xe 2D/3D'], ['mophong', '🔮 Mô phỏng nhanh'], ['caidat', '⚙️ Cài đặt']];
   $('#tabs').innerHTML = tabs.map(([k, n]) => `<button class="tab ${UI.tab === k ? 'on' : ''}" data-a="tab" data-v="${k}">${n}</button>`).join('');
-  const v = { ban: renderSales, kho: renderKho, congthuc: renderRecipe, baocao: renderReport, mophong: renderSim, caidat: renderSettings }[UI.tab];
+  const v = { ban: renderSales, kho: renderKho, congthuc: renderRecipe, baocao: renderReport, mophong: renderSim, caidat: renderSettings, banve: renderBanVe }[UI.tab];
   $('#main').innerHTML = v();
+  renderStage();
   $('#modal').innerHTML = UI.modal ? renderModal() : '';
   $('#toast').innerHTML = UI.toast ? `<div class="toastbox">${esc(UI.toast)}</div>` : '';
 }
@@ -586,7 +603,9 @@ function renderTop() {
 function renderSales() {
   if (S.phase === 'prep') return renderPrep();
   const walk = D.cust.filter(c => c.seg !== 'app'), apps = D.cust.filter(c => c.seg === 'app');
-  return `<div class="sales">
+  const vbtn = (k, n) => `<button class="btn tiny ${UI.view === k ? 'on' : ''}" data-a="view" data-v="${k}">${n}</button>`;
+  return `<div class="viewbar"><span class="small mute">Chế độ xem:</span>${vbtn('bang', '📋 Bảng')}${vbtn('2d', '🖼️ Cảnh 2D')}${vbtn('3d', '🧊 Cảnh 3D')}<span class="small mute">${UI.view === 'bang' ? '' : 'Bấm vào khách trong cảnh để nhận order / thu tiền. 3D: kéo để xoay, cuộn để phóng.'}</span></div>
+  <div class="sales">
     <section class="col">
       <div class="card"><h3>Khách tại xe <span class="pill">${walk.length}</span></h3>
         ${walk.length ? walk.map(custCard).join('') : `<p class="empty">${D.t < 360 ? 'Chưa tới giờ mở cửa (6:00). Tranh thủ ủ trà, nấu trân châu ở Bếp sau →' : 'Đang vắng khách. Bấm x4 / x8 để tua nhanh.'}</p>`}
@@ -691,8 +710,8 @@ function renderKitchen() {
     return per && S.stock[k] < per * 8;
   });
   return `<div class="card"><h3>🔥 Bếp sau</h3>
-    <div class="ksub">Bình ủ trà (dùng trong 5 tiếng)</div>${Object.keys(TEAS).map(potRow).join('')}
-    <div class="ksub">Nồi trân châu (1 bếp, dùng trong 4 tiếng)</div>${TOPPINGS.filter(t => t.cook).map(topRow).join('')}
+    <div class="ksub">Bình ủ trà (dùng trong ${lifeTxt(teaLife())}, cất tủ mát qua đêm)</div>${Object.keys(TEAS).map(potRow).join('')}
+    <div class="ksub">Nồi trân châu (1 bếp, dùng trong ${lifeTxt(topLife())})</div>${TOPPINGS.filter(t => t.cook).map(topRow).join('')}
     <div class="ksub">Ăn liền</div>${TOPPINGS.filter(t => !t.cook).map(t => `<div class="krow"><div><b>${t.name}</b><div class="small mute">${topReady(t.id)} phần</div></div></div>`).join('')}
     ${low.length ? `<div class="lowbox">⚠️ Sắp hết: ${low.map(k => `<button class="btn tiny" data-a="buy" data-v="${k}">${ITEMS[k].name} (${Math.round(S.stock[k])}${ITEMS[k].unit})</button>`).join(' ')}<div class="small mute">Bấm để mua gấp (+15%, 20 phút giao)</div></div>` : ''}
     <div style="margin-top:10px"><button class="btn ghost" data-a="close">🌙 Đóng ca</button></div>
@@ -723,7 +742,7 @@ function renderPrep() {
       <p>Tổng đề xuất: <b>${fmt(sug.cost)}</b> · Tiền đang có: <b>${fmt(S.money)}</b></p>
       <div class="row"><button class="btn gold" data-a="buySuggest">🛒 Mua theo đề xuất</button><button class="btn" data-a="tab" data-v="kho">Tự chọn mua ở tab Kho</button>
       <button class="btn pri big" data-a="open">🌅 Mở xe (bắt đầu 5:00)</button></div>
-      <p class="small mute">Đá mua mỗi ngày, cuối ngày tan hết. Trà đã ủ và trân châu đã nấu cuối ngày phải đổ bỏ.</p>
+      <p class="small mute">Đá để thùng giữ nhiệt, qua đêm tan ~${Math.round(S.settings.iceMelt * 100)}%. Trà ủ dùng trong ${lifeTxt(teaLife())}, trân châu nấu dùng trong ${lifeTxt(topLife())} — còn hạn thì cất tủ mát dùng tiếp.</p>
     </div></div>`;
 }
 
@@ -733,7 +752,7 @@ function renderKho() {
   return `<div class="card"><h2>Kho & nhập hàng</h2>
     <p>${open ? '<b class="warn">Đang trong ca:</b> mua gấp ở tạp hóa gần đó, giá +15%, 20 phút sau mới có hàng.' : 'Đang chuẩn bị: mua ở chợ đầu mối / đại lý, giá gốc.'} Tiền: <b>${fmt(S.money)}</b> · Giá trị tồn kho: <b>${fmt(stockValue())}</b></p>
     <table class="tbl"><tr><th>Nguyên liệu</th><th>Quy cách</th><th>Giá gói</th><th>Đơn giá</th><th>Tồn</th><th></th></tr>
-    ${Object.entries(ITEMS).map(([k, it]) => `<tr><td>${it.name}${it.melts ? ' <span class="small mute">(tan cuối ngày)</span>' : ''}</td><td>${it.label}</td><td class="num">${fmt(S.itemPrice[k])}</td>
+    ${Object.entries(ITEMS).map(([k, it]) => `<tr><td>${it.name}${it.melts ? ' <span class="small mute">(tan bớt qua đêm)</span>' : ''}</td><td>${it.label}</td><td class="num">${fmt(S.itemPrice[k])}</td>
       <td class="num small">${(uc(k)).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}đ/${it.unit}</td><td class="num">${Math.round(S.stock[k]).toLocaleString('vi-VN')} ${it.unit}</td>
       <td><button class="btn tiny pri" data-a="buy" data-v="${k}">+1 ${open ? '(' + fk(S.itemPrice[k] * 1.15) + ')' : ''}</button></td></tr>`).join('')}
     </table></div>`;
@@ -760,8 +779,8 @@ function renderRecipe() {
     </table>
     <h3>Pha trà cốt & nấu trân châu</h3>
     <ul class="small">
-      <li><b>Bình trà 3L:</b> ${Object.values(TEAS).map(t => t.name + ' ' + t.gram + 'g').join(', ')} + 3 lít nước 90–95°C, ủ 15 phút, lọc bã → ~2,7 lít trà cốt ≈ 18 ly M hoặc 12 ly L. Dùng trong 5 tiếng, quá giờ trà chua phải đổ.</li>
-      <li><b>Trân châu đen / trắng / sợi:</b> 500g khô, nước sôi gấp 8 lần, nấu 30–40 phút, ủ 15 phút, xả lạnh, ngâm đường đen → ~1,1kg ≈ 22 phần. Dùng trong 4 tiếng, để lâu bị cứng. Có thể nấu nửa mẻ (250g → 11 phần) lúc vắng khách.</li>
+      <li><b>Bình trà 3L:</b> ${Object.values(TEAS).map(t => t.name + ' ' + t.gram + 'g').join(', ')} + 3 lít nước 90–95°C, ủ 15 phút, lọc bã → ~2,7 lít trà cốt ≈ 18 ly M hoặc 12 ly L. Hạn dùng đang đặt: ${lifeTxt(teaLife())} (để tủ mát, sửa ở Cài đặt).</li>
+      <li><b>Trân châu đen / trắng / sợi:</b> 500g khô, nước sôi gấp 8 lần, nấu 30–40 phút, ủ 15 phút, xả lạnh, ngâm đường đen → ~1,1kg ≈ 22 phần. Hạn dùng đang đặt: ${lifeTxt(topLife())} (sửa ở Cài đặt). Có thể nấu nửa mẻ (250g → 11 phần) lúc vắng khách.</li>
       <li><b>3Q, thạch dừa:</b> ăn liền, múc 40g/phần.</li>
     </ul></div>
   <div class="card"><h3>Giá vốn & lãi gộp từng ly (70% đường, đá bình thường, chưa topping)</h3>
@@ -875,7 +894,8 @@ A.saveSettings = () => {
   DRINKS.forEach(d => { S.price.drinks[d.id].M = num('p_' + d.id + '_M'); S.price.drinks[d.id].L = num('p_' + d.id + '_L'); });
   TOPPINGS.forEach(t => S.price.tops[t.id] = num('t_' + t.id));
   Object.keys(ITEMS).forEach(k => S.itemPrice[k] = num('i_' + k));
-  ['rentMonth', 'utilMonth', 'equipment', 'equipMonths', 'laborMonth'].forEach(k => S.settings[k] = num('s_' + k));
+  ['rentMonth', 'utilMonth', 'equipment', 'equipMonths', 'laborMonth', 'teaLifeH', 'topLifeH'].forEach(k => S.settings[k] = num('s_' + k));
+  S.settings.iceMelt = clamp(num('s_iceMelt') / 100, 0, 1);
   S.settings.appMarkup = num('s_appMarkup') / 100; S.settings.appFee = num('s_appFee') / 100; S.settings.appVat = num('s_appVat') / 100;
   S.settings.appOn = $('#s_appOn').checked;
   save(); toast('Đã lưu cài đặt');
@@ -899,6 +919,13 @@ function renderSettings() {
       <label>Khấu hao trong (tháng) ${inp('s_equipMonths', S.settings.equipMonths, 1)}</label>
       <label>Tiền công thuê người / tháng (0 = tự bán) ${inp('s_laborMonth', S.settings.laborMonth, 500000)}</label>
     </div>
+    <h3>Hạn dùng & bảo quản</h3>
+    <div class="form col">
+      <label>Trà cốt đã ủ, cất tủ mát (giờ) ${inp('s_teaLifeH', S.settings.teaLifeH, 1)}</label>
+      <label>Trân châu đã nấu (giờ) ${inp('s_topLifeH', S.settings.topLifeH, 1)}</label>
+      <label>Đá tan qua đêm trong thùng giữ nhiệt (%) ${inp('s_iceMelt', Math.round(S.settings.iceMelt * 100), 5)}</label>
+    </div>
+    <p class="small mute">72 giờ = 3 ngày. Còn hạn thì cuối ngày cất tủ mát, hôm sau dùng tiếp. Thực tế: trân châu nấu xong sau 4–6 tiếng bắt đầu cứng, để tủ lạnh qua đêm phải hấp/ngâm đường lại; trà cốt tủ mát ngon nhất trong 24–48 giờ. Nên thử thật vài mẻ rồi chỉnh số này cho đúng.</p>
     <h3>App giao hàng (ShopeeFood / GrabFood)</h3>
     <div class="form col">
       <label class="chk"><input id="s_appOn" type="checkbox" ${S.settings.appOn ? 'checked' : ''}> Có bán trên app (áp dụng từ ngày sau)</label>
@@ -938,6 +965,7 @@ function renderModal() {
 
 // ---- cập nhật nhanh mỗi khung hình ----
 function updateDyn() {
+  updateStage();
   if (!D) return;
   const ck = $('#clock'); if (ck) ck.textContent = hhmm(D.t);
   document.querySelectorAll('[data-pat]').forEach(el => {
@@ -959,4 +987,4 @@ function loop(now) {
   if (UI.dirty) render(); else updateDyn();
   requestAnimationFrame(loop);
 }
-load(); render(); requestAnimationFrame(loop);
+function boot() { load(); render(); requestAnimationFrame(loop); }

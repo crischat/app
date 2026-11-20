@@ -135,6 +135,35 @@ const DEFAULT_SETTINGS = {
   appFee: 0.25,               // chiết khấu sàn
   appVat: 0.10,               // VAT tính trên phí sàn
   openMin: 6 * 60, closeMin: 21 * 60 + 30,
+  teaLifeH: 72,               // hạn dùng trà cốt (giờ) khi cất tủ mát
+  topLifeH: 72,               // hạn dùng trân châu đã nấu (giờ)
+  iceMelt: 0.4,               // phần đá tan qua đêm trong thùng giữ nhiệt
 };
 
 const DOW_NAMES = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+
+// ===== Kích thước xe (mm) — dùng cho bản vẽ 2D, mô hình 3D =====
+// Mặt trước = phía khách (có kính). Mặt sau = phía người bán (để trống).
+const CART = {
+  L: 1600, W: 700, H: 2100,
+  wheel: 200, clear: 150, cabTop: 880, counter: 900, topT: 20,
+  glassTop: 1500, postTop: 1800, signH: 300, post: 40,
+  frontStrip: 200,               // dải sát kính để bình trà (khách nhìn thấy)
+  zones: [                        // chia theo chiều dài, trái → phải (nhìn từ phía khách)
+    { id: 'order', name: 'Order & thu tiền', w: 300, top: 'Mã QR, máy tính tiền, phiếu order', below: 'Ngăn kéo tiền + túi, giấy' },
+    { id: 'mix',   name: 'Pha & lắc',        w: 400, top: 'Bình lắc, ca đong, hũ kem béo, sữa đặc', below: 'Nguyên liệu khô: trà, bột, đường' },
+    { id: 'ice',   name: 'Thùng đá âm',      w: 250, top: 'Thùng đá âm 230×450, sâu 350', below: 'Can nước sạch 20L' },
+    { id: 'top',   name: '6 khay topping',   w: 360, top: '6 khay inox GN 1/6 (176×162), 2 cột × 3 hàng', below: 'Ắc quy 12V 100Ah + inverter' },
+    { id: 'seal',  name: 'Dập ly & giao',    w: 290, top: 'Máy dập màng 220×330, chồng ly M/L', below: 'Thùng rác + can nước thải' },
+  ],
+  pot: { d: 180, h: 340, lit: 6 },  // bình ủ trà thủy tinh có vòi
+};
+const BOM = [
+  ['Xe inox 304: khung, tủ 5 ngăn, mặt bàn, kính cường lực 3 mặt, mái, biển LED, 4 bánh xe Ø200 (2 bánh khóa), ắc quy + đèn', '1600×700×2100', 7000000],
+  ['Máy dập màng ly bán tự động', '220×330×560', 2000000],
+  ['Thùng đá âm inox giữ nhiệt', '230×450×350', 800000],
+  ['6 khay inox GN 1/6 sâu 100 + nắp', '176×162×100', 500000],
+  ['4 bình ủ trà thủy tinh 6L có vòi + bình lắc, ca đong, muỗng', 'Ø180 × 340', 1000000],
+  ['Bếp ga mini + nồi 5L nấu trân châu + bàn phụ', 'bàn 1000×500×750', 600000],
+  ['Dù Ø2,4m, bảng menu chữ A, decal mặt tủ', '', 1000000],
+];
