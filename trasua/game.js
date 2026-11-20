@@ -177,10 +177,10 @@ function step() {
   while (D.sched.length && D.sched[0].t <= t) {
     const c = D.sched.shift(), seg = SEGMENTS[c.seg];
     c.pStart = c.t;
-    if (c.seg === 'app') { c.state = 'new'; c.deadline = c.t + seg.patQ; log('🛵 Đơn app mới (' + c.items.length + ' ly) — bấm Nhận đơn', 'app'); }
+    if (c.seg === 'app') { c.state = 'new'; c.deadline = c.t + seg.patQ * S.settings.patMult; log('🛵 Đơn app mới (' + c.items.length + ' ly) — bấm Nhận đơn', 'app'); }
     else {
       const crowd = D.cust.filter(x => x.seg !== 'app' && (x.state === 'wait' || x.state === 'order')).length;
-      c.state = 'wait'; c.deadline = c.t + seg.patQ * (crowd >= 4 ? 0.75 : 1);
+      c.state = 'wait'; c.deadline = c.t + seg.patQ * S.settings.patMult * (crowd >= 4 ? 0.8 : 1);
       log(c.emoji + ' ' + seg.name + ' tới xe (' + c.items.length + ' ly)');
     }
     D.cust.push(c); dirty();
@@ -251,7 +251,7 @@ A.open = () => openDay();
 A.sel = id => { D.sel = +id; dirty(); };
 A.take = id => {
   const c = D.cust.find(x => x.id === +id); if (!c) return;
-  c.state = 'order'; c.taken = D.t; c.deadline = D.t + SEGMENTS[c.seg].patW + 1.5 * (c.items.length - 1); D.sel = c.id; dirty();
+  c.state = 'order'; c.taken = D.t; c.deadline = D.t + (SEGMENTS[c.seg].patW + 2 * (c.items.length - 1)) * S.settings.patMult; D.sel = c.id; dirty();
 };
 A.appAccept = id => {
   const c = D.cust.find(x => x.id === +id); if (!c) return;
@@ -587,7 +587,8 @@ function renderTop() {
   const profitNow = L ? L.rev - L.cogs - L.waste - L.loss : 0;
   const speeds = D ? `<div class="speeds">
       <button class="sp ${!D.running ? 'on' : ''}" data-a="pause">${D.running ? '⏸' : '▶'}</button>
-      ${[1, 2, 4, 8].map(s => `<button class="sp ${D.running && D.speed === s ? 'on' : ''}" data-a="speed" data-v="${s}">x${s}</button>`).join('')}
+      ${[1, 2, 4].map(s => `<button class="sp ${D.running && D.speed === s ? 'on' : ''}" data-a="speed" data-v="${s}" title="1 phút trong game = ${Math.round(S.settings.secPerMin / s * 10) / 10} giây">x${s}</button>`).join('')}
+      <span id="ffbadge" class="ffb"></span>
     </div>` : '';
   return `<div class="brand">🧋 <b>Xe Trà Sữa</b> <span class="mute">mô phỏng</span></div>
     <div class="stat"><span class="lbl">Ngày ${S.day}</span><b>${DOW_NAMES[date.getDay()]} ${dateStr(date)}</b></div>
@@ -898,6 +899,7 @@ A.saveSettings = () => {
   S.settings.iceMelt = clamp(num('s_iceMelt') / 100, 0, 1);
   S.settings.appMarkup = num('s_appMarkup') / 100; S.settings.appFee = num('s_appFee') / 100; S.settings.appVat = num('s_appVat') / 100;
   S.settings.appOn = $('#s_appOn').checked;
+  S.settings.secPerMin = clamp(num('s_secPerMin'), 1, 30); S.settings.patMult = +$('#s_patMult').value; S.settings.autoFF = $('#s_autoFF').checked;
   save(); toast('Đã lưu cài đặt');
 };
 A.reset = () => {
@@ -918,6 +920,12 @@ function renderSettings() {
       <label>Tiền xe + dụng cụ ${inp('s_equipment', S.settings.equipment, 100000)}</label>
       <label>Khấu hao trong (tháng) ${inp('s_equipMonths', S.settings.equipMonths, 1)}</label>
       <label>Tiền công thuê người / tháng (0 = tự bán) ${inp('s_laborMonth', S.settings.laborMonth, 500000)}</label>
+    </div>
+    <h3>Nhịp chơi</h3>
+    <div class="form col">
+      <label>Tốc độ x1: 1 phút trong game = bao nhiêu giây thật ${inp('s_secPerMin', S.settings.secPerMin, 1)}</label>
+      <label>Độ kiên nhẫn của khách <select id="s_patMult">${[[1.6, 'Dễ — khách chờ lâu'], [1.3, 'Vừa'], [1, 'Sát thực tế']].map(([v, n]) => `<option value="${v}" ${S.settings.patMult == v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      <label class="chk"><input id="s_autoFF" type="checkbox" ${S.settings.autoFF ? 'checked' : ''}> Tự tua nhanh khi không có khách</label>
     </div>
     <h3>Hạn dùng & bảo quản</h3>
     <div class="form col">
@@ -968,6 +976,7 @@ function updateDyn() {
   updateStage();
   if (!D) return;
   const ck = $('#clock'); if (ck) ck.textContent = hhmm(D.t);
+  const fb = $('#ffbadge'); if (fb) fb.textContent = D.ff && D.running ? '⏩ vắng khách, đang tua' : '';
   document.querySelectorAll('[data-pat]').forEach(el => {
     const c = D.cust.find(x => x.id === +el.dataset.pat); if (!c) return;
     const p = patPct(c); el.style.width = p * 100 + '%'; el.className = p < .3 ? 'bad' : p < .6 ? 'warn' : '';
@@ -983,7 +992,12 @@ document.addEventListener('click', e => {
 let last = performance.now();
 function loop(now) {
   const dt = Math.min(now - last, 250); last = now;
-  if (D && D.running && S.phase === 'open' && !(UI.modal && D.speed > 2)) { D.t += dt / 1000 * D.speed; step(); }
+  if (D && D.running && S.phase === 'open' && !(UI.modal && D.speed > 2)) {
+    const busy = D.cup || UI.modal || D.cust.some(c => c.state !== 'order' || c.seg !== 'app' || !c.ready || c.driver);
+    const base = D.speed / S.settings.secPerMin;
+    D.ff = !busy && S.settings.autoFF && D.t < S.settings.closeMin;
+    D.t += dt / 1000 * (D.ff ? Math.max(base, 2.5) : base); step();
+  }
   if (UI.dirty) render(); else updateDyn();
   requestAnimationFrame(loop);
 }

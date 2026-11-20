@@ -203,6 +203,60 @@ function skyColor(t) {
   if (h < 18.3) return ['#f0a66b', '#f7d9b0'];
   return ['#1b2236', '#33405e'];
 }
+
+// ---- Ngoại hình khách (cố định theo id) ----
+function srand(seed) { let v = seed * 9301 + 49297; return () => (v = (v * 9301 + 49297) % 233280) / 233280; }
+function lookOf(c) {
+  if (c.look) return c.look;
+  const r = srand(c.id), pk = a => a[Math.floor(r() * a.length)];
+  const L = { female: r() < .5, skin: pk(['#f1c27d', '#e8b98a', '#d9a066', '#c68642', '#f5d0a9']), hair: '#2b1d14', seg: c.seg };
+  if (c.seg === 'hs') Object.assign(L, { h: 1520, shirt: '#ffffff', pants: '#1d3557', scarf: r() < .5, bag: pk(['#2a9d8f', '#e76f51', '#457b9d', '#f4a261', '#9d4edd']) });
+  else if (c.seg === 'cn') Object.assign(L, { h: L.female ? 1580 : 1680, shirt: pk(['#2f5d8a', '#3a7d44', '#5c6f8a', '#1f6f8b']), pants: '#2b2d42', vest: r() < .45, cap: r() < .5 ? pk(['#f4d35e', '#ffffff', '#2b2d42']) : null });
+  else {
+    const old = r() < .25;
+    Object.assign(L, { h: old ? 1550 : (L.female ? 1580 : 1680), shirt: pk(['#e07a5f', '#81b29a', '#f2cc8f', '#b5838d', '#ef476f', '#118ab2', '#f6bd60']), pants: pk(['#3d405b', '#6d597a', '#264653', '#8d6e63']), old, hair: old ? '#bdbdbd' : '#2b1d14', nonla: old && r() < .5, bag: !old && L.female && r() < .5 ? '#c08552' : null });
+  }
+  c.look = L; return L;
+}
+// Người đứng: gốc (0,0) ở chân, đơn vị mm, đi lên là y âm
+function personSVG(L) {
+  const H = L.h, k = H / 1650, hy = -H + 130 * k, sh = -H + 300 * k, hip = -820 * k;
+  let g = '';
+  if (L.female && L.seg !== 'cn') g += `<path d="M-125 ${hy - 20} Q -150 ${hy + 220} -110 ${sh + 140} L 110 ${sh + 140} Q 150 ${hy + 220} 125 ${hy - 20} Z" fill="${L.hair}"/>`;
+  if (L.bag && L.seg === 'hs') g += `<rect x="-170" y="${sh + 20}" width="340" height="${380 * k}" rx="60" fill="${L.bag}"/>`;
+  const skirt = L.female && L.seg === 'hs';
+  g += skirt ? `<rect x="-100" y="${hip}" width="70" height="${-hip}" rx="30" fill="${L.skin}"/><rect x="30" y="${hip}" width="70" height="${-hip}" rx="30" fill="${L.skin}"/><path d="M-150 ${hip - 40} L 150 ${hip - 40} L 185 ${hip + 260} L -185 ${hip + 260} Z" fill="${L.pants}"/>`
+    : `<rect x="-115" y="${hip}" width="100" height="${-hip}" rx="35" fill="${L.pants}"/><rect x="15" y="${hip}" width="100" height="${-hip}" rx="35" fill="${L.pants}"/>`;
+  g += `<ellipse cx="-65" cy="-10" rx="80" ry="35" fill="#3b2f2f"/><ellipse cx="65" cy="-10" rx="80" ry="35" fill="#3b2f2f"/>`;
+  g += `<rect x="-200" y="${sh}" width="80" height="${520 * k}" rx="40" fill="${L.shirt}" stroke="#0002" stroke-width="8"/><rect x="120" y="${sh}" width="80" height="${520 * k}" rx="40" fill="${L.shirt}" stroke="#0002" stroke-width="8"/>
+    <circle cx="-160" cy="${sh + 540 * k}" r="45" fill="${L.skin}"/><circle cx="160" cy="${sh + 540 * k}" r="45" fill="${L.skin}"/>`;
+  g += `<path d="M-170 ${sh + 40} Q -170 ${sh} -120 ${sh} L 120 ${sh} Q 170 ${sh} 170 ${sh + 40} L 160 ${hip + 40} L -160 ${hip + 40} Z" fill="${L.shirt}" stroke="#0002" stroke-width="8"/>`;
+  if (L.seg === 'hs') g += `<line x1="-80" y1="${sh}" x2="-90" y2="${hip}" stroke="#0003" stroke-width="10"/><line x1="80" y1="${sh}" x2="90" y2="${hip}" stroke="#0003" stroke-width="10"/>${L.scarf ? `<path d="M-60 ${sh + 10} L 60 ${sh + 10} L 0 ${sh + 180} Z" fill="#d62828"/>` : ''}<rect x="${L.female ? -150 : 40}" y="${sh + 100}" width="70" height="20" fill="#1d3557" opacity=".5"/>`;
+  if (L.vest) g += `<path d="M-165 ${sh + 30} L -60 ${sh + 30} L -60 ${hip + 40} L -160 ${hip + 40} Z M165 ${sh + 30} L 60 ${sh + 30} L 60 ${hip + 40} L 160 ${hip + 40} Z" fill="#f77f00"/><rect x="-165" y="${sh + 260}" width="105" height="30" fill="#e9ecef"/><rect x="60" y="${sh + 260}" width="105" height="30" fill="#e9ecef"/>`;
+  if (L.seg === 'cn') g += `<rect x="-60" y="${sh + 90}" width="80" height="50" rx="8" fill="#fff" opacity=".85"/>`;
+  if (L.bag && L.seg === 'dc') g += `<line x1="-110" y1="${sh + 10}" x2="150" y2="${hip}" stroke="${L.bag}" stroke-width="18"/><rect x="100" y="${hip - 60}" width="140" height="120" rx="20" fill="${L.bag}"/>`;
+  g += `<rect x="-35" y="${hy + 100}" width="70" height="90" fill="${L.skin}"/><circle cx="0" cy="${hy}" r="125" fill="${L.skin}"/>`;
+  if (L.nonla) g += `<path d="M-230 ${hy - 40} L 0 ${hy - 260} L 230 ${hy - 40} Z" fill="#e9d8a6" stroke="#b08968" stroke-width="10"/>`;
+  else if (L.cap) g += `<path d="M-128 ${hy - 20} Q -128 ${hy - 150} 0 ${hy - 150} Q 128 ${hy - 150} 128 ${hy - 20} Z" fill="${L.cap}" stroke="#0002" stroke-width="8"/><rect x="0" y="${hy - 40}" width="170" height="30" rx="15" fill="${L.cap}"/>`;
+  else g += `<path d="M-130 ${hy + 10} Q -140 ${hy - 150} 0 ${hy - 140} Q 140 ${hy - 150} 130 ${hy + 10} Q 90 ${hy - 70} 0 ${hy - 60} Q -90 ${hy - 70} -130 ${hy + 10} Z" fill="${L.hair}"/>`;
+  g += `<circle cx="-45" cy="${hy + 5}" r="15" fill="#2b2118"/><circle cx="45" cy="${hy + 5}" r="15" fill="#2b2118"/>
+    <circle cx="-75" cy="${hy + 45}" r="22" fill="#ff8fa3" opacity=".35"/><circle cx="75" cy="${hy + 45}" r="22" fill="#ff8fa3" opacity=".35"/>
+    <path class="m-h" d="M-45 ${hy + 50} Q 0 ${hy + 95} 45 ${hy + 50}" stroke="#2b2118" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path class="m-n" d="M-35 ${hy + 65} L 35 ${hy + 65}" stroke="#2b2118" stroke-width="12" stroke-linecap="round"/>
+    <path class="m-a" d="M-45 ${hy + 80} Q 0 ${hy + 40} 45 ${hy + 80}" stroke="#2b2118" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path class="m-a" d="M-75 ${hy - 40} L -20 ${hy - 20} M75 ${hy - 40} L 20 ${hy - 20}" stroke="#2b2118" stroke-width="12" stroke-linecap="round"/>`;
+  return g;
+}
+function bikeSVG(c) {
+  const col = c.id % 2 ? '#00b14f' : '#ee4d2d';
+  return `<circle cx="-420" cy="-160" r="160" fill="#222"/><circle cx="-420" cy="-160" r="60" fill="#888"/><circle cx="420" cy="-160" r="160" fill="#222"/><circle cx="420" cy="-160" r="60" fill="#888"/>
+    <path d="M-500 -260 Q -300 -520 0 -470 L 330 -470 Q 460 -460 520 -300 L 400 -260 Z" fill="#6c757d"/><path d="M300 -470 L 420 -820 L 470 -820" stroke="#333" stroke-width="40" fill="none"/>
+    <rect x="-560" y="-980" width="400" height="380" rx="40" fill="${col}"/><text x="-360" y="-760" font-size="120" text-anchor="middle" fill="#fff" font-weight="800">FOOD</text>
+    <path d="M-120 -500 L 160 -500 L 230 -300 L 120 -300 L 70 -420 L -60 -420 Z" fill="#2b2d42"/>
+    <path d="M-170 -1100 Q -170 -500 -100 -480 L 120 -480 Q 160 -900 120 -1100 Z" fill="${col}"/><path d="M60 -1000 L 380 -820" stroke="${col}" stroke-width="70" stroke-linecap="round"/>
+    <circle cx="-20" cy="-1230" r="150" fill="${col}"/><path d="M20 -1260 L 150 -1260 L 150 -1170 L 20 -1170 Z" fill="#1d3557" opacity=".8"/>`;
+}
+
 function scene2D() {
   const [s1, s2] = skyColor(D.t), night = D.t > 18.3 * 60 || D.t < 5.5 * 60, rain = S.weather === 'mua';
   const walk = D.cust.filter(c => c.seg !== 'app'), apps = D.cust.filter(c => c.seg === 'app');
@@ -218,23 +272,24 @@ function scene2D() {
     <path d="M90 95 Q 300 20 510 95 Z" fill="#d1495b"/><rect x="298" y="95" width="6" height="110" fill="#555"/>
     <g transform="translate(140,110) scale(0.17)">${frontInner({ ground: false })}</g>
     ${night ? '<rect x="140" y="165" width="272" height="60" fill="#fff6c8" opacity=".25"/>' : ''}`;
-  const show = walk.slice(0, 10);
+  const show = walk.slice(0, 9), GY = 468, SC = 0.17;
   show.forEach((c, i) => {
-    const x = 480 + i * 108, y = 478, sel = D.sel === c.id;
+    const x = 500 + i * 104, sel = D.sel === c.id, lk = lookOf(c), top = GY - lk.h * SC;
     const act = c.state === 'wait' ? 'take' : c.state === 'pay' ? 'pay' : 'sel';
     const icon = c.state === 'wait' ? '💬' : c.state === 'pay' ? '💰' : c.items.filter(t => t.done).length + '/' + c.items.length;
     g += `<g class="fig" data-a="${act}" data-v="${c.id}">
-      ${sel ? `<ellipse cx="${x}" cy="${y + 8}" rx="44" ry="12" fill="#ffb703" opacity=".8"/>` : ''}
-      <text x="${x}" y="${y}" font-size="86" text-anchor="middle">${c.emoji}</text>
-      <circle cx="${x}" cy="${y - 130}" r="28" fill="#fffaf2" stroke="#0002" stroke-width="2"/>
-      <circle data-ring="${c.id}" cx="${x}" cy="${y - 130}" r="28" fill="none" stroke="#2f8f4e" stroke-width="6" stroke-dasharray="175.9" stroke-dashoffset="0" transform="rotate(-90 ${x} ${y - 130})"/>
-      <text x="${x}" y="${y - 121}" font-size="${icon.length > 2 ? 20 : 24}" text-anchor="middle" font-weight="700" fill="#2e2218">${icon}</text>
-      <text x="${x}" y="${y + 36}" font-size="22" font-weight="700" text-anchor="middle" fill="${night ? '#eee' : '#2e2218'}">${c.items.length} ly</text></g>`;
+      ${sel ? `<ellipse cx="${x}" cy="${GY + 4}" rx="48" ry="12" fill="#ffb703" opacity=".85"/>` : `<ellipse cx="${x}" cy="${GY + 3}" rx="38" ry="8" fill="#0003"/>`}
+      <g transform="translate(${x},${GY}) scale(${SC})" data-mood="${c.id}" class="mood-h">${personSVG(lk)}</g>
+      <circle cx="${x}" cy="${top - 42}" r="28" fill="#fffaf2" stroke="#0002" stroke-width="2"/>
+      <circle data-ring="${c.id}" cx="${x}" cy="${top - 42}" r="28" fill="none" stroke="#2f8f4e" stroke-width="6" stroke-dasharray="175.9" stroke-dashoffset="0" transform="rotate(-90 ${x} ${top - 42})"/>
+      <text x="${x}" y="${top - 33}" font-size="${icon.length > 2 ? 20 : 24}" text-anchor="middle" font-weight="700" fill="#2e2218">${icon}</text>
+      <rect x="${x - 30}" y="${GY + 14}" width="60" height="24" rx="12" fill="#fffaf2cc"/><text x="${x}" y="${GY + 32}" font-size="18" font-weight="700" text-anchor="middle" fill="#2e2218">${c.items.length} ly</text></g>`;
   });
-  if (walk.length > 10) g += `<text x="1520" y="470" font-size="30" font-weight="700">+${walk.length - 10}</text>`;
-  apps.forEach((c, i) => {
-    const x = 1500 - i * 120;
-    if (c.driver) g += `<g class="fig" data-a="${c.ready ? 'handoff' : 'sel'}" data-v="${c.id}"><text x="${x}" y="520" font-size="84" text-anchor="middle">🛵</text><text x="${x}" y="548" font-size="20" font-weight="700" text-anchor="middle" fill="#fff">#${c.id} ${c.ready ? '✔ giao' : '⏳'}</text></g>`;
+  if (walk.length > 9) g += `<text x="1450" y="440" font-size="30" font-weight="700">+${walk.length - 9}</text>`;
+  apps.filter(c => c.driver).forEach((c, i) => {
+    const x = 1490 - i * 150;
+    g += `<g class="fig" data-a="${c.ready ? 'handoff' : 'sel'}" data-v="${c.id}"><g transform="translate(${x},${GY + 22}) scale(.15)">${bikeSVG(c)}</g>
+      <rect x="${x - 60}" y="${GY + 72}" width="120" height="26" rx="13" fill="${c.ready ? '#2f8f4e' : '#fffaf2'}"/><text x="${x}" y="${GY + 91}" font-size="17" font-weight="700" text-anchor="middle" fill="${c.ready ? '#fff' : '#2e2218'}">#${c.id} ${c.ready ? '✔ bấm giao' : '⏳ chờ ly'}</text></g>`;
   });
   const pend = apps.filter(c => !c.driver).length;
   if (pend) g += `<g><rect x="430" y="110" width="150" height="44" rx="22" fill="#ee4d2d"/><text x="505" y="140" font-size="20" text-anchor="middle" fill="#fff" font-weight="700">📱 ${pend} đơn app</text></g>`;
@@ -396,27 +451,60 @@ function setMode3D(mode) {
   else { const k = Math.max(1, 1.5 / Math.max(.5, T3.el.clientWidth / Math.max(1, T3.el.clientHeight))); T3.cam.position.set(.6 * k, 3.1 * k, 4.2 + 2.2 * k); T3.ctl.target.set(.5, .7, 1.0); }
   T3.ctl.update(); size3D();
 }
-const SEG_COL = { hs: 0xf1f1f1, cn: 0x2f5d8a, dc: 0xe07a5f, app: 0x00b14f };
+function limb(r, len, m) { const g = new THREE.Group(), c = new THREE.Mesh(new THREE.CylinderGeometry(r, r * .9, len, 12), m); c.position.y = -len / 2; c.castShadow = true; g.add(c); return g; }
+function sph(r, m, x, y, z, opt) { const s = new THREE.Mesh(opt ? new THREE.SphereGeometry(r, 18, 12, 0, Math.PI * 2, 0, opt) : new THREE.SphereGeometry(r, 18, 12), m); s.position.set(x, y, z); s.castShadow = true; return s; }
+function buildPerson(L, jacket) {
+  const g = new THREE.Group(), k = L.h / 1650, H = L.h / 1000, hip = .82 * k, sh = H - .3 * k, headY = H - .125;
+  const skin = mat(L.skin), shirt = mat(jacket || L.shirt), pants = mat(L.pants || '#2b2d42'), hair = mat(L.hair), dark = mat(0x2b2118);
+  const skirt = L.female && L.seg === 'hs' && !jacket;
+  const legs = [];
+  for (const x of [-.065, .065]) { const lg = limb(.055, hip - .04, skirt ? skin : pants); lg.position.set(x, hip, 0); g.add(lg); legs.push(lg); const shoe = box(.09, .05, .15, mat(0x3b2f2f), x, .025, .03); g.add(shoe); }
+  if (skirt) { const sk = cyl(.15, .2, .3, pants, 0, hip - .1, 0); g.add(sk); }
+  const torso = cyl(.16, .14, sh - hip + .05, shirt, 0, (sh + hip) / 2, 0); g.add(torso);
+  const arms = [];
+  for (const s of [-1, 1]) { const a = limb(.045, .52 * k, shirt); a.position.set(s * .2, sh - .02, 0); a.rotation.z = s * .1; g.add(a); arms.push(a); const hnd = sph(.045, skin, 0, -.54 * k, 0); a.add(hnd); }
+  g.add(cyl(.045, .05, .08, skin, 0, sh + .04, 0));
+  g.add(sph(.115, skin, 0, headY, 0));
+  for (const x of [-.04, .04]) g.add(sph(.014, dark, x, headY + .01, .106));
+  if (L.nonla && !jacket) { const c = new THREE.Mesh(new THREE.ConeGeometry(.26, .18, 20), mat(0xe9d8a6)); c.position.set(0, headY + .14, 0); g.add(c); }
+  else if (L.cap && !jacket) { g.add(cyl(.12, .12, .07, mat(L.cap), 0, headY + .08, 0)); g.add(box(.16, .015, .1, mat(L.cap), 0, headY + .05, .12)); }
+  else if (!jacket) g.add(sph(.122, hair, 0, headY + .005, -.005, Math.PI * .52));
+  if (L.female && L.seg !== 'cn' && !jacket) g.add(box(.22, .26, .07, hair, 0, headY - .1, -.08));
+  if (L.seg === 'hs' && !jacket) { g.add(box(.26, .32 * k, .12, mat(L.bag), 0, sh - .18, -.2)); if (L.scarf) { const sc = new THREE.Mesh(new THREE.ConeGeometry(.06, .16, 3), mat(0xd62828)); sc.rotation.x = Math.PI; sc.position.set(0, sh - .06, .15); g.add(sc); } }
+  if (L.vest && !jacket) { g.add(cyl(.168, .148, .36, mat(0xf77f00), 0, sh - .2, 0)); g.add(cyl(.17, .15, .03, mat(0xe9ecef), 0, sh - .25, 0)); }
+  if (L.bag && L.seg === 'dc' && !jacket) g.add(box(.14, .12, .06, mat(L.bag), .2, hip + .05, .02));
+  if (jacket) g.add(sph(.135, mat(jacket), 0, headY + .02, 0));
+  g.userData.legs = legs; g.userData.arms = arms; g.userData.h = H;
+  return g;
+}
 function makePerson(c) {
-  const g = new THREE.Group(), h = c.seg === 'hs' ? 1.5 : 1.65, col = SEG_COL[c.seg];
-  g.add(cyl(.15, .17, h - .55, mat(col), 0, (h - .55) / 2 + .25, 0));
-  g.add(cyl(.12, .12, .5, mat(c.seg === 'hs' ? 0x1d3557 : 0x3d3d3d), 0, .25, 0));
-  g.add(new THREE.Mesh(new THREE.SphereGeometry(.11, 16, 12), mat(0xf1c27d)).translateY(h - .17));
-  if (c.seg === 'cn') g.add(box(.32, .3, .32, mat(0xf77f00), 0, h - .55, 0));
-  if (c.seg === 'hs') g.add(box(.26, .32, .12, mat(0x2a9d8f), 0, h - .5, -.17));
-  g.userData.cid = c.id; g.userData.h = h;
-  const ring = new THREE.Mesh(new THREE.RingGeometry(.2, .26, 24), new THREE.MeshBasicMaterial({ color: 0xffb703, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = .01; ring.visible = false; g.add(ring); g.userData.ring = ring;
-  const bar = new THREE.Mesh(new THREE.PlaneGeometry(.36, .04), new THREE.MeshBasicMaterial({ color: 0x2f8f4e, depthTest: false })); bar.position.y = h + .1; bar.renderOrder = 11; g.add(bar); g.userData.bar = bar;
+  const L = lookOf(c), g = new THREE.Group(), body = buildPerson(L);
+  g.add(body); g.userData.body = body; g.userData.cid = c.id; g.userData.h = L.h / 1000; g.userData.phase = Math.random() * 6;
+  const ring = new THREE.Mesh(new THREE.RingGeometry(.22, .29, 28), new THREE.MeshBasicMaterial({ color: 0xffb703, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = .01; ring.visible = false; g.add(ring); g.userData.ring = ring;
+  const bar = new THREE.Mesh(new THREE.PlaneGeometry(.36, .04), new THREE.MeshBasicMaterial({ color: 0x2f8f4e, depthTest: false })); bar.position.y = g.userData.h + .14; bar.renderOrder = 11; g.add(bar); g.userData.bar = bar;
   return g;
 }
-function makeBike() {
-  const g = new THREE.Group();
-  g.add(box(.25, .3, 1.1, mat(0x222222), 0, .4, 0));
-  for (const z of [-.45, .45]) { const w = cyl(.2, .2, .08, mat(0x111111), 0, .2, z); w.rotation.z = Math.PI / 2; g.add(w); }
-  g.add(cyl(.15, .17, .7, mat(0x00b14f), 0, .95, .05)); g.add(new THREE.Mesh(new THREE.SphereGeometry(.13, 14, 10), mat(0x00b14f)).translateY(1.42).translateZ(.05));
-  g.add(box(.4, .35, .35, mat(0x00b14f), 0, .95, -.45));
+function animPerson(p, moving, t) {
+  const b = p.userData.body, ph = p.userData.phase + t * 8;
+  const sw = moving ? Math.sin(ph) * .5 : 0;
+  b.userData.legs[0].rotation.x = sw; b.userData.legs[1].rotation.x = -sw;
+  b.userData.arms[0].rotation.x = -sw * .8; b.userData.arms[1].rotation.x = sw * .8;
+  b.position.y = moving ? Math.abs(Math.sin(ph)) * .02 : Math.sin(t * 1.5 + p.userData.phase) * .005;
+}
+function makeBike(c) {
+  const g = new THREE.Group(), col = c && c.id % 2 ? 0x00b14f : 0xee4d2d, body = mat(0x6c757d, { m: .3, r: .4 }), blk = mat(0x1d1d1d);
+  for (const z of [-.5, .5]) { const w = new THREE.Mesh(new THREE.TorusGeometry(.2, .06, 10, 24), blk); w.rotation.y = Math.PI / 2; w.position.set(0, .26, z); w.castShadow = true; g.add(w); const hub = cyl(.07, .07, .1, mat(0x999999), 0, .26, z); hub.rotation.z = Math.PI / 2; g.add(hub); }
+  g.add(box(.26, .22, .9, body, 0, .42, -.05));
+  g.add(box(.28, .1, .5, mat(0x2b2d42), 0, .58, -.15));
+  const shield = box(.32, .5, .08, body, 0, .7, .38); shield.rotation.x = -.25; g.add(shield);
+  g.add(box(.6, .04, .04, blk, 0, 1.0, .42));
+  g.add(box(.42, .38, .4, mat(col), 0, .82, -.55));
+  const rider = buildPerson({ h: 1650, skin: '#e8b98a', shirt: col, pants: '#2b2d42', hair: '#2b1d14', seg: 'app' }, col);
+  rider.position.set(0, -.13, -.12); rider.userData.legs.forEach(l => { l.rotation.x = -1.3; }); rider.userData.arms.forEach(a => { a.rotation.x = -1.0; });
+  rider.scale.setScalar(.92); g.add(rider);
   return g;
 }
+
 function update3D() {
   if (!T3.ok) return;
   for (const tea in T3.pots) T3.pots[tea].scale.y = Math.max(.02, lvl(tea));
@@ -430,7 +518,9 @@ function update3D() {
       seen.add(c.id); let p = T3.cust.get(c.id);
       if (!p) { p = makePerson(c); T3.people.add(p); T3.cust.set(c.id, p); p.position.set(4, 0, 1.2); }
       const row = Math.floor(i / 6), tx = -.7 + (i % 6) * .58 + row * .29, tz = 1.35 + row * .65;
-      p.position.x += (tx - p.position.x) * .08; p.position.z += (tz - p.position.z) * .08; p.rotation.y = Math.PI;
+      const dx = tx - p.position.x, dz = tz - p.position.z, mv = Math.hypot(dx, dz) > .03;
+      p.position.x += dx * .06; p.position.z += dz * .06; p.rotation.y = mv ? Math.atan2(dx, dz) : p.rotation.y + (Math.PI - p.rotation.y) * .15;
+      animPerson(p, mv, performance.now() / 1000);
       const key = c.state + (c.items.filter(x => x.done).length) + (D.sel === c.id);
       if (p.userData.key !== key) {
         p.userData.key = key; if (p.userData.tag) { p.remove(p.userData.tag); p.userData.tag.material.map.dispose(); p.userData.tag.material.dispose(); }
@@ -445,7 +535,7 @@ function update3D() {
     const seenB = new Set();
     D.cust.filter(c => c.seg === 'app' && c.driver).forEach((c, i) => {
       seenB.add(c.id); let b = T3.bikes.get(c.id);
-      if (!b) { b = makeBike(); b.userData.cid = c.id; T3.people.add(b); T3.bikes.set(c.id, b); b.position.set(2.3 + i * .8, 0, 1.2); b.rotation.y = .3; }
+      if (!b) { b = makeBike(c); b.userData.cid = c.id; T3.people.add(b); T3.bikes.set(c.id, b); b.position.set(3.1 + i * .8, 0, .3); b.rotation.y = 0; }
       const key = 'b' + c.ready;
       if (b.userData.key !== key) { b.userData.key = key; if (b.userData.tag) b.remove(b.userData.tag); const tg = textSprite('🛵 #' + c.id + (c.ready ? ' ✔ bấm giao' : ' ⏳ chờ ly'), { size: 40, scale: .22 }); tg.position.y = 1.9; b.add(tg); b.userData.tag = tg; }
     });
@@ -473,7 +563,8 @@ function updateStage() {
   const want = stageWant();
   if (want === '2d' && D) document.querySelectorAll('[data-ring]').forEach(el => {
     const c = D.cust.find(x => x.id === +el.dataset.ring); if (!c) return; const p = patPct(c);
-    el.setAttribute('stroke-dashoffset', 175.9 * (1 - p)); el.setAttribute('stroke', p < .3 ? '#c2453a' : p < .6 ? '#d07a14' : '#2f8f4e');
+    el.setAttribute('stroke-dashoffset', 175.9 * (1 - p));
+    const mg = document.querySelector('[data-mood="' + c.id + '"]'); if (mg) mg.setAttribute('class', p > .6 ? 'mood-h' : p > .3 ? 'mood-n' : 'mood-a'); el.setAttribute('stroke', p < .3 ? '#c2453a' : p < .6 ? '#d07a14' : '#2f8f4e');
   });
   if ((want === '3d' || want === 'blue') && T3.ok) update3D();
 }

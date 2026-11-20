@@ -36,7 +36,7 @@ ul{padding-left:18px} li{margin:3px 0}
 .stat{display:flex;flex-direction:column;line-height:1.15}
 .stat .lbl{font-size:11px;color:var(--mute)}
 .clock b{font-size:20px}
-.speeds{display:flex;gap:3px}
+.speeds{display:flex;gap:3px;align-items:center}.ffb{font-size:12px;color:var(--accent);margin-left:6px;white-space:nowrap}.form select{padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
 .sp{border:1px solid var(--line);background:var(--chip);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px}
 .sp.on{background:var(--pri);color:#fff;border-color:var(--pri)}
 #tabs{display:flex;gap:4px;padding:8px 16px 0;overflow-x:auto}
@@ -133,7 +133,7 @@ ul{padding-left:18px} li{margin:3px 0}
 #stage{margin:12px 16px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
 #stage2d svg{display:block;width:100%;height:auto;max-height:52vh}
 #stage3d{height:min(56vh,520px);position:relative}#stage3d canvas{display:block;touch-action:none}
-.fig{cursor:pointer}.fig:hover text:first-of-type{filter:drop-shadow(0 0 6px #ffb703)}
+.fig{cursor:pointer}.fig:hover>g{filter:drop-shadow(0 0 5px #ffb703)}.mood-h .m-n,.mood-h .m-a,.mood-n .m-h,.mood-n .m-a,.mood-a .m-h,.mood-a .m-n{display:none}
 .viewbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .dwg svg{width:100%;height:auto;display:block;background:#fff;border-radius:8px;border:1px solid var(--line)}
 .dwgh{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -164,9 +164,9 @@ ul{padding-left:18px} li{margin:3px 0}
 <main id="main"></main>
 <div id="modal"></div>
 <div id="toast"></div>
-<script src="data.js?v=2"></script>
-<script src="game.js?v=2"></script>
-<script src="scene.js?v=2"></script>
+<script src="data.js?v=3"></script>
+<script src="game.js?v=3"></script>
+<script src="scene.js?v=3"></script>
 <script>boot();</script>
 </body>
 </html>

@@ -138,6 +138,9 @@ const DEFAULT_SETTINGS = {
   teaLifeH: 72,               // hạn dùng trà cốt (giờ) khi cất tủ mát
   topLifeH: 72,               // hạn dùng trân châu đã nấu (giờ)
   iceMelt: 0.4,               // phần đá tan qua đêm trong thùng giữ nhiệt
+  secPerMin: 5,               // tốc độ x1: 1 phút trong game = 5 giây thật
+  autoFF: true,               // tự tua nhanh khi vắng khách
+  patMult: 1.3,               // độ kiên nhẫn của khách (1.6 dễ · 1.3 vừa · 1 sát thực tế)
 };
 
 const DOW_NAMES = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
