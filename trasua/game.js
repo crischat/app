@@ -38,12 +38,20 @@ function save() { try { localStorage.setItem(SAVE, JSON.stringify(S)); } catch (
 function load() {
   try { S = JSON.parse(localStorage.getItem(SAVE)); } catch (e) { S = null; }
   if (!S || S.v !== 1) S = newState();
-  S.settings = { ...DEFAULT_SETTINGS, ...S.settings };
   if (S.phase === 'open') { // tải lại giữa ngày → quay về đầu ngày
     if (S.snap) { const snap = JSON.parse(S.snap); S = snap; }
     S.phase = 'prep';
     UI.toast = 'Trang bị tải lại giữa ca — ngày ' + S.day + ' được bắt đầu lại từ đầu.';
   }
+  fixSettings();
+}
+// Ván lưu từ bản cũ có thể thiếu cài đặt mới → bù mặc định, sửa số hỏng
+function fixSettings() {
+  S.settings = { ...DEFAULT_SETTINGS, ...S.settings };
+  for (const k in DEFAULT_SETTINGS) if (typeof DEFAULT_SETTINGS[k] === 'number' && !(isFinite(S.settings[k]) && S.settings[k] >= 0)) S.settings[k] = DEFAULT_SETTINGS[k];
+  if (!(S.settings.secPerMin > 0)) S.settings.secPerMin = DEFAULT_SETTINGS.secPerMin;
+  if (!isFinite(S.money)) S.money = S.settings.startMoney;
+  if (!isFinite(S.rating)) S.rating = 4.2;
 }
 
 // ================= Giá, giá vốn =================
@@ -900,7 +908,7 @@ A.saveSettings = () => {
   S.settings.appMarkup = num('s_appMarkup') / 100; S.settings.appFee = num('s_appFee') / 100; S.settings.appVat = num('s_appVat') / 100;
   S.settings.appOn = $('#s_appOn').checked;
   S.settings.secPerMin = clamp(num('s_secPerMin'), 1, 30); S.settings.patMult = +$('#s_patMult').value; S.settings.autoFF = $('#s_autoFF').checked;
-  save(); toast('Đã lưu cài đặt');
+  fixSettings(); save(); toast('Đã lưu cài đặt');
 };
 A.reset = () => {
   if (!confirm('Xóa toàn bộ ván chơi và bắt đầu lại từ ngày 1 với vốn ' + fmt($('#s_start').value) + '?')) return;
