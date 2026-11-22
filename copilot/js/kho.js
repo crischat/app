@@ -12,6 +12,8 @@
   function merge(goc, vt) {
     const p = JSON.parse(JSON.stringify(goc.profile || goc));
     if (!vt) { p.role = p.role || ''; return p; }
+    // Hồ sơ đầy đủ lưu từ tab Hồ sơ cũng dùng được làm vị trí: phần kinh nghiệm của nó thành ghi chú riêng
+    if (vt.profile) vt = Object.assign({}, vt.profile, { notes: vt.profile.experience });
     p.role = vt.role || vt.name || p.role;
     p.company = vt.company || p.company;
     p.jd = vt.jd || '';
@@ -53,7 +55,7 @@
       const list = (await D.listFolder(folder.id)).filter((f) => /\.json$/i.test(f.name));
       list.sort((a, b) => (b.modifiedTime || '').localeCompare(a.modifiedTime || ''));
       files.goc = list.filter((f) => /^goc\b/i.test(f.name));
-      files.vt = list.filter((f) => /^vt\b/i.test(f.name));
+      files.vt = list.filter((f) => !/^goc\b/i.test(f.name));
       const s = st();
       if (!files.goc.some((f) => f.id === s.goc) && files.goc[0]) save({ goc: files.goc[0].id });
       if (s.vt && !files.vt.some((f) => f.id === s.vt)) save({ vt: '' });

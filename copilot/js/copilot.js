@@ -9,6 +9,7 @@
 
   /* =================== Lưu trữ =================== */
   const PKEY = 'copilot_profile', SKEY = 'copilot_sessions', CKEY = 'copilot_settings';
+  const PROFILE_FOLDER = 'Cris Personal - Hồ sơ';
   const profile = () => Object.assign({ name: '', role: '', company: '', jd: '', cv: '', cvFile: '', experience: '', terms: '', style: 'Ngắn gọn, tự tin, tự nhiên như đang nói; kể kinh nghiệm theo STAR (Tình huống – Nhiệm vụ – Hành động – Kết quả) với số liệu cụ thể.', qa: [] }, U.store.get(PKEY, {}));
   const saveProfile = (p) => { if (!U.store.set(PKEY, p)) U.toast('Không lưu được hồ sơ (bộ nhớ trình duyệt đầy?)', 'err'); };
   const sessions = () => U.store.get(SKEY, []);
@@ -392,7 +393,7 @@ Nếu không có lời nói rõ ràng (chỉ tiếng ồn, gõ phím, tiếng th
     const p = profile();
     $('#profileBody').innerHTML = `
       <div class="card"><div class="cardhead"><h3>☁ Hồ sơ trên Google Drive</h3><span class="muted">${D.hasToken() ? 'Đã kết nối' : 'Sẽ hỏi đăng nhập khi bấm'}</span></div>
-        <p class="muted" style="margin-top:0">Lưu nhiều hồ sơ (hồ sơ gốc, từng vị trí) vào <b>${esc(D.rootName())}/Interview Copilot/Hồ sơ/</b>. Đổi máy chỉ cần kết nối Google rồi bấm <b>Dùng</b>.</p>
+        <p class="muted" style="margin-top:0">Lưu nhiều hồ sơ vào thư mục <b>${esc(PROFILE_FOLDER)}</b> trên Drive, dùng chung với ô ① Hồ sơ gốc / ② Vị trí ở Phiên trực tiếp. Đặt tên <b>GOC - …</b> cho hồ sơ gốc, <b>VT - …</b> cho từng vị trí. Đổi máy chỉ cần kết nối Google rồi bấm <b>Dùng</b>.</p>
         <div class="row wrap"><button class="btn primary" id="pDrvSave">Lưu hồ sơ này lên Drive</button><button class="btn" id="pDrvList">Xem hồ sơ trên Drive</button></div>
         <div id="pDrvBox" class="mt"></div></div>
       <div class="card mt"><div class="formgrid">
@@ -536,7 +537,8 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
     await D.upload(new Blob([JSON.stringify(snapshot())], { type: 'application/json' }), 'copilot-state.json', f.id, 'application/json', ex && ex.id);
     if (!silent) U.toast('Đã sao lưu hồ sơ + lịch sử lên Drive ✓', 'ok');
   }
-  async function profileFolder() { const f = await copilotFolder(); return D.ensureFolder('Hồ sơ', f.id); }
+  // Dùng chung thư mục với ô "Hồ sơ gốc / Vị trí" ở Phiên trực tiếp (kho.js)
+  async function profileFolder() { return (await D.findFolderAnywhere(PROFILE_FOLDER)) || D.ensureFolder(PROFILE_FOLDER); }
   async function driveSaveProfile(p, name) {
     if (!D.hasToken()) await D.connect('');
     const f = await profileFolder();
@@ -630,7 +632,13 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
       if (d.pdload) {
         if (!confirm(`Dùng hồ sơ “${d.pdname}”? Hồ sơ đang mở trên máy này sẽ được thay thế (lịch sử các buổi vẫn giữ).`)) return;
         U.loading(true, 'Đang tải hồ sơ…');
-        try { const st = JSON.parse(await D.readText(d.pdload)); if (!st || !st.profile) throw new Error('File không phải hồ sơ Copilot'); saveProfile(st.profile); renderProfile(); U.toast('Đã dùng hồ sơ: ' + d.pdname, 'ok'); }
+        try {
+          const st = JSON.parse(await D.readText(d.pdload));
+          // File gói vị trí (chỉ có JD, ghi chú, câu trả lời) thì ghép vào hồ sơ đang mở như ô ② ở Phiên trực tiếp
+          const p = st && st.profile ? st.profile : st && (st.jd || st.qa || st.notes) && MD.Kho ? MD.Kho.merge(profile(), st) : null;
+          if (!p) throw new Error('File không phải hồ sơ Copilot');
+          saveProfile(p); renderProfile(); U.toast('Đã dùng hồ sơ: ' + d.pdname, 'ok');
+        }
         catch (er) { U.toast(er.message, 'err', 7000); }
         U.loading(false); return;
       }
@@ -646,7 +654,7 @@ A: <câu trả lời mẫu, có thể nhiều dòng>` }],
         case 'pSave': saveProfile(readProfileForm()); return U.toast('Đã lưu hồ sơ', 'ok');
         case 'pDrvSave': {
           const p = readProfileForm(); saveProfile(p);
-          const def = 'Hồ sơ - ' + (p.role || 'Gốc');
+          const def = p.role ? 'VT - ' + [p.company, p.role].filter(Boolean).join(' ') : 'GOC - ' + (p.name || 'Hồ sơ gốc');
           const nm = prompt('Tên hồ sơ trên Drive (trùng tên sẽ ghi đè bản cũ):', def); if (!nm) return;
           U.loading(true, 'Đang lưu lên Drive…');
           try { const r = await driveSaveProfile(p, nm); U.toast('Đã lưu “' + r.name + '” lên Drive ✓', 'ok'); await drawDriveProfiles(); }
