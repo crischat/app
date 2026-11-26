@@ -13,7 +13,19 @@
   };
   const PERSONA_LABEL = { hr: 'HR', manager: 'Quản lý trực tiếp', tech: 'Chuyên môn / kỹ thuật', director: 'Giám đốc vận hành' };
   const DIFF = { easy: 'Thân thiện, gợi mở, ít hỏi vặn', real: 'Thực tế như buổi phỏng vấn thật, có hỏi đào sâu khi trả lời chung chung', hard: 'Khó: hỏi vặn, thử thách mâu thuẫn, đòi số liệu, gây áp lực vừa phải (vẫn lịch sự)' };
-  const opts = () => Object.assign({ persona: 'hr', lang: 'vi', n: 8, diff: 'real', voice: '', rate: 1.05, wait: 2.5, hint: true, showQ: true }, U.store.get(OKEY, {}));
+  const FOCUS = {
+    mix: { label: 'Tổng hợp (theo CV và JD)', rule: '' },
+    scenario: { label: 'Tình huống & thử thách', rule: `TRỌNG TÂM BUỔI NÀY: CÂU HỎI TÌNH HUỐNG CÓ DIỄN BIẾN.
+- Hầu hết câu hỏi chính là một tình huống thật của vị trí này, lấy từ JD và bối cảnh công ty (sự cố vận hành, hàng gấp thiếu người, lệch tồn trước kiểm kê/audit, khiếu nại chất lượng, xung đột với phòng ban khác, tai nạn hoặc nguy cơ an toàn, cắt giảm chi phí, nhân viên chống đối…). Nêu bối cảnh cụ thể: giờ, số lượng, con số, ai liên quan.
+- Sau khi ứng viên trả lời, KHÔNG chuyển ngay sang câu mới: đưa thêm 1–2 diễn biến làm khó hơn ("Giả sử bảo trì báo 4 tiếng mới sửa xong…", "Khách gọi và dọa huỷ đơn…", "Sếp của bạn không nghe máy…") và hỏi tiếp em quyết định gì, ưu tiên gì, báo ai, đo bằng số nào.
+- Nếu câu trả lời chung chung, yêu cầu cụ thể: bước đầu tiên trong 10 phút đầu là gì, ai làm, con số nào.
+- Mỗi tình huống + diễn biến tính là 1 câu hỏi chính. Trộn 1 câu hỏi kinh nghiệm thật ("Kể một lần em đã…") sau mỗi 2 tình huống.` },
+    gaps: { label: 'Xoáy vào điểm yếu so với JD', rule: `TRỌNG TÂM BUỔI NÀY: THỬ THÁCH KHOẢNG TRỐNG.
+- So CV với JD, tìm mọi điểm chưa đạt (số năm kinh nghiệm, bằng cấp, ngành, hệ thống/tiêu chuẩn chưa làm, quy mô, ngoại ngữ, lương cũ so với vị trí) và hỏi thẳng từng điểm, lịch sự nhưng không nể.
+- Khi ứng viên bào chữa, phản biện lại một lần ("Nhưng người khác có đủ 7 năm, tại sao tôi phải chọn em?", "Vậy ngày đầu tiên em làm gì khi chưa biết…?"). Đòi bằng chứng và con số.
+- Hỏi cả câu về lương: ép ứng viên nói con số trước, và hỏi vì sao mức đó hợp lý so với lương cũ.` }
+  };
+  const opts = () => Object.assign({ focus: 'mix', persona: 'hr', lang: 'vi', n: 8, diff: 'real', voice: '', rate: 1.05, wait: 2.5, hint: true, showQ: true }, U.store.get(OKEY, {}));
   const saveOpts = (p) => U.store.set(OKEY, Object.assign(opts(), p));
 
   // Trạng thái buổi tập
@@ -246,6 +258,7 @@
     return `Bạn đóng vai NGƯỜI PHỎNG VẤN: ${PERSONAS[o.persona]}.
 Bạn đang phỏng vấn ứng viên ${p.name || ''} cho vị trí "${p.role || '(chưa rõ)'}" tại "${p.company || '(chưa rõ)'}". Phỏng vấn bằng ${o.lang === 'en' ? 'TIẾNG ANH' : 'TIẾNG VIỆT'} (xưng hô tự nhiên${o.lang === 'vi' ? ': chị/anh – em' : ''}).
 Phong cách: ${DIFF[o.diff]}.
+${(FOCUS[o.focus] || FOCUS.mix).rule}
 Quy tắc:
 - Mỗi lượt chỉ nói 1 câu hỏi (có thể kèm 1 câu dẫn ngắn). Văn nói tự nhiên, tối đa 3 câu, KHÔNG markdown, KHÔNG gạch đầu dòng, KHÔNG emoji — vì nội dung sẽ được đọc to.
 - Dựa vào CV và JD để hỏi cụ thể (dự án, con số, công ty cũ, khoảng trống, điểm chưa khớp với JD). Nếu câu trả lời chung chung, thiếu số liệu hoặc mâu thuẫn với CV → hỏi đào sâu trước khi chuyển chủ đề.
@@ -279,6 +292,7 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
           <label class="field">Người phỏng vấn${sel('mkPersona', PERSONA_LABEL, o.persona)}</label>
           <label class="field">Ngôn ngữ${sel('mkLang', { vi: 'Tiếng Việt', en: 'Tiếng Anh' }, o.lang)}</label>
           <label class="field">Số câu hỏi chính${sel('mkN', { 5: '5 câu (~10 phút)', 8: '8 câu (~15 phút)', 12: '12 câu (~25 phút)' }, o.n)}</label>
+          <label class="field">Trọng tâm${sel('mkFocus', Object.fromEntries(Object.entries(FOCUS).map(([k, v]) => [k, v.label])), o.focus)}</label>
           <label class="field">Độ khó${sel('mkDiff', { easy: 'Thân thiện', real: 'Thực tế', hard: 'Khó — gây áp lực' }, o.diff)}</label>
           <label class="field">Giọng đọc<select id="mkVoice">
             <optgroup label="Giọng AI Gemini (không cần cài, dùng key Gemini)">${Object.entries(GEMINI_VOICES).map(([v, l]) => `<option value="g:${v}" ${(o.voice || 'g:Kore') === 'g:' + v ? 'selected' : ''}>${v} — ${l}</option>`).join('')}</optgroup>
@@ -481,21 +495,21 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
     if (!turns.some((t) => t.who === 'me')) { M.feedback = 'Buổi tập chưa có câu trả lời nào để chấm.'; renderLive(); return; }
     const box = () => $('#mkFeedback');
     try {
-      const r = await AI.call([{ role: 'user', content: `Đây là bản ghi buổi PHỎNG VẤN THỬ (người phỏng vấn do AI đóng vai: ${PERSONA_LABEL[o.persona]}, ${o.lang === 'en' ? 'tiếng Anh' : 'tiếng Việt'}, độ khó ${DIFF[o.diff]}). Lưu ý câu trả lời của tôi được chép từ giọng nói nên có thể sai chính tả nhẹ — không chấm lỗi chép lời.\n\n${CP.transcriptText(turns, 400)}\n\nHãy đóng vai huấn luyện viên phỏng vấn, nhận xét THẲNG THẮN bằng tiếng Việt (Markdown):\n## Điểm tổng: x/10 — <1 câu đánh giá>\n## Từng câu hỏi\nVới mỗi câu: **Câu hỏi**, tóm tắt câu tôi trả lời, **Điểm x/10**, ✅ làm tốt, ⚠\ufe0f cần sửa (đối chiếu hồ sơ, câu trả lời đã chuẩn bị và chiến lược — vd tụt lương, nói lòng vòng, thiếu số liệu, mâu thuẫn CV), 💬 **Câu trả lời mẫu tốt hơn** (bằng ngôn ngữ của câu hỏi, đọc trong 60 giây, đúng sự thật trong hồ sơ).\n## 3 việc cần luyện trước buổi thật` }],
+      const r = await AI.call([{ role: 'user', content: `Đây là bản ghi buổi PHỎNG VẤN THỬ (người phỏng vấn do AI đóng vai: ${PERSONA_LABEL[o.persona]}, trọng tâm: ${(FOCUS[o.focus] || FOCUS.mix).label}, ${o.lang === 'en' ? 'tiếng Anh' : 'tiếng Việt'}, độ khó ${DIFF[o.diff]}). Lưu ý câu trả lời của tôi được chép từ giọng nói nên có thể sai chính tả nhẹ — không chấm lỗi chép lời.\n\n${CP.transcriptText(turns, 400)}\n\nHãy đóng vai huấn luyện viên phỏng vấn, nhận xét THẲNG THẮN bằng tiếng Việt (Markdown):\n## Điểm tổng: x/10 — <1 câu đánh giá>\n## Từng câu hỏi\nVới mỗi câu: **Câu hỏi**, tóm tắt câu tôi trả lời, **Điểm x/10**, ✅ làm tốt, ⚠\ufe0f cần sửa (đối chiếu hồ sơ, câu trả lời đã chuẩn bị và chiến lược — vd tụt lương, nói lòng vòng, thiếu số liệu, mâu thuẫn CV), 💬 **Câu trả lời mẫu tốt hơn** (bằng ngôn ngữ của câu hỏi, đọc trong 60 giây, đúng sự thật trong hồ sơ).\n## 3 việc cần luyện trước buổi thật` }],
         Object.assign(CP.sugOpts(), { system: CP.SUG_SYS(), maxTokens: 12000, effort: 'medium', onText: (x) => { M.feedback = x; if (box()) box().innerHTML = CP.md(x); } }));
       M.feedback = r.text;
     } catch (e) { M.feedback = '⚠\ufe0f Không chấm điểm được: ' + e.message; }
     if (box()) box().innerHTML = CP.md(M.feedback);
     // lưu vào Lịch sử (cũng thành trí nhớ cho các buổi sau)
     const list = CP.sessions();
-    list.unshift({ id: M.id, title: `Phỏng vấn thử — ${PERSONA_LABEL[o.persona]} (${o.lang === 'en' ? 'EN' : 'VI'})`, lang: o.lang, startedAt: M.startedAt, endedAt: Date.now(), turns, sugs: [], analysis: '', summary: M.feedback, mock: true });
+    list.unshift({ id: M.id, title: `Phỏng vấn thử — ${PERSONA_LABEL[o.persona]} · ${(FOCUS[o.focus] || FOCUS.mix).label} (${o.lang === 'en' ? 'EN' : 'VI'})`, lang: o.lang, startedAt: M.startedAt, endedAt: Date.now(), turns, sugs: [], analysis: '', summary: M.feedback, mock: true });
     CP.saveSessions(list);
     U.toast('Đã lưu buổi tập vào Lịch sử', 'ok');
   }
 
   function readForm() {
     if (!$('#mkPersona')) return;
-    saveOpts({ persona: $('#mkPersona').value, lang: $('#mkLang').value, n: +$('#mkN').value, diff: $('#mkDiff').value, voice: $('#mkVoice').value, rate: +$('#mkRate').value, wait: +$('#mkWait').value, hint: $('#mkHint').checked, showQ: $('#mkShowQ').checked });
+    saveOpts({ focus: $('#mkFocus').value, persona: $('#mkPersona').value, lang: $('#mkLang').value, n: +$('#mkN').value, diff: $('#mkDiff').value, voice: $('#mkVoice').value, rate: +$('#mkRate').value, wait: +$('#mkWait').value, hint: $('#mkHint').checked, showQ: $('#mkShowQ').checked });
   }
 
   /* =================== Sự kiện =================== */

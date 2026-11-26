@@ -136,7 +136,7 @@
       <div class="card">
         <div class="cardhead"><div><span class="pill">Câu ${S.i + 1}/${S.list.length}</span> <span class="muted">· đã thuộc ${done}/${S.list.length}</span>
           ${m[x.q] === 'ok' ? ' <span class="pill" style="background:var(--ok);color:#fff">✓ Thuộc</span>' : m[x.q] === 'again' ? ' <span class="pill">↻ Tập lại</span>' : ''}</div>
-          <div class="row"><button class="btn ghost" id="drPrev">← Trước</button><button class="btn ghost" id="drNext">Sau →</button></div></div>
+          <div class="row"><button class="btn" id="drGoMock" title="AI đóng vai quản lý, hỏi tình huống bằng tiếng Anh, đưa thêm diễn biến làm khó, cuối buổi chấm điểm (cần key Gemini)">🤖 Phỏng vấn tình huống với AI</button><button class="btn ghost" id="drPrev">← Trước</button><button class="btn ghost" id="drNext">Sau →</button></div></div>
         <div class="dr-q">${o.showQ || S.showA ? esc(x.q) : '<span class="muted">(Đang ẩn chữ — bấm 🔊 để nghe)</span>'}</div>
         ${(o.showQ || S.showA) && x.q_vi ? `<div class="muted">${esc(x.q_vi)}</div>` : ''}
         <div class="row wrap mt">
@@ -178,6 +178,9 @@
       case 'drAgain': setMark(x.q, 'again'); return go(1);
       case 'drPrev': return go(-1);
       case 'drNext': return go(1);
+      case 'drGoMock':
+        stopAll(); U.store.set('copilot_mock', Object.assign(U.store.get('copilot_mock', {}), { focus: 'scenario', lang: 'en', persona: 'manager', diff: 'real' }));
+        return MD.CP.showTab('mock');
       case 'drResetMarks': U.store.set(MKEY, {}); return paint();
     }
   });
