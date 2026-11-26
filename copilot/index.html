@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../masterdata/css/app.css?v=1">
-<link rel="stylesheet" href="css/copilot.css?v=7">
+<link rel="stylesheet" href="css/copilot.css?v=8">
 <script>try{var t=localStorage.getItem('md_theme');if(t)document.documentElement.dataset.theme=JSON.parse(t);}catch(e){}</script>
 </head>
 <body>
@@ -50,6 +50,7 @@
   <nav class="sidenav" id="sidenav">
     <button data-tab="live" class="active"><svg><use href="#i-live"/></svg><span>Phiên trực tiếp</span></button>
     <button data-tab="interp"><svg><use href="#i-interp"/></svg><span>Dịch cabin (Teams)</span></button>
+    <button data-tab="drill"><svg><use href="#i-mock"/></svg><span>Luyện câu (giọng Anh)</span></button>
     <button data-tab="mock"><svg><use href="#i-mock"/></svg><span>Phỏng vấn thử với AI</span></button>
     <button data-tab="profile"><svg><use href="#i-user"/></svg><span>Hồ sơ của tôi</span></button>
     <button data-tab="prep"><svg><use href="#i-prep"/></svg><span>Chuẩn bị</span></button>
@@ -136,6 +137,12 @@
       <div id="mockBody"></div>
     </section>
 
+    <!-- ============ LUYỆN CÂU ============ -->
+    <section class="tab" id="tab-drill">
+      <div class="pagehead"><h1>Luyện câu với giọng tiếng Anh</h1><p>Máy đọc to câu hỏi đã chuẩn bị, bạn trả lời vào mic, rồi so với câu mẫu và đọc theo. Không cần API key.</p></div>
+      <div id="drillBody"></div>
+    </section>
+
     <!-- ============ HỒ SƠ ============ -->
     <section class="tab" id="tab-profile">
       <div class="pagehead"><h1>Hồ sơ của tôi</h1><p>AI chỉ gợi ý dựa trên những gì có ở đây; không bịa kinh nghiệm bạn không có.</p></div>
@@ -178,8 +185,9 @@
 <script src="js/audio.js?v=2"></script>
 <script src="js/mock.js?v=8"></script>
 <script src="js/interp.js?v=12"></script>
-<script src="js/copilot.js?v=14"></script>
+<script src="js/drill.js?v=1"></script>
+<script src="js/copilot.js?v=15"></script>
 <script src="js/quick.js?v=11"></script>
-<script src="js/kho.js?v=3"></script>
+<script src="js/kho.js?v=4"></script>
 </body>
 </html>

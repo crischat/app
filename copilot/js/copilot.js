@@ -26,11 +26,12 @@
   /* =================== Điều hướng =================== */
   let tab = 'live';
   function showTab(name) {
+    if (tab === 'drill' && name !== 'drill' && MD.Drill) MD.Drill.leave();
     tab = name;
     $$('.sidenav button').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
     $$('.tab').forEach((t) => t.classList.toggle('active', t.id === 'tab-' + name));
     $('#sidenav').classList.remove('open');
-    ({ live: renderStart, profile: renderProfile, prep: renderPrep, history: renderHistory, settings: renderSettings, mock: () => MD.Mock && MD.Mock.render(), interp: () => MD.Interp && MD.Interp.render() }[name] || (() => {}))();
+    ({ live: renderStart, profile: renderProfile, prep: renderPrep, history: renderHistory, settings: renderSettings, mock: () => MD.Mock && MD.Mock.render(), drill: () => MD.Drill && MD.Drill.render(), interp: () => MD.Interp && MD.Interp.render() }[name] || (() => {}))();
     try { history.replaceState(null, '', '#' + name); } catch (e) { /* bỏ qua */ }
   }
 

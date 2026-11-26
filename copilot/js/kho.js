@@ -21,7 +21,7 @@
     if (vt.style) p.style = (p.style || '') + '\n' + vt.style;
     if (vt.terms) p.terms = [p.terms, vt.terms].filter(Boolean).join(', ');
     const seen = new Set();
-    p.qa = [].concat(vt.qa || [], p.qa || []).filter((x) => { const k = (x.q || '').trim().toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true; });
+    p.qa = [].concat((vt.qa || []).map((x) => Object.assign({}, x, { src: 'vt' })), p.qa || []).filter((x) => { const k = (x.q || '').trim().toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true; });
     return p;
   }
 
