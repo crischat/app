@@ -340,6 +340,7 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
   }
   function setState(s) {
     M.state = s;
+    if (s === 'speaking' || s === 'thinking' || s === 'ended') { liveStop(); clearTimeout(M.micWatch); }
     const el = $('#mkState'); if (el) { el.textContent = stateLabel(); el.classList.toggle('on', s === 'listening'); }
   }
   function renderTurns() {
@@ -361,11 +362,12 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
     readForm();
     try { M.mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
     catch (e) { return U.toast('Không được cấp quyền micro: ' + e.message, 'err', 7000); }
+    M.micLabel = (M.mic.getAudioTracks()[0] || {}).label || '';
     Object.assign(M, { active: true, state: 'thinking', turns: [], messages: [], parts: [], pendingStt: 0, asked: 0, ended: false, startedAt: Date.now(), feedback: undefined, id: U.uid() });
     const c = MD.CP.cset();
     M.listener = AU.listen(M.mic, {
       sensitivity: c.sensitivity, silenceMs: 700,
-      onLevel: (v) => { const b = $('#mkLv'); if (b) b.style.width = (v * 100) + '%'; },
+      onLevel: (v) => { const b = $('#mkLv'); if (b) b.style.width = (v * 100) + '%'; if (M.state === 'listening' && v > M.lvMax) M.lvMax = v; },
       onSpeaking: (sp) => { if (M.state !== 'listening') return; clearTimeout(M.timer); if (!sp) armFinish(); else info('đang nói…'); },
       onSegment: onAnswerSegment
     });
@@ -405,8 +407,37 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
   }
 
   function startListening() {
-    M.parts = []; M.pendingStt = 0; M.answerStart = Date.now();
+    M.parts = []; M.pendingStt = 0; M.answerStart = Date.now(); M.live = ''; M.lvMax = 0;
     setState('listening'); info('Mời bạn trả lời…');
+    liveStart();
+    clearTimeout(M.micWatch);
+    // 6 giây mà mic gần như không có tiếng -> báo rõ đang dùng micro nào
+    M.micWatch = setTimeout(() => {
+      if (M.state === 'listening' && M.lvMax < 0.03 && !M.live) info(`⚠ Micro không nhận tiếng (đang dùng: ${M.micLabel || 'micro mặc định'}). Bấm biểu tượng ổ khoá cạnh địa chỉ trang để đổi micro, hoặc kiểm tra mic có bị tắt tiếng.`);
+    }, 6000);
+  }
+
+  /* Chữ hiện ngay khi đang nói (nhận giọng của trình duyệt); cũng là bản dự phòng nếu chép lời bằng AI lỗi */
+  const SRC = window.SpeechRecognition || window.webkitSpeechRecognition;
+  function liveStart() {
+    liveStop(); if (!SRC) return;
+    const r = new SRC(); r.lang = opts().lang === 'en' ? 'en-US' : 'vi-VN'; r.continuous = true; r.interimResults = true;
+    let fin = '';
+    r.onresult = (e) => {
+      let tmp = '';
+      for (let k = e.resultIndex; k < e.results.length; k++) { const t = e.results[k][0].transcript; if (e.results[k].isFinal) fin += t + ' '; else tmp += t; }
+      M.live = (fin + tmp).trim();
+      if (M.state === 'listening' || M.state === 'processing') { const cur = M.turns[M.turns.length - 1]; if (!M.parts.some(Boolean)) { liveTurn().text = M.live; renderTurns(); } else if (cur) info('🎙 ' + M.live.slice(-90)); }
+    };
+    r.onerror = () => {};
+    r.onend = () => { if (M.sr === r && M.active && M.state === 'listening') { try { r.start(); } catch (x) { /* bỏ qua */ } } };
+    M.sr = r; try { r.start(); } catch (x) { M.sr = null; }
+  }
+  function liveStop() { const r = M.sr; M.sr = null; if (r) { try { r.stop(); } catch (x) { /* đã dừng */ } } }
+  function liveTurn() {
+    let cur = M.turns[M.turns.length - 1];
+    if (!cur || cur.who !== 'me' || cur.closed) { cur = { who: 'me', text: '', pending: true }; M.turns.push(cur); }
+    return cur;
   }
 
   function onAnswerSegment(seg) {
@@ -414,12 +445,11 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
     // seg.start đã lùi 0,3 giây đệm trước tiếng nói -> cộng lại để lấy lúc thật sự bắt đầu nói.
     if (M.state !== 'listening' || seg.start + 300 < M.ttsEnd) return;
     const idx = M.parts.length; M.parts.push(null); M.pendingStt++;
-    let cur = M.turns[M.turns.length - 1];
-    if (!cur || cur.who !== 'me' || cur.closed) { cur = { who: 'me', text: '', pending: true }; M.turns.push(cur); }
+    const cur = liveTurn();
     cur.pending = true; renderTurns();
     MD.CP.sttCall(seg, 'me', opts().lang).then((j) => {
       M.parts[idx] = j.text || '';
-      cur.text = M.parts.filter(Boolean).join(' ');
+      cur.text = M.parts.filter(Boolean).join(' ') || M.live || '';
     }).catch((e) => { M.parts[idx] = ''; U.toast('Chép lời lỗi: ' + e.message, 'err'); })
       .finally(() => {
         M.pendingStt--; cur.pending = M.pendingStt > 0; renderTurns();
@@ -441,7 +471,8 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
     clearTimeout(M.timer);
     if (M.pendingStt > 0) { M.finishWanted = true; setState('processing'); return; }
     M.finishWanted = false;
-    const ans = M.parts.filter(Boolean).join(' ').trim();
+    const ans = (M.parts.filter(Boolean).join(' ') || M.live || '').trim();
+    if (ans) { liveStop(); clearTimeout(M.micWatch); }
     const cur = M.turns[M.turns.length - 1];
     if (cur && cur.who === 'me') { cur.closed = true; cur.pending = false; cur.text = ans; }
     if (!ans) { setState('listening'); info('Chưa nghe được câu trả lời — nói lại hoặc bấm “Bỏ qua câu này”.'); return; }
@@ -452,7 +483,7 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
   }
 
   function skipQuestion() {
-    clearTimeout(M.timer);
+    clearTimeout(M.timer); liveStop(); clearTimeout(M.micWatch);
     stopSpeaking();
     const cur = M.turns[M.turns.length - 1];
     if (cur && cur.who === 'me') cur.closed = true;
@@ -482,7 +513,7 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
   async function finish() {
     if (!M.active) return;
     M.active = false; window.onbeforeunload = null;
-    clearTimeout(M.timer);
+    clearTimeout(M.timer); liveStop(); clearTimeout(M.micWatch);
     stopSpeaking();
     if (M.hintAbort) M.hintAbort.abort();
     if (M.listener) M.listener.stop();
