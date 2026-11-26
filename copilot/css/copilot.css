@@ -92,3 +92,12 @@ body.ip-pip .ip-rows { height: auto; flex: 1; }
 .dr-a { margin: 10px 0 0; padding-left: 20px; font-size: 17px; line-height: 1.55; }
 .dr-a li.on { background: rgba(255, 200, 0, .25); border-radius: 4px; }
 #tab-drill details summary { cursor: pointer; }
+
+/* Phỏng vấn thử: 2 cột cố định, mỗi cột tự cuộn riêng — gợi ý không nhảy theo hội thoại */
+@media (min-width: 1001px) {
+  #tab-mock .livegrid { align-items: stretch; }
+  #tab-mock .livegrid > .col { position: sticky; top: calc(var(--top-h) + 100px); height: calc(100vh - var(--top-h) - 120px); min-height: 360px; overflow: hidden; }
+  #tab-mock .livegrid .transcript { flex: 1; max-height: none; min-height: 0; }
+  #tab-mock .livegrid #mkHint, #tab-mock .livegrid #mkFeedback { flex: 1; min-height: 0; overflow-y: auto; padding-right: 6px; overscroll-behavior: contain; }
+}
+#mkHint p { margin: 0 0 10px; }

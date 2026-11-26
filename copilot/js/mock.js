@@ -262,7 +262,7 @@ ${(FOCUS[o.focus] || FOCUS.mix).rule}
 Quy tắc:
 - Mỗi lượt chỉ nói 1 câu hỏi (có thể kèm 1 câu dẫn ngắn). Văn nói tự nhiên, tối đa 3 câu, KHÔNG markdown, KHÔNG gạch đầu dòng, KHÔNG emoji — vì nội dung sẽ được đọc to.
 - Dựa vào CV và JD để hỏi cụ thể (dự án, con số, công ty cũ, khoảng trống, điểm chưa khớp với JD). Nếu câu trả lời chung chung, thiếu số liệu hoặc mâu thuẫn với CV → hỏi đào sâu trước khi chuyển chủ đề.
-- KHÔNG khen, chấm điểm hay nhận xét câu trả lời trong lúc phỏng vấn (chỉ phản hồi ngắn kiểu "Ừ, chị hiểu" rồi hỏi tiếp).
+- KHÔNG khen, chấm điểm hay nhận xét câu trả lời trong lúc phỏng vấn (chỉ phản hồi ngắn kiểu ${o.lang === 'en' ? '"I see." / "Okay, thank you."' : '"Ừ, chị hiểu"'} rồi hỏi tiếp).
 - Tổng khoảng ${o.n} câu hỏi chính. Câu áp chót: mời ứng viên đặt câu hỏi cho bạn và trả lời ngắn gọn, hợp lý. Sau đó cảm ơn, nói bước tiếp theo, rồi kết thúc bằng thẻ [KẾT THÚC] ở cuối cùng.
 - Nếu tin nhắn của ứng viên là "(…)" mô tả hành động (bỏ qua, im lặng), xử lý tự nhiên như người phỏng vấn thật.
 - Bạn KHÔNG biết các ghi chú riêng của ứng viên ngoài CV.
@@ -495,6 +495,9 @@ This interview is conducted ENTIRELY IN ENGLISH. Every word you say must be in E
     renderTurns(); interviewerTurn();
   }
 
+  // mỗi mục (❓ Câu hỏi, 💬 Trả lời, 🇻🇳 Ý chính…) xuống dòng riêng, không dính vào gạch đầu dòng phía trên
+  const hintFmt = (t) => (t || '').replace(/[ \t]*\n?[ \t]*(\*\*(?:❓|💬|🇻🇳|📌|↪))/g, '\n\n$1').replace(/(\*\*[^*\n]{1,40}:\*\*)[ \t]*\n?(?=\s*- )/g, '$1\n\n').trim();
+
   /* ---------- Gợi ý Copilot song song ---------- */
   async function hint(question) {
     const box = $('#mkHint'); if (!box) return;
@@ -506,8 +509,8 @@ This interview is conducted ENTIRELY IN ENGLISH. Every word you say must be in E
     const hist = M.turns.filter((x) => x.who !== 'note' && x.text).slice(-16).map((x) => ({ who: x.who, text: x.text }));
     try {
       const r = await AI.call([{ role: 'user', content: `Bản ghi cuộc trò chuyện gần đây:\n${CP.transcriptText(hist, 16)}\n\nHãy gợi ý cho lượt mới nhất của Người phỏng vấn. Câu hỏi bằng ${o.lang === 'en' ? 'tiếng Anh' : 'tiếng Việt'} → phần "Trả lời (nói theo)" viết bằng ${o.lang === 'en' ? 'tiếng Anh' : 'tiếng Việt'}.` }],
-        Object.assign(CP.sugOpts(), { system: CP.SUG_SYS(), signal: ctrl.signal, onText: (x) => { if (M.hintAbort === ctrl) box.innerHTML = CP.md(x); } }));
-      if (M.hintAbort === ctrl) { box.innerHTML = CP.md(r.text); if (st) st.textContent = `${((Date.now() - t0) / 1000).toFixed(1)}s · ${r.model}`; }
+        Object.assign(CP.sugOpts(), { system: CP.SUG_SYS(), signal: ctrl.signal, onText: (x) => { if (M.hintAbort === ctrl) box.innerHTML = CP.md(hintFmt(x)); } }));
+      if (M.hintAbort === ctrl) { box.innerHTML = CP.md(hintFmt(r.text)); box.scrollTop = 0; if (st) st.textContent = `${((Date.now() - t0) / 1000).toFixed(1)}s · ${r.model}`; }
     } catch (e) { if (e.name !== 'AbortError') box.innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`; }
     box.classList.remove('streaming');
   }

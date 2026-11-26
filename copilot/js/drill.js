@@ -41,7 +41,7 @@
   function say(text) {
     return new Promise((res) => {
       if (!window.speechSynthesis) { U.toast('Trình duyệt không có giọng đọc.', 'err'); return res(); }
-      const u = new SpeechSynthesisUtterance(text.replace(/^[-\d.\s]+/gm, '').replace(/\n+/g, ' '));
+      const u = new SpeechSynthesisUtterance(noPron(text).replace(/^[-\d.\s]+/gm, '').replace(/\n+/g, ' '));
       const v = pickVoice(); if (v) u.voice = v; u.lang = v ? v.lang : 'en-US'; u.rate = +opts().rate || 0.9;
       // Chrome đôi khi im giữa câu dài: giữ cho engine chạy
       const keep = setInterval(() => { if (speechSynthesis.speaking) { speechSynthesis.pause(); speechSynthesis.resume(); } }, 10000);
@@ -50,6 +50,8 @@
       S.speaking = true; paint(); speechSynthesis.speak(u);
     });
   }
+  // bỏ phần cách đọc kiểu "(que-hao-x)" trước khi máy đọc to hoặc chấm điểm
+  const noPron = (t) => (t || '').replace(/\s*\((?=[^)]*[-àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ])[a-zàáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ\s-]+\)/gi, '');
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const lines = (a) => a.split('\n').map((s) => s.replace(/^\s*(-|\d+\.)\s*/, '').trim()).filter(Boolean);
 
@@ -130,7 +132,7 @@
       body.innerHTML = `<div class="note warn">Chưa có câu tiếng Anh nào. Vào tab <b>Phiên trực tiếp</b>, bấm <b>Kết nối Drive</b>, chọn ① GOC và ② vị trí, rồi quay lại đây.</div>${settings}`;
       return;
     }
-    const sc = S.heard ? score(S.heard, x.a) : null;
+    const sc = S.heard ? score(S.heard, noPron(x.a)) : null;
     const ls = lines(x.a);
     body.innerHTML = `
       <div class="card">
