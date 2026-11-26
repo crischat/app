@@ -101,3 +101,11 @@ body.ip-pip .ip-rows { height: auto; flex: 1; }
   #tab-mock .livegrid #mkHint, #tab-mock .livegrid #mkFeedback { flex: 1; min-height: 0; overflow-y: auto; padding-right: 6px; overscroll-behavior: contain; }
 }
 #mkHint p { margin: 0 0 10px; }
+
+/* Phỏng vấn thử: thanh trạng thái luôn 1 dòng chữ, không đổi chiều cao khi chữ chạy */
+#tab-mock .livebar { flex-wrap: nowrap; min-height: 64px; }
+#tab-mock .livebar .meters { flex: 1 1 0; min-width: 0; flex-wrap: nowrap; align-items: center; }
+#tab-mock .livebar .meters > * { flex-shrink: 0; }
+#tab-mock #mkInfo { flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#tab-mock .livebar .row { flex-wrap: nowrap; flex-shrink: 0; }
+@media (max-width: 1250px) { #tab-mock .livebar { flex-wrap: wrap; } #tab-mock .livebar .meters { flex-basis: 100%; } }

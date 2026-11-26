@@ -380,7 +380,7 @@ This interview is conducted ENTIRELY IN ENGLISH. Every word you say must be in E
     interviewerTurn();
   }
 
-  function info(t) { const el = $('#mkInfo'); if (el) el.textContent = t || ''; }
+  function info(t) { const el = $('#mkInfo'); if (el) { el.textContent = t || ''; el.title = t || ''; } }
 
   async function interviewerTurn() {
     if (!M.active) return;
@@ -430,7 +430,7 @@ This interview is conducted ENTIRELY IN ENGLISH. Every word you say must be in E
       let tmp = '';
       for (let k = e.resultIndex; k < e.results.length; k++) { const t = e.results[k][0].transcript; if (e.results[k].isFinal) fin += t + ' '; else tmp += t; }
       M.live = (fin + tmp).trim();
-      if (M.state === 'listening' || M.state === 'processing') { const cur = M.turns[M.turns.length - 1]; if (!M.parts.some(Boolean)) { liveTurn().text = M.live; renderTurns(); } else if (cur) info('🎙 ' + M.live.slice(-90)); }
+      if (M.state === 'listening' || M.state === 'processing') { const cur = M.turns[M.turns.length - 1]; if (!M.parts.some(Boolean)) { liveTurn().text = M.live; renderTurns(); } else if (cur) info('🎙 …' + M.live.slice(-70)); }
     };
     r.onerror = () => {};
     r.onend = () => { if (M.sr === r && M.active && M.state === 'listening') { try { r.start(); } catch (x) { /* bỏ qua */ } } };
