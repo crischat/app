@@ -271,7 +271,10 @@ Quy tắc:
 ${(p.cv || '(không có CV)').slice(0, 20000)}
 
 # MÔ TẢ CÔNG VIỆC / BỐI CẢNH CÔNG TY (bạn là người của công ty này)
-${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').slice(0, 10000)}`;
+${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').slice(0, 10000)}${o.lang === 'en' ? `
+
+# LANGUAGE — MOST IMPORTANT RULE
+This interview is conducted ENTIRELY IN ENGLISH. Every word you say must be in English, from the first greeting to the goodbye, even though these instructions, the CV and the JD are written in Vietnamese and even if the candidate uses some Vietnamese. Never answer in Vietnamese. Use clear, natural spoken English.` : ''}`;
   }
 
   const aiOpts = () => Object.assign({}, MD.CP.sugOpts(), { maxTokens: 1500 });
@@ -373,7 +376,7 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
     });
     window.onbeforeunload = () => (M.active ? 'Đang phỏng vấn thử' : undefined);
     renderLive();
-    M.messages.push({ role: 'user', content: '(Ứng viên vừa vào phòng họp trực tuyến. Hãy chào ngắn gọn và hỏi câu đầu tiên.)' });
+    M.messages.push({ role: 'user', content: opts().lang === 'en' ? '(The candidate has just joined the online meeting. Greet briefly and ask the first question. Speak English only.)' : '(Ứng viên vừa vào phòng họp trực tuyến. Hãy chào ngắn gọn và hỏi câu đầu tiên.)' });
     interviewerTurn();
   }
 
@@ -384,7 +387,7 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
     setState('thinking'); info('');
     const o = opts();
     // giữ nhịp: đủ số câu thì nhắc AI chuyển sang phần ứng viên hỏi lại & kết thúc
-    if (M.asked >= o.n) { const last = M.messages[M.messages.length - 1]; if (last && last.role === 'user' && typeof last.content === 'string') last.content += `\n\n(Đã đủ ${o.n} câu hỏi chính — mời ứng viên hỏi lại nếu chưa mời, rồi kết thúc buổi với thẻ [KẾT THÚC].)`; }
+    if (M.asked >= o.n) { const last = M.messages[M.messages.length - 1]; if (last && last.role === 'user' && typeof last.content === 'string') last.content += `\n\n(Đã đủ ${o.n} câu hỏi chính — mời ứng viên hỏi lại nếu chưa mời, rồi kết thúc buổi với thẻ [KẾT THÚC].${o.lang === 'en' ? ' Speak English only.' : ''})`; }
     const t = { who: 'them', text: '', pending: true }; M.turns.push(t); renderTurns();
     let text = '';
     try {
@@ -488,7 +491,7 @@ ${(p.jd || '(không có JD — tự giả định hợp lý theo vị trí)').sl
     const cur = M.turns[M.turns.length - 1];
     if (cur && cur.who === 'me') cur.closed = true;
     M.turns.push({ who: 'me', text: '(bỏ qua câu này)', closed: true });
-    M.messages.push({ role: 'user', content: '(Ứng viên xin bỏ qua câu này, hãy hỏi câu khác.)' });
+    M.messages.push({ role: 'user', content: opts().lang === 'en' ? '(The candidate asks to skip this question. Ask a different one, in English.)' : '(Ứng viên xin bỏ qua câu này, hãy hỏi câu khác.)' });
     renderTurns(); interviewerTurn();
   }
 
